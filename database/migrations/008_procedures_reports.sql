@@ -1,0 +1,19 @@
+-- =========================================================================
+-- 008 — Report procedures                                  OWNER: M5
+--
+-- TODO(M5). One procedure per report of Feature 4.12:
+--   sp_report_quarterly_sales(IN p_year INT)                     (REQ-12.1)
+--     per quarter: total revenue + order count, excluding cancelled orders
+--   sp_report_top_products(IN p_from DATE, IN p_to DATE, IN p_limit INT)
+--                                                                (REQ-12.2)
+--   sp_report_category_orders()                                  (REQ-12.3)
+--     an order spanning several categories counts once in each
+--   sp_report_upcoming_deliveries()                              (REQ-12.4)
+--     not yet delivered/picked, with city + oos flag + estimated date,
+--     ORDER BY estimated_delivery_date ASC
+--   sp_report_customer_summary(IN p_customer_id INT)             (REQ-12.5)
+--     pass NULL for all customers
+--
+-- Cross-check every number by hand against the seed data before you trust it.
+-- A report that runs but returns wrong totals is worse than one that errors.
+-- =========================================================================

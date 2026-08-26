@@ -1,0 +1,15 @@
+-- =========================================================================
+-- 005 — Payments                                           OWNER: M5
+--
+-- TODO(M5). Create:
+--   payment   payment_id PK, order_id FK,
+--             payment_method ENUM('cod','card'),                      (REQ-8.1)
+--             payment_status ENUM('Pending','Paid','Failed','Refunded'),
+--             gateway_ref VARCHAR(100) NULL,                          (REQ-8.4)
+--             staff_id FK NULL,   -- who marked COD paid              (REQ-11.3)
+--             created_at, updated_at
+--             UNIQUE (order_id)   -- exactly one payment per order    (BR-5)
+--
+-- Card numbers and CVV are NEVER stored. Only gateway_ref.            (REQ-8.3)
+-- Depends on 004 (orders) and 001 (staff).
+-- =========================================================================

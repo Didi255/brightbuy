@@ -1,0 +1,23 @@
+-- =========================================================================
+-- 004 — Orders, delivery, stock adjustments                OWNER: M4
+--
+-- TODO(M4). Create:
+--   orders            order_id PK, customer_id FK, order_date, total_amount,
+--                     order_status ENUM('Placed','Processing','ReadyOrOut',
+--                                       'DeliveredOrPicked','Cancelled')   (REQ-9.2)
+--                     NOTE: table is `orders`, NOT `order` — reserved word.
+--   order_item        order_item_id PK, order_id FK, variant_id FK, quantity,
+--                     unit_price_at_order DECIMAL(10,2)                    (REQ-5.7)
+--                     out_of_stock_flag BOOLEAN                            (REQ-6.6)
+--   delivery          delivery_id PK, order_id FK,
+--                     delivery_mode ENUM('store_pickup','standard'),
+--                     address_id FK NULL,       -- NULL for store pickup
+--                     city_id FK NOT NULL,      -- resolved dest city       (REQ-6.7)
+--                     estimated_delivery_date DATE,                        (REQ-7.6)
+--                     delivery_status ENUM(...), status_updated_at
+--                     Every order gets a delivery row, pickup included.
+--   stock_adjustment  adjustment_id PK, variant_id FK, staff_id FK,
+--                     change_qty INT, reason VARCHAR(255), timestamp       (REQ-10.4)
+--
+-- Depends on 001 (customer, address, city) and 002 (variant).
+-- =========================================================================

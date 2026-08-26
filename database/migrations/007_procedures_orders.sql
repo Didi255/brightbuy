@@ -1,0 +1,37 @@
+-- =========================================================================
+-- 007 — Order procedures                                   OWNER: M4
+--
+-- This file is the centrepiece of the project (Feature 4.6, REQ-6.1..6.7).
+--
+-- TODO(M4):
+--   sp_place_order(IN p_customer_id, IN p_cart_id, IN p_delivery_mode,
+--                  IN p_address_id, IN p_city_id, IN p_payment_method,
+--                  OUT p_order_id, OUT p_status)
+--
+--     Structure:
+--       DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ROLLBACK; RESIGNAL; END;
+--       START TRANSACTION;
+--         -- lock every variant row in the cart, in a deterministic order
+--         -- (ORDER BY variant_id) to avoid deadlocks between concurrent orders
+--         SELECT ... FROM variant v JOIN cart_item ci ...
+--           WHERE ci.cart_id = p_cart_id ORDER BY v.variant_id FOR UPDATE;
+--         -- validate quantities  (REQ-6.2)
+--         -- decrement stock      (REQ-6.3)
+--         -- INSERT orders, order_item, delivery
+--         -- compute estimated_delivery_date via fn_estimate_delivery_days
+--         -- mark cart converted
+--       COMMIT;
+--
+--   sp_cancel_order(IN p_order_id, IN p_actor_user_id)
+--     Compensating transaction: restore stock, set status Cancelled.
+--     Used by REQ-9.4 and by M5's 24h auto-cancel job (REQ-8.5 / BR-7).
+--
+--   fn_estimate_delivery_days(p_city_id INT, p_has_oos BOOLEAN) RETURNS INT
+--     5 if main city else 7; +3 if p_has_oos.        (REQ-7.1, REQ-7.2)
+--     Store pickup passes a main-city id.            (REQ-7.5)
+--
+-- Remember DELIMITER $$ ... $$ DELIMITER ; around each routine.
+--
+-- When this works, run tests/concurrency.test.js against it. That test is
+-- your evidence that ACID actually holds.
+-- =========================================================================

@@ -1,0 +1,14 @@
+-- =========================================================================
+-- 003 — Cart                                               OWNER: M3
+--
+-- TODO(M3). Create:
+--   cart        cart_id PK, customer_id FK NULL, session_token VARCHAR(64) NULL,
+--               created_at, cart_status ENUM('active','converted','abandoned')
+--               customer_id is NULL for guest carts (REQ-3.5) — confirm this
+--               decision was taken at kickoff before you build it
+--   cart_item   item_id PK, cart_id FK, variant_id FK, quantity INT
+--               UNIQUE (cart_id, variant_id)                  <- REQ-3.4 merge
+--               CHECK (quantity > 0)                          <- REQ-2.6
+--
+-- Depends on 002 (variant). Coordinate with M2 before you run this.
+-- =========================================================================

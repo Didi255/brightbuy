@@ -1,0 +1,17 @@
+-- =========================================================================
+-- 006 — Indexes                                            OWNER: M5 (+ all)
+--
+-- TODO. Before adding each index, run EXPLAIN on the query it is meant to
+-- help and record the result. Then add the index and run EXPLAIN again.
+-- Keep both outputs — the before/after comparison goes in the final report.
+--
+--   CREATE INDEX idx_product_name        ON product (product_name);   (REQ-1.5)
+--   CREATE INDEX idx_prodcat_category    ON product_category (category_id);
+--   CREATE INDEX idx_orders_date         ON orders (order_date);      (REQ-12.6)
+--   CREATE INDEX idx_orders_customer     ON orders (customer_id);
+--   CREATE INDEX idx_orderitem_variant   ON order_item (variant_id);
+--   CREATE INDEX idx_delivery_est_date   ON delivery (estimated_delivery_date);
+--
+-- Note: columns already covered by a PK, UNIQUE, or FK are indexed by InnoDB
+-- automatically. Don't duplicate those — know which ones they are.
+-- =========================================================================
