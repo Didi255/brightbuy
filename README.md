@@ -32,4 +32,3 @@ Verify the walking skeleton: open http://localhost:5173 — it should show a gre
 - `client/src/features/<slice>/` — the screens for that slice.
 
 See `docs/TEAM-PLAN.md` for task allocation and `docs/API.md` for the endpoint contract.
-test
