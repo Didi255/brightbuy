@@ -27,6 +27,7 @@ Stack: MySQL 8 (Docker) · Node.js + Express · React (Vite) · JWT auth
 | `docs/API.md` | Every endpoint and JSON shape. **Shapes are fixed.** |
 | `docs/DECISIONS.md` | Deviations from the submitted SRS/ERD, and why |
 | `docs/UI-GUIDE.md` | Full styling detail and route map |
+| `docs/COURSE-COVERAGE.md` | Lecture topics mapped to project artifacts — viva prep |
 
 ---
 
@@ -290,8 +291,15 @@ Need a change? Write a new numbered file.
 creating `010_*.sql` simultaneously is the most common way student teams corrupt
 their schema history.
 
-Reserved: `001` `002` `003` `004` `005` for the five slices, `006` indexes, `007`
-order procedures, `008` report procedures, `009` triggers.
+Reserved (owner in brackets):
+```
+001 users (D)      002 catalogue core (B)   003 cart (C)
+004 orders (A)     005 payment + stock (E)  006 indexes (E)
+007 order procs (A) 008 report procs (E)    009 triggers (A)
+010 audit log (D)  011 variant attrs (B)    012 views (E)
+013 roles (D)
+```
+Anything new takes `014` onwards.
 
 ## 4.5 Code structure
 
@@ -361,7 +369,7 @@ endpoints, 3–5 screens, one seed or shared asset, and one genuinely hard thing
 | | Slice | The hard thing | Assigned |
 |---|---|---|---|
 | **A** | Order Transaction & Delivery | `sp_place_order` + concurrency proof | Taken |
-| **B** | Catalogue & Search | Search with combined filters, 7-table schema | Pick at kickoff |
+| **B** | Catalogue & Search | Search with combined filters, 6-table schema | Pick at kickoff |
 | **C** | Cart, Checkout & UI Foundation | Guest-cart merge, the shared UI kit | Pick at kickoff |
 | **D** | Auth, Accounts & Audit | JWT + role middleware, audit logging | Pick at kickoff |
 | **E** | Payments, Staff Ops & Reports | Five report procedures, index tuning | Pick at kickoff |
@@ -549,7 +557,7 @@ One **2-hour** meeting. No code before this.
 | # | Decide | Why it can't wait |
 |---|---|---|
 | 0.1 | Everyone's environment runs, in the room | A broken setup found later costs days |
-| 0.2 | Styling library — Mantine / MUI / React-Bootstrap / plain CSS | Changing later means rewriting every screen. Also decides how big C's UI-kit job is |
+| 0.2 | ~~Styling library~~ — **decided: Mantine** (DECISIONS #17) | Announce, don't debate |
 | 0.3 | Route map confirmed (`docs/UI-GUIDE.md` §2) | Five people's screens must link to each other |
 | 0.4 | Slices B–E assigned | Everything depends on it |
 | 0.5 | Icon set — one, not several | Mixed sets look unfinished |
@@ -678,9 +686,8 @@ Full detail in `docs/UI-GUIDE.md`. The essentials:
 consistent, and functional. It does not need to be beautiful. If you're spending
 an evening on hover animations, you're spending it in the wrong place.
 
-**Decide at kickoff, not later:** the styling library (Mantine recommended — a
-component library means nobody hand-rolls a modal, and everything is consistent by
-default), the route map, and the icon set.
+**Already decided: Mantine** (DECISIONS #17). Still to agree: the route map and the
+icon set.
 
 **Ownership:** if two slices need a component it lives in `components/ui/` and C
 owns it. If only you need it, keep it in your feature folder. Never build a

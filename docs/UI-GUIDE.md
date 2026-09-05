@@ -26,7 +26,7 @@ else. Pick one of these instead:
 | **Plain CSS + variables** | None | No dependency, but you build every component yourself — most work, easiest to diverge |
 
 **Recommendation: Mantine.** A component library means nobody hand-rolls a modal or a date
-picker, everything is accessible and consistent by default, and Slice 3's "UI kit" becomes thin
+picker, everything is accessible and consistent by default, and Slice C's "UI kit" becomes thin
 wrappers plus a theme file rather than building primitives from scratch. That saves several days
 across the team, which you can spend on SQL.
 
@@ -42,8 +42,8 @@ cd client && npm install @mantine/core @mantine/hooks @mantine/dates @mantine/no
 
 ## 2. Agree the route map (kickoff, 10 minutes)
 
-This matters more than it looks. Five people build screens that link to each other — if Slice 2's
-product card links to `/product/12` and Slice 3's cart expects `/products/12`, navigation breaks
+This matters more than it looks. Five people build screens that link to each other — if Slice B's
+product card links to `/product/12` and Slice C's cart expects `/products/12`, navigation breaks
 in week 3 integration.
 
 **Proposed map. Confirm or amend at the kickoff, then treat as fixed:**
@@ -51,43 +51,43 @@ in week 3 integration.
 ### Customer
 | Route | Screen | Slice |
 |---|---|---|
-| `/` | Home — category tree, search, featured | 2 |
-| `/products` | Listing with filters | 2 |
-| `/products/:productId` | Detail with variant selector | 2 |
-| `/cart` | Cart | 3 |
-| `/checkout` | Checkout flow | 3 |
-| `/checkout/success/:orderId` | Order confirmation | 3 |
-| `/login` | Login | 4 |
-| `/register` | Register | 4 |
-| `/account` | Profile | 4 |
-| `/account/addresses` | Address book | 4 |
-| `/orders` | Order history | **1** |
-| `/orders/:orderId` | Order detail + status timeline | **1** |
-| `/orders/:orderId/pay` | Payment / retry | 5 |
+| `/` | Home — category tree, search, featured | B |
+| `/products` | Listing with filters | B |
+| `/products/:productId` | Detail with variant selector | B |
+| `/cart` | Cart | C |
+| `/checkout` | Checkout flow | C |
+| `/checkout/success/:orderId` | Order confirmation | C |
+| `/login` | Login | D |
+| `/register` | Register | D |
+| `/account` | Profile | D |
+| `/account/addresses` | Address book | D |
+| `/orders` | Order history | **A** |
+| `/orders/:orderId` | Order detail + status timeline | **A** |
+| `/orders/:orderId/pay` | Payment / retry | E |
 
 ### Staff
 | Route | Screen | Slice |
 |---|---|---|
-| `/staff` | Dashboard landing | 5 |
-| `/staff/catalogue` | Products, categories, variants | 2 |
-| `/staff/stock` | Stock adjustments | 5 |
-| `/staff/orders` | Order & payment console | 5 |
-| `/staff/cities` | Main-city list | 4 |
-| `/staff/users` | Staff & customer accounts, roles | 4 |
-| `/staff/reports` | Five reports | 5 |
+| `/staff` | Dashboard landing | E |
+| `/staff/catalogue` | Products, categories, variants | B |
+| `/staff/stock` | Stock adjustments | E |
+| `/staff/orders` | Order & payment console | E |
+| `/staff/cities` | Main-city list | D |
+| `/staff/users` | Staff & customer accounts, roles | D |
+| `/staff/reports` | Five reports | E |
 
-All `/staff/*` routes sit behind `<ProtectedRoute requireStaff>` (Slice 4 builds it, on Slice 1's
+All `/staff/*` routes sit behind `<ProtectedRoute requireStaff>` (Slice D builds it, on Slice A's
 `requireRole` middleware).
 
 ---
 
 ## 3. The theme file — one place, one owner
 
-Slice 3 creates `client/src/theme.js` in week 1. **Nobody else edits it.** If you need a colour
+Slice C creates `client/src/theme.js` in week 1. **Nobody else edits it.** If you need a colour
 or a spacing value that isn't there, ask — don't add a hex code to your component.
 
 ```js
-// client/src/theme.js  — owner: Slice 3
+// client/src/theme.js  — owner: Slice C
 export const theme = {
   primaryColor: 'blue',
   fontFamily: 'system-ui, -apple-system, sans-serif',
@@ -112,8 +112,8 @@ export const theme = {
 };
 ```
 
-That `statusColors` map matters: order status appears in Slice 4's order history, Slice 5's staff
-console, and Slice 3's confirmation page. Without a shared map, "Placed" is blue on one screen
+That `statusColors` map matters: order status appears in Slice D's order history, Slice E's staff
+console, and Slice C's confirmation page. Without a shared map, "Placed" is blue on one screen
 and grey on another, and it looks broken.
 
 ---
@@ -122,13 +122,13 @@ and grey on another, and it looks broken.
 
 ```
 client/src/
-├── theme.js                    ← Slice 3 only
+├── theme.js                    ← Slice C only
 ├── components/
-│   ├── layout/                 ← Slice 3 only
+│   ├── layout/                 ← Slice C only
 │   │   ├── AppShell.jsx        navbar + container + footer
 │   │   ├── Navbar.jsx          nav links, auth state, cart badge
 │   │   └── PageHeader.jsx      title + breadcrumb, used by every page
-│   └── ui/                     ← Slice 3 only
+│   └── ui/                     ← Slice C only
 │       ├── StatusBadge.jsx     reads theme.other.statusColors
 │       ├── Money.jsx           formats the DECIMAL string consistently
 │       ├── DataTable.jsx       sortable table used by staff screens
@@ -136,22 +136,22 @@ client/src/
 │       ├── ErrorAlert.jsx      renders the shared error envelope
 │       └── LoadingSpinner.jsx
 └── features/
-    ├── orders/components/      ← Slice 1's alone, do as you like
-    ├── catalogue/components/   ← Slice 2's alone
-    ├── cart/components/        ← Slice 3's alone
-    ├── account/components/     ← Slice 4's alone
-    └── reports/components/     ← Slice 5's alone
+    ├── orders/components/      ← Slice A's alone, do as you like
+    ├── catalogue/components/   ← Slice B's alone
+    ├── cart/components/        ← Slice C's alone
+    ├── account/components/     ← Slice D's alone
+    └── reports/components/     ← Slice E's alone
 ```
 
 **The rule:** if **two or more slices** need a component, it belongs in `components/ui/` and
-Slice 3 owns it. If only you need it, keep it in your own feature folder and build it however
+Slice C owns it. If only you need it, keep it in your own feature folder and build it however
 you like.
 
 **Requesting a shared component:** post in the group chat with what you need and a rough sketch.
-Slice 3 builds it. Don't build your own version "temporarily" — temporary versions survive to
+Slice C builds it. Don't build your own version "temporarily" — temporary versions survive to
 submission.
 
-Three components everyone will need, so Slice 3 should build them in week 1:
+Three components everyone will need, so Slice C should build them in week 1:
 `StatusBadge`, `Money`, `ErrorAlert`.
 
 ---
@@ -189,12 +189,12 @@ where merge conflicts will happen.
 
 ```jsx
 <Routes>
-  {/* --- Slice 2: catalogue --- */}
+  {/* --- Slice B: catalogue --- */}
   <Route path="/" element={<Home />} />
   <Route path="/products" element={<ProductList />} />
   <Route path="/products/:productId" element={<ProductDetail />} />
 
-  {/* --- Slice 3: cart & checkout --- */}
+  {/* --- Slice C: cart & checkout --- */}
   <Route path="/cart" element={<CartPage />} />
   ...
 </Routes>

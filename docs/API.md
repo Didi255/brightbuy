@@ -1,9 +1,9 @@
 # BrightBuy — API Contract
 
-**Agreed at kickoff. These shapes are binding.**
+**Binding. Slice letters match `docs/BrightBuy-Team-Plan.md` §5.**
 
-The point of this file is that you can build against an endpoint before it exists. M3 can build
-the cart page against a hardcoded product response while M2 is still writing the query. If you
+The point of this file is that you can build against an endpoint before it exists. C can build
+the cart page against a hardcoded product response while B is still writing the query. If you
 need a field that isn't here, raise it in the group chat before adding it — a field one person
 invents locally is a field nobody else sends.
 
@@ -27,7 +27,7 @@ repo layer does the translation — `SELECT product_name AS productName` or map 
 { "data": [ ... ], "page": 1, "pageSize": 20, "total": 137 }
 ```
 
-**Error — always this envelope** (produced by `middleware/errorHandler.js`, M1):
+**Error — always this envelope** (produced by `middleware/errorHandler.js`, D):
 ```json
 {
   "error": {
@@ -71,7 +71,7 @@ These three are the ones multiple people consume. Everything else is local to on
 
 ## 1. Variant
 
-Owned by M2. Consumed by M3 (cart, checkout) and M4 (order items).
+Owned by B. Consumed by C (cart, checkout) and A (order items).
 
 ```json
 {
@@ -97,7 +97,7 @@ Owned by M2. Consumed by M3 (cart, checkout) and M4 (order items).
 
 ## 2. Cart
 
-Owned by M3. Consumed by M4 (checkout hands the cart to `sp_place_order`).
+Owned by C. Consumed by A (checkout hands the cart to `sp_place_order`).
 
 ```json
 {
@@ -128,7 +128,7 @@ Owned by M3. Consumed by M4 (checkout hands the cart to `sp_place_order`).
 
 ## 3. Order
 
-Owned by M4. Consumed by M3 (confirmation page) and M5 (payments, reports).
+Owned by A. Consumed by C (confirmation page) and E (payments, reports).
 
 ```json
 {
@@ -167,16 +167,16 @@ Owned by M4. Consumed by M3 (confirmation page) and M5 (payments, reports).
 ```
 
 - `unitPriceAtOrder` — **never** read `variant.price` for a historical order (REQ-5.7).
-- `addressSnapshot` — likewise never join to `address` (see DECISIONS #12).
+- `addressSnapshot` — likewise never join to `address` (see DECISIONS #15).
 - For `deliveryMode: "store_pickup"`, `addressSnapshot` is `null` but `cityName` is still set.
-- `canRetry` is M5's: true when payment is `Failed` and within the 24h window (REQ-8.5).
+- `canRetry` is E's: true when payment is `Failed` and within the 24h window (REQ-8.5).
 - `orderStatus` and `paymentStatus` use the **exact** ENUM strings from `SCHEMA.md`.
 
 ---
 
 # Endpoints
 
-## Auth & profile — M1
+## Auth & profile — D
 
 | Method | Path | Auth | REQ |
 |---|---|---|---|
@@ -205,7 +205,7 @@ Owned by M4. Consumed by M3 (confirmation page) and M5 (payments, reports).
 On failure: 401 with a deliberately vague message. Never reveal which credential was wrong
 (SRS §4.4.2).
 
-## Catalogue — M2
+## Catalogue — B
 
 | Method | Path | Auth | REQ |
 |---|---|---|---|
@@ -231,7 +231,7 @@ On failure: 401 with a deliberately vague message. Never reveal which credential
 
 **GET /categories** — a tree; each node carries `"children": []`.
 
-## Cart & checkout — M3
+## Cart & checkout — C
 
 | Method | Path | Auth | REQ |
 |---|---|---|---|
@@ -266,16 +266,13 @@ Order shape. On insufficient stock, 409:
              "fields": { "341": "only 1 left, you requested 2" } } }
 ```
 
-## Orders — M4
+## Orders — A
 
 | Method | Path | Auth | REQ |
 |---|---|---|---|
 | GET | `/orders` | customer | 9.1, 9.2 |
 | GET | `/orders/:id` | customer | 9.3 |
 | POST | `/orders/:id/cancel` | customer | 9.4 |
-| GET | `/admin/orders` | staff | 11.1 |
-| PATCH | `/admin/orders/:id/status` | staff | 11.2 |
-| POST | `/admin/stock-adjustments` | staff | 10.4 |
 
 **GET /orders** — reverse chronological, own orders only. List of Order shapes.
 
@@ -284,13 +281,16 @@ Order shape. On insufficient stock, 409:
 **PATCH /admin/orders/:id/status** — `{ "orderStatus": "Processing" }`. Invalid transition → 409
 `INVALID_TRANSITION`. Valid transitions are listed in `SCHEMA.md`.
 
-## Payments & reports — M5
+## Payments & reports — E
 
 | Method | Path | Auth | REQ |
 |---|---|---|---|
 | POST | `/payments/card` | customer | 8.3, 8.4 |
 | POST | `/payments/:id/retry` | customer | 8.5 |
 | PATCH | `/admin/payments/:id` | staff | 11.3 |
+| POST | `/admin/stock-adjustments` | staff | 10.4 |
+| GET | `/admin/orders` | staff | 11.1 |
+| PATCH | `/admin/orders/:id/status` | staff | 11.2 |
 | GET | `/reports/quarterly-sales?year=` | staff | 12.1 |
 | GET | `/reports/top-products?from=&to=&limit=` | staff | 12.2 |
 | GET | `/reports/category-orders` | staff | 12.3 |
