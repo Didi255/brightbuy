@@ -6,3 +6,4 @@ dist/
 .DS_Store
 database/.migrations-applied
 MY_LEARNING_GUIDE*.md
+PROGRESS.md
