@@ -78,11 +78,41 @@ no estimate and vanish from Report 4.
 **Why:** REQ-8.5 / BR-7 require automatic cancellation 24 hours after a failed payment. That
 needs a reliable "when did this last change" timestamp.
 
+### #11 — `admin_audit_log` table added
+**Submitted:** no audit entity. The ERD models `stock_adjustment` (stock changes only) and
+`payment.staff_id` (COD receipts only).
+**Built:** `admin_audit_log` — actor, action, entity, entity_id, before/after values, timestamp —
+written by middleware on every staff mutation. Migration `010`.
+**Why:** §5.3 requires that *"all significant administrative activities shall be logged for
+auditing purposes"* and §5.4 lists Auditability as a quality attribute. The two existing
+mechanisms cover only their own narrow cases, leaving catalogue edits, order status changes,
+role assignments and city changes untraceable.
+
+### #12 — Views added
+**Submitted:** no views.
+**Built:** `v_order_details` (orders joined to customer, delivery, city and payment) and
+`v_variant_stock` (variant joined to product with a computed `in_stock` flag). Migration `012`.
+**Why:** the five reports and the staff console otherwise repeat the same six-table join, which
+is error-prone and harder to review. Views also let read-only staff be granted access to report
+data without any privilege on the underlying tables — see #13. Views are core course material
+(L05).
+
+### #13 — Database-level roles and privileges added
+**Submitted:** not modelled. Access control was specified only at application level (REQ-10.5,
+§5.3), enforced by JWT.
+**Built:** MySQL roles `brightbuy_readonly`, `brightbuy_staff`, `brightbuy_app` with `GRANT` and
+`REVOKE`, including a column-level grant on `orders.order_status`. Migration `013`.
+**Why:** defence in depth, and `GRANT`/`REVOKE`/roles are examinable course material (L08,
+Authorization). Reporting staff receive `SELECT` on the views only, demonstrating that a
+privilege on a view implies no privilege on its underlying tables.
+**Scope note:** a demonstration, not a production security model — the application still
+connects as `brightbuy_app`.
+
 ---
 
 ## B. Design decisions taken where the SRS was silent
 
-### #11 — Guest carts are database-backed
+### #14 — Guest carts are database-backed
 **Question:** REQ-3.5 permits guests to build a cart, but the submitted diagram has
 `cart.customer_id` as a non-nullable foreign key, so no cart can exist without a customer.
 
@@ -98,7 +128,7 @@ implementations, and prices cached client-side can go stale.
 the guest-to-customer merge is enforceable in SQL. Orphaned guest carts will accumulate; a
 cleanup job is out of scope for phase 1.
 
-### #12 — Delivery addresses are snapshotted
+### #15 — Delivery addresses are snapshotted
 **Question:** `delivery.address_id` references a mutable `address` row. If a customer edits
 their address, every past order would retrospectively claim delivery to the new address, and
 Report 4 would silently change its historical output.
@@ -114,9 +144,47 @@ survive later edits is copied onto the order at confirmation. The rejected alter
 the guarantee in application convention rather than in the schema, where a single careless
 `UPDATE` would break it silently.
 
+### #16 — The catalogue migration is split across two files
+**Question:** `002_catalogue.sql` originally created all seven catalogue tables. Two other
+slices are blocked on the `variant` table, making that single file the largest schedule risk in
+the project.
+
+**Decision:** `002` creates only `category`, `product`, `product_category`, and `variant` — the
+tables other slices depend on. `011` adds `variant_attribute` and `attribute_value`, which
+nothing else waits on.
+
+**Rationale:** unblocks two team members roughly two days earlier at no cost to the final schema.
+Migrations are append-only, so splitting is free; merging later would not have been.
+
 ---
 
-## C. SRS inconsistencies and the reading implemented
+## C. Technology and tooling decisions
+
+### #17 — Mantine chosen as the component library
+**Question:** the frontend could use a component library, a utility CSS framework, or
+hand-written CSS. The lecturer has stated the UI should be at a professional level.
+
+**Decision:** Mantine, configured through a single `theme.js` shared by the whole team.
+
+**Rejected alternatives:** MUI (heavier, more configuration); React-Bootstrap (dated default
+aesthetic); Tailwind (utility classes still permit five people to diverge); hand-written CSS
+(most work, least consistency).
+
+**Rationale:** with a four-week schedule and a team new to React, hand-rolling accessible
+components is not a realistic route to a professional result, and the assessment weight of this
+project is on the database. A component library gives consistent, accessible components by
+default, and reduces the shared UI-kit task from building primitives to configuring a theme and
+writing three thin wrappers.
+
+### #18 — Payment gateway is mocked
+Card payments run through a mock adapter, not a live payment service provider. The adapter
+interface is written so a real gateway could be substituted without touching business logic.
+Consistent with §2.5.1 (phase-1 deployment scope). Card numbers and security data are never
+stored (REQ-8.3); only the gateway reference is persisted.
+
+---
+
+## D. SRS inconsistencies and the reading implemented
 
 The SRS was submitted on 28/07/2026 and is not being revised. Where the document contradicts
 itself, the reading implemented is recorded here.
@@ -132,12 +200,31 @@ itself, the reading implemented is recorded here.
 
 ---
 
-## D. Scope exclusions for phase 1
+## E. MySQL dialect constraints
 
-- **Payment gateway:** card payments run through a mock adapter, not a live PSP. The adapter
-  interface is written so a real gateway could be substituted without touching business logic.
-  Consistent with §2.5.1 (phase-1 deployment scope).
+Points where MySQL 8 differs from the SQL standard as taught in lectures. Each affected a design
+choice, and each is a likely viva question.
+
+| Standard feature | MySQL 8 | Consequence for BrightBuy |
+|---|---|---|
+| `GROUP BY CUBE(...)` | **Not supported** | Report 1 uses `GROUP BY ... WITH ROLLUP` instead, with `GROUPING()` to identify the total row |
+| `CREATE MATERIALIZED VIEW` | **Not supported** | The views in #12 are ordinary views. A materialised view would be emulated with a summary table refreshed by a trigger or scheduled event |
+| `FULL OUTER JOIN` | **Not supported** | Not required here. Would be emulated as `LEFT JOIN ... UNION ... RIGHT JOIN` |
+| `CHECK` constraints | Enforced only from **8.0.16** | Below that they are parsed and silently ignored — which is why #5 pairs the `CHECK` with a trigger |
+| Window functions (`RANK`, `OVER`) | From **8.0.2** | Report 2 uses `RANK()` and `DENSE_RANK()` |
+| `CREATE ROLE` | From **8.0.0** | #13 would not be possible on MySQL 5.7 |
+
+The Docker image is pinned to `mysql:8.0`, so all of the above are available. Team members with a
+local MySQL installed for other coursework must confirm with `SELECT VERSION();`.
+
+---
+
+## F. Scope exclusions for phase 1
+
 - **Email notifications:** REQ-8.6 and REQ-11.4 are implemented against a Nodemailer stub that
   logs to console in development. No SMTP credentials are committed.
-- **Guest cart cleanup:** orphaned guest carts are not purged. Noted under #11.
+- **Guest cart cleanup:** orphaned guest carts are not purged. Noted under #14.
 - **Delivery cost:** out of scope per §2.6; only estimated delivery *time* is modelled.
+- **Database-level access control:** #13 demonstrates `GRANT`/`REVOKE`/roles rather than
+  implementing a full production security model. Application-level authorisation via JWT remains
+  the primary enforcement mechanism (REQ-10.5).
