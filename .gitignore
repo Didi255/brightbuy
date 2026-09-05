@@ -7,3 +7,4 @@ dist/
 database/.migrations-applied
 MY_LEARNING_GUIDE*.md
 PROGRESS.md
+database/scratch/
