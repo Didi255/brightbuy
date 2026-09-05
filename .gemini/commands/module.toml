@@ -1,0 +1,11 @@
+description = "Add or extend a backend Express module, keeping SQL in the repo layer"
+prompt = """
+Read the file `.claude/skills/module/SKILL.md` in this repository and follow it
+exactly. It is the project's authoritative guide for this task.
+
+Also read `AGENTS.md` at the repo root if you have not already — it contains
+the project's hard rules.
+
+The user's request follows.
+{{args}}
+"""

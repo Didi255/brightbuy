@@ -1,0 +1,14 @@
+description = "Check work against the BrightBuy definition of done before opening a PR"
+prompt = """
+Read `.claude/skills/pr-check/SKILL.md` and apply its checklist to the changes
+below. Ignore the `!` shell lines inside that file — the output is already here.
+
+## Working tree
+!{git status --short}
+
+## Diff summary
+!{git diff dev...HEAD --stat}
+
+Report each failure with file and line, then draft a PR description listing the
+REQ-IDs satisfied.
+"""
