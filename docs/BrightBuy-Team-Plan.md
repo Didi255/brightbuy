@@ -368,15 +368,15 @@ endpoints, 3–5 screens, one seed or shared asset, and one genuinely hard thing
 
 | | Slice | The hard thing | Assigned |
 |---|---|---|---|
-| **A** | Order Transaction & Delivery | `sp_place_order` + concurrency proof | Taken |
-| **B** | Catalogue & Search | Search with combined filters, 6-table schema | Pick at kickoff |
-| **C** | Cart, Checkout & UI Foundation | Guest-cart merge, the shared UI kit | Pick at kickoff |
-| **D** | Auth, Accounts & Audit | JWT + role middleware, audit logging | Pick at kickoff |
-| **E** | Payments, Staff Ops & Reports | Five report procedures, index tuning | Pick at kickoff |
+| **A** | Order Transaction & Delivery | `sp_place_order` + concurrency proof | **Dihini** |
+| **B** | Catalogue & Search | Search with combined filters, 6-table schema | **Risandu** |
+| **C** | Cart, Checkout & UI Foundation | Guest-cart merge, the shared UI kit | **Vidura** |
+| **D** | Auth, Accounts & Audit | JWT + role middleware, audit logging | **Ajini** |
+| **E** | Payments, Staff Ops & Reports | Five report procedures, index tuning | **Maathumai** |
 
 ---
 
-## A — Order Transaction & Delivery *(taken)*
+## A — Order Transaction & Delivery *(Dihini)*
 
 The atomic checkout transaction that the whole SRS is built around.
 
@@ -397,7 +397,7 @@ project and the strongest artifact for the report.
 
 ---
 
-## B — Catalogue & Search
+## B — Catalogue & Search *(Risandu)*
 
 The product catalogue: what customers browse and what staff maintain.
 
@@ -421,7 +421,7 @@ project.
 
 ---
 
-## C — Cart, Checkout & UI Foundation
+## C — Cart, Checkout & UI Foundation *(Vidura)*
 
 Everything between "add to cart" and "confirm order", plus the shared frontend.
 
@@ -444,7 +444,7 @@ building primitives from scratch.
 
 ---
 
-## D — Auth, Accounts & Audit
+## D — Auth, Accounts & Audit *(Ajini)*
 
 Identity, access control, and the audit trail.
 
@@ -473,7 +473,7 @@ writes to it on every staff mutation, and a screen to view it.
 
 ---
 
-## E — Payments, Staff Ops & Reports
+## E — Payments, Staff Ops & Reports *(Maathumai)*
 
 Payment lifecycle, staff operations, and the five management reports.
 
@@ -544,9 +544,9 @@ Every stage below gives each person unblocked work, so nobody idles.
 
 | Who | What | Waiting | When |
 |---|---|---|---|
-| **D** | `auth.js` + `errorHandler.js` + `ApiError.js` | A, B, C, E | Day 1–2 |
-| **B** | `002` — the four core tables incl. `variant` | A, C | Day 2 |
-| **C** | `theme.js` + `StatusBadge` + `Money` + `ErrorAlert` + `api/client.js` | everyone | Day 1–2 |
+| **D** — Ajini | `auth.js` + `errorHandler.js` + `ApiError.js` | A, B, C, E | Day 1–2 |
+| **B** — Risandu | `002` — the four core tables incl. `variant` | A, C | Day 2 |
+| **C** — Vidura | `theme.js` + `StatusBadge` + `Money` + `ErrorAlert` + `api/client.js` | everyone | Day 1–2 |
 
 Not "in the first week" — **first**.
 
@@ -559,7 +559,7 @@ One **2-hour** meeting. No code before this.
 | 0.1 | Everyone's environment runs, in the room | A broken setup found later costs days |
 | 0.2 | ~~Styling library~~ — **decided: Mantine** (DECISIONS #17) | Announce, don't debate |
 | 0.3 | Route map confirmed (`docs/UI-GUIDE.md` §2) | Five people's screens must link to each other |
-| 0.4 | Slices B–E assigned | Everything depends on it |
+| 0.4 | ~~Slices B–E assigned~~ — **done: B Risandu · C Vidura · D Ajini · E Maathumai** | Everything depends on it |
 | 0.5 | Icon set — one, not several | Mixed sets look unfinished |
 | 0.6 | Open items at the bottom of `docs/API.md` | Shapes are binding once agreed |
 | 0.7 | Wireframes sketched on paper, photographed, committed | Prevents a Stage 3 layout argument |

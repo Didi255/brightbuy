@@ -182,6 +182,66 @@ interface is written so a real gateway could be substituted without touching bus
 Consistent with §2.5.1 (phase-1 deployment scope). Card numbers and security data are never
 stored (REQ-8.3); only the gateway reference is persisted.
 
+### #19 — `log_bin_trust_function_creators` enabled in Docker
+
+**Question:** `CREATE FUNCTION` fails with `ERROR 1419 (HY000): You do not have the SUPER
+privilege and binary logging is enabled`. MySQL 8 enables binary logging by default, and the
+application account `brightbuy` deliberately holds no global privileges — only
+`ALL PRIVILEGES ON brightbuy.*`. Without a change, no stored function in `007` can be created
+on any team member's machine.
+
+**Decision:** pass `--log-bin-trust-function-creators=1` to the server in `docker-compose.yml`.
+
+**Rejected alternatives:** `SET GLOBAL log_bin_trust_function_creators = 1` — lost on container
+restart, and applies only to the machine it was typed on, so four teammates hit the same error
+in a file they did not write. Granting `SUPER` to `brightbuy` — a global privilege handed to the
+application account purely to work around a configuration default.
+
+**Rationale:** the restriction guards against **replica divergence**. Under statement-based
+binary logging a replica re-executes the calling statement, so a non-deterministic function can
+compute a different result there and the two databases silently diverge.
+`fn_estimate_delivery_days` *is* non-deterministic — it reads `city.is_main_city`, which staff
+can edit. But we deploy a single MySQL instance with no replication and no binary-log consumers,
+so the failure mode the restriction prevents cannot occur. Setting it in `docker-compose.yml`
+rather than at runtime means every member's database is configured identically from a committed
+file.
+
+**Note:** the restriction covers stored **functions**, not procedures — a function's result is
+baked into the statement that invoked it, whereas a procedure's statements are each logged
+individually. `sp_place_order` creates without complaint.
+
+**Action required after pulling:** run `docker compose up -d` to recreate the container.
+Pulling alone does not apply a `command:` change.
+
+### #20 — Migration files must not contain `DELIMITER`
+
+**Question:** the conventional way to define a stored routine is to wrap it in
+`DELIMITER $$ … END$$ DELIMITER ;`. But migrations are applied by
+`server/scripts/run-migrations.js`, which uses the **`mysql2` Node driver** with
+`multipleStatements: true` — not the `mysql` command-line client.
+
+**Decision:** routines in `007`, `008` and `009` contain **no `DELIMITER` statements**, and each
+routine ends with `END;`.
+
+**Rationale:** verified against the runner's exact driver and options. With `DELIMITER` present,
+`npm run migrate` fails with *"You have an error in your SQL syntax … near `'DELIMITER'`"*. With
+it removed, the routine is created correctly and behaves identically.
+
+`DELIMITER` is a command of the `mysql` **client**, not of the server. That client splits input
+on `;` before sending anything, which would chop a routine into fragments — `DELIMITER` changes
+what it splits on. `mysql2` does not split at all: it hands the whole string to the server,
+whose own parser handles `BEGIN … END` correctly, because semicolons inside a compound statement
+are part of the grammar. The workaround is therefore both unnecessary here *and* invalid SQL.
+
+Local prototyping through the real client (`Get-Content x.sql | docker exec -i … mysql …`) still
+**requires** `DELIMITER`. A scratch file and its migration counterpart legitimately differ by
+those lines; this is not an inconsistency to tidy up.
+
+**Still to verify:** a single migration file containing *several* routines. `007` has three.
+
+**Supersedes** the instruction in the `007_procedures_orders.sql` stub comment, which said the
+opposite and has been corrected.
+
 ---
 
 ## D. SRS inconsistencies and the reading implemented

@@ -30,7 +30,10 @@
 --     5 if main city else 7; +3 if p_has_oos.        (REQ-7.1, REQ-7.2)
 --     Store pickup passes a main-city id.            (REQ-7.5)
 --
--- Remember DELIMITER $$ ... $$ DELIMITER ; around each routine.
+-- Do NOT use DELIMITER in this file. `npm run migrate` applies migrations through
+-- the mysql2 Node driver, which does not understand it and fails with a syntax
+-- error on line 1. End each routine with END; — the server parses BEGIN...END
+-- correctly on its own. Verified both ways. See DECISIONS #20.
 --
 -- When this works, run tests/concurrency.test.js against it. That test is
 -- your evidence that ACID actually holds.
