@@ -4,7 +4,7 @@
 -- TODO(M2). Create, following the conventions of 001:
 --   category            category_id PK, category_name, is_active,
 --                       parent_category_id NULL self-FK               (REQ-10.2)
---   product             product_id PK, product_name, description,
+--   product             product_id PK, product_name, product_description,
 --                       image_url, brand, is_active
 --   product_category    PRIMARY KEY (product_id, category_id)          <- composite
 --   variant             variant_id PK, product_id FK, SKU, price,
@@ -19,3 +19,65 @@
 -- Note: MySQL 8.0.16+ enforces CHECK constraints. Confirm your version with
 --   SELECT VERSION();   -- anything below 8.0.16 parses but ignores CHECK.
 -- =========================================================================
+
+
+
+CREATE TABLE category (
+    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    category_name VARCHAR(255) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    parent_category_id INT NULL,
+
+    FOREIGN KEY (parent_category_id) REFERENCES category(category_id)
+);
+
+CREATE TABLE product (
+    product_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_name VARCHAR(255) NOT NULL,
+    product_description TEXT,
+    image_url VARCHAR(2083),
+    brand VARCHAR(255),
+
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+
+CREATE TABLE product_category (
+    product_id INT NOT NULL,
+    category_id INT NOT NULL,
+    PRIMARY KEY (product_id, category_id),
+
+    FOREIGN KEY (product_id) REFERENCES product(product_id),
+    FOREIGN KEY (category_id) REFERENCES category(category_id)
+);
+
+CREATE TABLE variant (
+    variant_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    SKU VARCHAR(100) NOT NULL UNIQUE,
+    price DECIMAL(10, 2) NOT NULL CHECK (price > 0),
+    stock_quantity INT NOT NULL CHECK (stock_quantity >= 0),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+    FOREIGN KEY (product_id) REFERENCES product(product_id)
+);
+
+
+CREATE TABLE variant_attribute (
+    attribute_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+)
+
+
+
+
+CREATE TABLE attribue_value (
+    value_id INT AUTO_INCREMENT PRIMARY KEY,
+    attribute_id INT NOT NULL,
+    variant_id INT NOT NULL,
+    value VARCHAR(255) NOT NULL,
+
+    UNIQUE (variant_id, attribute_id),
+    FOREIGN KEY (attribute_id) REFERENCES variant_attribute(attribute_id),
+    FOREIGN KEY (variant_id) REFERENCES variant(variant_id) ON DELETE CASCADE
+)
