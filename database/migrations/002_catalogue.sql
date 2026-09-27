@@ -22,7 +22,7 @@
 
 CREATE TABLE category (
     category_id INT AUTO_INCREMENT PRIMARY KEY,
-    category_name VARCHAR(255) NOT NULL,
+    category_name VARCHAR(100) NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     parent_category_id INT NULL,
 
@@ -31,10 +31,10 @@ CREATE TABLE category (
 
 CREATE TABLE product (
     product_id INT AUTO_INCREMENT PRIMARY KEY,
-    product_name VARCHAR(255) NOT NULL,
-    product_description TEXT,
+    product_name VARCHAR(100) NOT NULL,
+    description TEXT,
     image_url VARCHAR(2083),
-    brand VARCHAR(255),
+    brand VARCHAR(50),
 
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 ) ENGINE=InnoDB;
