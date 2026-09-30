@@ -21,7 +21,7 @@
 create procedure sp_report_quarterly_sales(in p_year int)
 begin
     select 
-        concat ('Q', quarter(order_rate)) as quarter,
+        concat ('Q', quarter(order_date)) as quarter,
         count(*)                          as orderCount,
         sum(total_amount)                as totalRevenue
     from orders
