@@ -46,6 +46,7 @@ once merged, never edited.
 | `011` | **B** | `variant_attribute`, `attribute_value` |
 | `012` | **E** | Views — `v_order_details`, `v_variant_stock` |
 | `013` | **D** | Roles, `GRANT`, `REVOKE` |
+| `014` | **D** | Address ownership — adds `address.customer_id` for customer address books |
 
 `002` is deliberately split from `011`: A and C are blocked on `variant`, so the four core
 tables ship first and attributes follow (DECISIONS #16).
@@ -67,6 +68,7 @@ tables ship first and attributes follow (DECISIONS #16).
 | Column | Type | Notes |
 |---|---|---|
 | `address_id` | INT PK AI | |
+| `customer_id` | INT NULL | FK → `customer`, ON DELETE SET NULL. Owner of saved customer address — added in migration 014 |
 | `city_id` | INT NOT NULL | FK → `city` |
 | `house_num` | VARCHAR(50) NULL | |
 | `address_1` | VARCHAR(100) NOT NULL | |

@@ -108,6 +108,25 @@ privilege on a view implies no privilege on its underlying tables.
 **Scope note:** a demonstration, not a production security model — the application still
 connects as `brightbuy_app`.
 
+### #24 — Customer ownership added to `address`
+
+**Submitted:** `customer.address_id` references a single `address` row, but `address`
+has no reference back to the customer who owns it.
+
+**Built:** migration `014` adds nullable `address.customer_id`, with a foreign key to
+`customer.user_id` using `ON DELETE SET NULL`. `customer.address_id` is retained as
+the customer's default delivery address.
+
+**Why:** the API requires customers to have an address book through
+`GET /me/addresses` and `POST /me/addresses`. Without an ownership relationship,
+multiple address rows cannot be safely associated with a customer, and an
+`address_id` supplied during checkout cannot be verified as belonging to the
+authenticated customer.
+
+Making `customer_id` nullable allows an address row to remain when its customer is
+removed. `ON DELETE SET NULL` removes the ownership relationship without deleting
+the address row or invalidating other references to that address, such as
+`delivery.address_id`.
 ---
 
 ## B. Design decisions taken where the SRS was silent
