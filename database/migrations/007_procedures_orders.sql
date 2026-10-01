@@ -16,8 +16,8 @@
 --         SELECT ... FROM variant v JOIN cart_item ci ...
 --           WHERE ci.cart_id = p_cart_id ORDER BY v.variant_id FOR UPDATE;
 --         -- validate quantities  (REQ-6.2)
---         -- decrement stock      (REQ-6.3)
 --         -- INSERT orders, order_item, delivery
+--         -- decrement stock      (REQ-6.3)
 --         -- compute estimated_delivery_date via fn_estimate_delivery_days
 --         -- mark cart converted
 --       COMMIT;
