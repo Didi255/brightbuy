@@ -21,3 +21,41 @@
 --
 -- Depends on 001 (customer, address, city) and 002 (variant).
 -- =========================================================================
+
+
+CREATE TABLE orders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    order_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    total_amount DECIMAL(10,2) NOT NULL,
+    order_status ENUM('Placed' , 'Processing' , 'ReadyOrOut' , 'DeliveredOrPicked' , 'Cancelled') NOT NULL DEFAULT 'Placed',
+    CONSTRAINT fk_orders_customer FOREIGN KEY (customer_id) References customer(user_id)
+) ENGINE = InnoDB;
+
+CREATE TABLE order_item(
+    order_item_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    variant_id INT NOT NULL,
+    quantity INT NOT NULL ,
+    unit_price_at_order DECIMAL(10,2) NOT NULL,
+    out_of_stock_flag BOOLEAN NOT NULL DEFAULT FALSE,
+    CONSTRAINT fk_order_item_order FOREIGN KEY (order_id) References orders(order_id),
+    CONSTRAINT fk_order_item_variant FOREIGN KEY (variant_id) References variant(variant_id),
+    CONSTRAINT chk_order_item_quantity CHECK (quantity > 0)
+) ENGINE = INNODB;
+
+CREATE TABLE delivery (
+    delivery_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    delivery_mode ENUM ('store_pickup', 'standard') NOT NULL,
+    address_id INT NULL,
+    address_snapshot VARCHAR(255),
+    city_id INT NOT NULL,
+    estimated_delivery_date DATE NOT NULL,
+    delivery_status ENUM ('pending', 'dispatched', 'delivered')  NOT NULL DEFAULT 'pending',
+    status_updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT uq_delivery_order UNIQUE (order_id),
+    CONSTRAINT fk_delivery_order FOREIGN KEY (order_id) References orders(order_id),
+    CONSTRAINT fk_delivery_address FOREIGN KEY (address_id) References address(address_id),
+    CONSTRAINT fk_delivery_city FOREIGN KEY (city_id) References city(city_id)
+) ENGINE = INNODB;
