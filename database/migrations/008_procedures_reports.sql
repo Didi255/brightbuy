@@ -18,18 +18,22 @@
 -- A report that runs but returns wrong totals is worse than one that errors.
 -- =========================================================================
 
-create procedure sp_report_quarterly_sales(in p_year int)
-begin
-    select 
-        concat ('Q', quarter(order_date)) as quarter,
-        count(*)                          as orderCount,
-        sum(total_amount)                as totalRevenue
-    from orders
-    where year(order_date) = p_year
-        and order_status != 'Cancelled'
-    group by quarter(order_date)
-    order by quarter(order_date);
-end;
+CREATE PROCEDURE sp_report_quarterly_sales(IN p_year INT)
+BEGIN
+    SELECT
+        CONCAT('Q', qtr) AS quarter,
+        COUNT(*)         AS orderCount,
+        SUM(total_amount) AS totalRevenue
+    FROM (
+        SELECT QUARTER(order_date) AS qtr, total_amount
+        FROM orders
+        WHERE YEAR(order_date) = p_year
+          AND order_status != 'Cancelled'
+    ) t
+    GROUP BY qtr
+    ORDER BY qtr;
+END;
+
 
 -- sp_report_top_products(p_from, p_to, p_limit)                    (REQ-12.2)
 CREATE PROCEDURE sp_report_top_products(IN p_from DATE, IN p_to DATE, IN p_limit INT)
