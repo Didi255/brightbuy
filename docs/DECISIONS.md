@@ -156,6 +156,51 @@ nothing else waits on.
 **Rationale:** unblocks two team members roughly two days earlier at no cost to the final schema.
 Migrations are append-only, so splitting is free; merging later would not have been.
 
+### #21 — A stock shortfall must be total, not partial
+
+**Question:** REQ-6.2 requires stock validation at order time and REQ-6.6 requires
+out-of-stock items to be flagged, but the planning documents disagree on what happens when
+a cart line exceeds available stock. `BrightBuy-Team-Plan.md` §6 Stage 2 says
+"`stock_quantity = 0` **allowed**, flagged, estimate extended" and two lines later "order
+**more than exists**, confirm nothing was written". For a line requesting 1 unit of a variant
+with 0 in stock, both rules apply and they contradict each other.
+
+**Decision:** three cases, evaluated per order line.
+
+| Condition | Behaviour |
+|---|---|
+| `stock_quantity >= quantity` | Decrement stock. `out_of_stock_flag = FALSE` |
+| `stock_quantity = 0` | Accept as a back-order. `out_of_stock_flag = TRUE`, **no decrement**, `fn_estimate_delivery_days` adds 3 days |
+| `0 < stock_quantity < quantity` | **Reject the whole order.** `sp_place_order` signals; `POST /checkout/confirm` maps it to 409 `INSUFFICIENT_STOCK` |
+
+In one sentence: **a shortfall must be total, not partial.**
+
+**Rejected alternative — partial fulfilment.** Shipping what is available and back-ordering
+the remainder is the commercially normal behaviour, and is **not expressible in schema v1**:
+
+1. `order_item.out_of_stock_flag` is a per-line `BOOLEAN`. It can record "this line was out
+   of stock" but not "1 of 3 shipped, 2 pending". There is no `quantity_fulfilled` column.
+2. `delivery.order_id` is `UNIQUE` (#9) — exactly one delivery per order. Partial fulfilment
+   requires two shipments, therefore two delivery rows.
+3. `order_status` has five values (REQ-9.2); none represents partial fulfilment.
+
+Implementing it would require a new column, dropping a `UNIQUE` constraint that Report 4
+(REQ-12.4) depends on, and a sixth status value — a substantial change to a frozen schema.
+
+**Rationale:** the chosen rule is the only one schema v1 can represent faithfully.
+`out_of_stock_flag`'s definition in `SCHEMA.md` is "**was stock 0** at order time" — not
+"was stock insufficient" — so the zero case is precisely what the column was designed to
+record. The 409 path already exists in `API.md` for the partial case.
+
+**Known wrinkle, accepted:** a customer may back-order a variant with 0 in stock, but may
+not back-order one with 1 in stock when ordering 3. That is arbitrary from the customer's
+point of view, and falls out of the boolean flag rather than from business logic. Accepted
+for phase 1; partial fulfilment is recorded as a phase-2 exclusion (§F).
+
+**Consequence for `sp_place_order`:** validation and the decrement are **per line**, not per
+order, and the procedure must evaluate **every** line before writing anything — one partial
+shortfall rejects the entire transaction.
+
 ---
 
 ## C. Technology and tooling decisions
@@ -288,3 +333,9 @@ local MySQL installed for other coursework must confirm with `SELECT VERSION();`
 - **Database-level access control:** #13 demonstrates `GRANT`/`REVOKE`/roles rather than
   implementing a full production security model. Application-level authorisation via JWT remains
   the primary enforcement mechanism (REQ-10.5).
+- **Partial fulfilment:** an order line is either fully available or entirely back-ordered; a
+  partial shortfall is rejected rather than split across two shipments. Schema v1 cannot
+  represent a partly-fulfilled line — see #21 for the three blocking constraints. Shipping what
+  is in stock and back-ordering the remainder is a phase-2 item requiring a
+  `quantity_fulfilled` column, a relaxed `uq_delivery_order`, and an additional
+  `order_status` value.
