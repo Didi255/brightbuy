@@ -201,6 +201,89 @@ for phase 1; partial fulfilment is recorded as a phase-2 exclusion (§F).
 order, and the procedure must evaluate **every** line before writing anything — one partial
 shortfall rejects the entire transaction.
 
+### #22 — `sp_place_order` creates the `payment` row, inside the transaction
+
+**Question:** `payment.order_id` is `UNIQUE` (BR-5), so exactly one payment row exists per
+order — but nothing stated who creates it. `sp_place_order` already accepts
+`p_payment_method` and did not use it. The two candidates were the procedure itself, or
+slice C's `POST /checkout/confirm` inserting it after the `CALL` returns.
+
+**Decision:** `sp_place_order` inserts it, inside the same transaction as the order:
+
+```sql
+INSERT INTO payment (order_id, payment_method) VALUES (p_order_id, p_payment_method);
+```
+
+One statement, because `payment_status` already defaults to `'Pending'` (SCHEMA.md §005).
+
+**Rejected alternative — the endpoint inserts it after the `CALL`.** This leaves a window
+between the order committing and the payment row being written. An application crash,
+timeout or bug in that window produces **an order that cannot be paid for**: no payment row,
+so no gateway attempt, no retry (`POST /payments/:id/retry` is keyed on a payment id that
+would not exist), and nothing in the system reports an error. Every row involved is
+individually valid; only the set is wrong — the same class of silent inconsistency that
+`sp_place_order`'s transaction exists to prevent. Inside the transaction the window does not
+exist: order and payment appear together or neither does.
+
+**Rationale** — four independent indications, all pre-dating this decision:
+
+1. `BrightBuy-Team-Plan.md` §6 Stage 2 (slice E) already specifies *"COD flow — status
+   `'Pending'` **at placement**"*. Placement is order time.
+2. `POST /payments/:id/retry` (API.md) is keyed on a payment id, so the row must exist
+   before any payment attempt — i.e. from placement.
+3. `payment.order_id` is `UNIQUE`. A uniqueness constraint implies a single owner for
+   creation; two code paths creating it invites a duplicate-key failure under load.
+4. `p_payment_method` was already in the `007` stub signature, so the original design
+   intended the procedure to use it.
+
+**Division of ownership that follows:**
+
+| Action | Owner |
+|---|---|
+| **Create** the `payment` row, status `'Pending'` | `sp_place_order` (A) |
+| **Update** it — `POST /payments/card`, retry, admin COD-paid | slice E |
+| Insert nothing; one `CALL` and no cleanup on failure | slice C |
+
+**Consequence for the migration order:** `007` now references `payment`, so **`005` must
+merge before `007`**. `005` is numerically earlier, so no renumbering is needed, and the
+dependency chain becomes `002 → 004 → 005 → 007`. Locking and `sp_cancel_order` need
+nothing from `005`, so work on `007` continues meanwhile; the payment insert is added last.
+
+### #23 — The store's city is configuration, not schema
+
+**Question:** `delivery.city_id` is `NOT NULL` for every order including Store Pickup (#9,
+REQ-6.7), and the `007` specification requires that *"store pickup passes a main-city id"*
+(REQ-7.5) so that pickup always takes the 5-day branch of `fn_estimate_delivery_days`. But
+**nothing in schema v1 records where the store is** — there is no `store` table and no
+store-location flag. Something has to supply that `city_id`.
+
+**Decision:** a single configuration value, `STORE_CITY_ID`, read from the environment and
+passed as `p_city_id` by `POST /checkout/confirm` when `deliveryMode = 'store_pickup'`. It
+must name a city with `is_main_city = TRUE`, and the server asserts this at startup —
+refusing to boot on a missing or non-main city rather than silently producing 7-day pickup
+estimates.
+
+**Rejected alternatives:**
+
+- **A `store` table** (`store_id`, `name`, `city_id`, `address_id`). Correct modelling and
+  the right answer for multiple branches, but §2.5.1 scopes phase 1 to a single store, so
+  this adds a table outside the frozen schema to hold **one row that never changes**.
+  Recorded as a phase-2 item (§F).
+- **An `is_store_location` flag on `city`.** Requires altering `001`, which is already
+  merged, and "a store is here" is a fact about the business rather than about the city.
+- **Using the customer's own city.** Wrong, and it breaks REQ-7.5: a customer in a non-main
+  city collecting from a main-city store would receive a **7-day** pickup estimate. The
+  function would return a plausible but incorrect answer, with nothing to indicate a fault.
+
+**Rationale:** `sp_place_order` already accepts `p_city_id` as a parameter — the procedure
+does not resolve the destination city for standard delivery either, so the caller resolving
+it for pickup is consistent with the existing contract rather than a special case. The value
+is referenced by a foreign key, so a `STORE_CITY_ID` naming a nonexistent city fails loudly
+on insert; the startup assertion catches the subtler case of a city that exists but is not a
+main city.
+
+**Action required:** `STORE_CITY_ID` must be added to `.env.example` so every member sets it.
+
 ---
 
 ## C. Technology and tooling decisions
@@ -333,6 +416,9 @@ local MySQL installed for other coursework must confirm with `SELECT VERSION();`
 - **Database-level access control:** #13 demonstrates `GRANT`/`REVOKE`/roles rather than
   implementing a full production security model. Application-level authorisation via JWT remains
   the primary enforcement mechanism (REQ-10.5).
+- **Multiple store locations:** phase 1 has one store, whose city is the `STORE_CITY_ID`
+  configuration value (#23). A `store` table with its own city and address is a phase-2 item,
+  needed only when pickup can happen at more than one branch.
 - **Partial fulfilment:** an order line is either fully available or entirely back-ordered; a
   partial shortfall is rejected rather than split across two shipments. Schema v1 cannot
   represent a partly-fulfilled line — see #21 for the three blocking constraints. Shipping what
