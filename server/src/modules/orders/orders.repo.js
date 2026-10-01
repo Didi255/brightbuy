@@ -29,7 +29,7 @@ exports.findActiveCart = async(customerId) =>{
     return rows[0] || null;
 };
 
-exports.findOwnedAdress = async (customerId,addressId) => {
+exports.findOwnedAddress = async (customerId,addressId) => {
     const [rows] = await pool.query(
         `SELECT a.address_id AS addressId, a.city_id AS cityId
         FROM customer c

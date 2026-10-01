@@ -32,7 +32,7 @@ exports.confirmCheckout = async (customerId,{deliveryMode, addressId, paymentMet
     if(deliveryMode === 'store_pickup'){
         cityId = Number(process.env.STORE_CITY_ID);
     }else{
-        const owned = await repo.findOwnedAdress(customerId,addressId);
+        const owned = await repo.findOwnedAddress(customerId,addressId);
         if(!owned) throw ApiError.forbidden('That address does not belong to you');
         resolvedAddressId = owned.addressId;
         cityId = owned.cityId;
