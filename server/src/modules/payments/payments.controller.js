@@ -1,5 +1,4 @@
-// payments slice — OWNER: M5
-// TODO(M5): HTTP in/out only. No SQL.
+// HTTP in/out only. No SQL.
 const service = require('./payments.service');
 
 exports.payCard = async (req, res, next) => {

@@ -1,5 +1,4 @@
-// payments slice — OWNER: M5
-// TODO(M5): business rules only. No SQL, no req/res.
+// Business rules only. No SQL, no req/res.
 const repo = require('./payments.repo');
 const ApiError = require('../../utils/ApiError');
 
