@@ -26,3 +26,11 @@ exports.listOrders = async (req, res,next) => {
   }catch(err) {next(err);}
 }
 
+exports.cancelOrder = async (req, res, next) => {
+  try {
+    const result = await service.cancelOrder(req.user.userId, Number(req.params.orderId));
+    res.json(result);
+  } catch (err) { next(err); }
+};
+
+

@@ -110,7 +110,29 @@ async function listOrders(customerId) {
   );
 }
 
-module.exports = {confirmCheckout,getOrder,listOrders};
+async function cancelOrder(customerId, orderId) {
+  const row = await repo.findOrderById(orderId, customerId);
+  if (!row) throw ApiError.notFound('Order not found');
+
+  if (row.orderStatus !== 'Placed') {
+    throw ApiError.conflict('INVALID_TRANSITION',
+      `An order that is ${row.orderStatus} can no longer be cancelled`);
+  }
+
+  try {
+    await repo.cancelOrder(orderId, customerId);
+  } catch (err) {
+    if (err.sqlState === '45000' && String(err.message).includes('INVALID_TRANSITION')) {
+      throw ApiError.conflict('INVALID_TRANSITION', 'That order can no longer be cancelled');
+    }
+    throw err;
+  }
+
+  return getOrder(customerId, orderId);
+}
+
+
+module.exports = {confirmCheckout,getOrder,listOrders,cancelOrder};
 
 
 

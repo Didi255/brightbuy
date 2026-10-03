@@ -129,5 +129,7 @@ exports.findOrdersByCustomer = async (customerId) => {
   return rows;
 };
 
-
+exports.cancelOrder = async (orderId, actorUserId) => {
+    await pool.query('CALL sp_cancel_order(?,?)',[orderId,actorUserId]);
+};
 
