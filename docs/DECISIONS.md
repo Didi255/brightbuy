@@ -303,6 +303,83 @@ main city.
 
 **Action required:** `STORE_CITY_ID` must be added to `.env.example` so every member sets it.
 
+### #25 — Cancelling an order resolves its payment row; `payment_status` gains `'Cancelled'`
+
+**Question:** `sp_cancel_order` sets `orders.order_status = 'Cancelled'`, but nothing specified
+what happens to that order's `payment` row. The original ENUM was
+`'Pending' | 'Paid' | 'Failed' | 'Refunded'` (SCHEMA.md §005) — **none of which describes a
+payment that will now never be collected.** A cancelled cash-on-delivery order would sit at
+`'Pending'` indefinitely.
+
+**Decision — two parts.**
+
+1. `payment_status` gains a fifth value, **`'Cancelled'`**, by `ALTER TABLE` in a later
+   migration. `005` is merged and untouched. SCHEMA.md §005 is updated to match.
+2. `sp_cancel_order` resolves the payment row **in the same transaction**:
+
+| `payment_status` was | Becomes |
+|---|---|
+| `'Paid'` | **`'Refunded'`** — money moved and must come back |
+| `'Pending'` or `'Failed'` | **`'Cancelled'`** — nothing was ever collected |
+| already `'Refunded'`/`'Cancelled'` | unchanged |
+
+**Rejected alternative — leave it `'Pending'` and have every reader join `orders`.** This was
+the cheaper option: one extra `AND o.order_status <> 'Cancelled'` clause in slice E's queries.
+Rejected because **data that requires a join to interpret correctly will eventually be
+interpreted incorrectly.** A row reading `'Pending'` on a dead order is simply false, and the
+only thing preventing a wrong answer is every future reader remembering the filter. One
+omission in the COD console sends staff to collect money for an order that does not exist.
+
+**Rejected alternative — `'Refunded'` for every cancellation.** Records a refund that never
+happened for every cash-on-delivery order, because no money ever moved. Slice E's reports
+would show refunds against orders nobody paid for.
+
+**Rationale:** the payment row becomes self-describing — no join is needed to know whether a
+payment is collectable.
+
+**Consequences for slice E:**
+- exclude `'Cancelled'` from the COD collection console
+- exclude it from `POST /payments/:id/retry` — a cancelled payment must not be retryable
+- any report reading `payment_status` must handle a fifth value rather than assuming four
+
+**Timing:** done now because there is no production data. Once cancelled orders exist, adding
+the value requires a backfill.
+
+### #26 — `sp_cancel_order` writes the audit row, and only for staff actors
+
+**Question:** `sp_cancel_order(IN p_order_id, IN p_actor_user_id)` accepts an actor, but the
+original design gave it nowhere to go — `orders` has no `cancelled_by` column. Meanwhile
+`admin_audit_log` (#11) is written by middleware on staff mutations. So either the procedure
+records the cancellation, the middleware does, or nobody does.
+
+**Decision:** the procedure writes it, inside the same transaction, and only when the actor is
+a member of staff:
+
+```sql
+INSERT INTO admin_audit_log (actor_user_id, action, entity_type, entity_id)
+SELECT p_actor_user_id, 'status_change', 'orders', p_order_id
+  FROM staff
+ WHERE user_id = p_actor_user_id;
+```
+
+**Rationale:**
+
+1. **Atomicity** — the same argument as #22. Middleware writing the row *after* the call leaves
+   a window in which a crash produces a cancelled order with no audit trail.
+2. **Coverage** — customer self-cancellation (REQ-9.4) never passes through staff middleware,
+   so middleware-only auditing would miss it entirely. The procedure covers every caller: the
+   customer endpoint and slice E's 24-hour auto-cancel job (REQ-8.5 / BR-7).
+3. **Scope** — §5.3 requires *administrative* activity to be logged. A customer cancelling
+   their own order is not administrative, so it is not written to `admin_audit_log`; it is
+   recorded by `orders.order_status = 'Cancelled'` itself.
+
+**On the `INSERT … SELECT … FROM staff` form:** the `WHERE` does the branching. A staff actor
+matches one row and one audit entry is written; a customer matches none, so zero rows are
+inserted — no error and no `IF`. The same technique resolves the payment row in #25.
+
+`p_actor_user_id` is therefore used rather than accepted and ignored, which was the
+alternative and would have left a parameter in a published signature doing nothing.
+
 ---
 
 ## C. Technology and tooling decisions
