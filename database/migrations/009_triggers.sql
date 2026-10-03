@@ -13,4 +13,14 @@
 --
 -- Belt and braces: keep the CHECK constraint in 002 as well. The trigger gives
 -- a clear error message; the CHECK is the guarantee.
+
 -- =========================================================================
+DROP TRIGGER IF EXISTS trg_variant_stock_no_negative;
+CREATE TRIGGER trg_variant_stock_no_negative
+BEFORE UPDATE ON variant
+FOR EACH ROW
+BEGIN
+    IF NEW.stock_quantity <0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT ='stock cannot be negative';
+    END IF;
+END;
