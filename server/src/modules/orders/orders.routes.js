@@ -8,5 +8,6 @@ const controller = require('./orders.controller');
 
 //POST/api/checkout/confirm
 router.post('/checkout/confirm', requireAuth, controller.confirmCheckout);
-
+router.get('/orders/:orderId', requireAuth, controller.getOrder);
+router.get('/orders', requireAuth, controller.listOrders);
 module.exports = router;
