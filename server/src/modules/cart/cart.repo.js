@@ -2,90 +2,69 @@
 // SQL ONLY. Use placeholders, never string concatenation.
 const { pool, withTransaction } = require('../../config/db');
 
-/**
- * Find the latest active cart for a registered customer.
- * Uses ORDER BY cart_id DESC LIMIT 1 to guarantee picking the newest active cart.
- */
-exports.findByCustomerId = async (customerId) => {
-  const [rows] = await pool.query(
-    `SELECT cart_id AS cartId, customer_id AS customerId,
-            session_token AS sessionToken, cart_status AS cartStatus,
-            created_at AS createdAt
-       FROM cart
-      WHERE customer_id = ? AND cart_status = 'active'
-      ORDER BY cart_id DESC
-      LIMIT 1`,
-    [customerId]
-  );
-  return rows[0] || null;
+// Find the latest active cart for a customer or a guest session token(discover the cart while user is shopping).
+exports.findActive = async ({ customerId, sessionToken }) => {
+  if (customerId) {
+    const [rows] = await pool.query(
+      `SELECT cart_id AS cartId, customer_id AS customerId, session_token AS sessionToken,
+              cart_status AS cartStatus, created_at AS createdAt
+         FROM cart
+        WHERE customer_id = ? AND cart_status = 'active'
+        ORDER BY cart_id DESC
+        LIMIT 1`,
+      [customerId]
+    );
+    return rows[0] || null;
+  }
+
+  if (sessionToken) {
+    const [rows] = await pool.query(
+      `SELECT cart_id AS cartId, customer_id AS customerId, session_token AS sessionToken,
+              cart_status AS cartStatus, created_at AS createdAt
+         FROM cart
+        WHERE session_token = ? AND cart_status = 'active'
+        ORDER BY cart_id DESC
+        LIMIT 1`,
+      [sessionToken]
+    );
+    return rows[0] || null;
+  }
+
+  return null;
 };
 
-/**
- * Find the active cart for a guest session token.
- */
-exports.findBySessionToken = async (sessionToken) => {
-  const [rows] = await pool.query(
-    `SELECT cart_id AS cartId, customer_id AS customerId,
-            session_token AS sessionToken, cart_status AS cartStatus,
-            created_at AS createdAt
-       FROM cart
-      WHERE session_token = ? AND cart_status = 'active'
-      ORDER BY cart_id DESC
-      LIMIT 1`,
-    [sessionToken]
-  );
-  return rows[0] || null;
-};
-
-/**
- * Find cart header by primary key.
- */
+// Find cart by primary key(When doing the payment the data will be passed using cart_id).
 exports.findById = async (cartId) => {
   const [rows] = await pool.query(
-    `SELECT cart_id AS cartId, customer_id AS customerId,
-            session_token AS sessionToken, cart_status AS cartStatus,
-            created_at AS createdAt
-       FROM cart
-      WHERE cart_id = ?`,
+    `SELECT cart_id AS cartId, customer_id AS customerId, session_token AS sessionToken,
+            cart_status AS cartStatus, created_at AS createdAt
+       FROM cart WHERE cart_id = ?`,
     [cartId]
   );
   return rows[0] || null;
 };
 
-/**
- * Create a new active cart for a customer or a guest.
- */
+// Create a new active cart
 exports.createCart = async ({ customerId = null, sessionToken = null }) => {
-  const [result] = await pool.query(
-    `INSERT INTO cart (customer_id, session_token, cart_status)
-     VALUES (?, ?, 'active')`,
+  const [res] = await pool.query(
+    `INSERT INTO cart (customer_id, session_token, cart_status) VALUES (?, ?, 'active')`,
     [customerId, sessionToken]
   );
-  return result.insertId;
+  return res.insertId;//returns the new auto-generated cart id
 };
 
-/**
- * Fetch the complete Cart shape matching docs/API.md.
- * Calculates lineTotal, subtotal, itemCount, and hasOutOfStockItems in SQL.
- */
+// Fetch full Cart shape matching docs/API.md with items, attributes, and totals
 exports.getCartWithItems = async (cartId) => {
   const cart = await exports.findById(cartId);
   if (!cart) return null;
 
-  // 1. Fetch all items joined with variant and product details
+  // Fetch items joined with product and variant info
   const [itemRows] = await pool.query(
-    `SELECT ci.item_id AS itemId,
-            ci.cart_id AS cartId,
-            ci.variant_id AS variantId,
-            ci.quantity,
-            CAST(v.price * ci.quantity AS CHAR) AS lineTotal,
-            v.product_id AS productId,
-            p.product_name AS productName,
-            v.SKU AS sku,
-            CAST(v.price AS CHAR) AS price,
-            v.stock_quantity AS stockQuantity,
-            (v.stock_quantity > 0) AS inStock,
-            v.is_active AS isActive,
+    `SELECT ci.item_id AS itemId, ci.cart_id AS cartId, ci.variant_id AS variantId,
+            ci.quantity, (v.price * ci.quantity) AS lineTotal,
+            v.product_id AS productId, p.product_name AS productName,
+            v.SKU AS sku, v.price, v.stock_quantity AS stockQuantity,
+            (v.stock_quantity > 0) AS inStock, v.is_active AS isActive,
             p.image_url AS imageUrl
        FROM cart_item ci
        JOIN variant v ON v.variant_id = ci.variant_id
@@ -95,32 +74,24 @@ exports.getCartWithItems = async (cartId) => {
     [cartId]
   );
 
-  // 2. Fetch attributes for all variants in the cart (if any items exist)
-  let attributesByVariant = {};
+  // Fetch attributes for all variants present in this cart
+  const attributesByVariant = {};
   if (itemRows.length > 0) {
     const variantIds = [...new Set(itemRows.map((r) => r.variantId))];
     const [attrRows] = await pool.query(
-      `SELECT av.variant_id AS variantId,
-              va.name,
-              av.value
+      `SELECT av.variant_id AS variantId, va.name, av.value
          FROM attribute_value av
          JOIN variant_attribute va ON va.attribute_id = av.attribute_id
         WHERE av.variant_id IN (?)`,
       [variantIds]
     );
-
-    for (const attr of attrRows) {
-      if (!attributesByVariant[attr.variantId]) {
-        attributesByVariant[attr.variantId] = [];
-      }
-      attributesByVariant[attr.variantId].push({
-        name: attr.name,
-        value: attr.value,
-      });
+    for (const { variantId, name, value } of attrRows) {
+      if (!attributesByVariant[variantId]) attributesByVariant[variantId] = [];
+      attributesByVariant[variantId].push({ name, value });
     }
   }
 
-  // 3. Compute cart aggregate metrics in SQL (preventing JS float errors)
+  // Compute cart totals in SQL (exact DECIMAL math)
   const [[summary]] = await pool.query(
     `SELECT COALESCE(CAST(SUM(v.price * ci.quantity) AS CHAR), '0.00') AS subtotal,
             COALESCE(SUM(ci.quantity), 0) AS itemCount,
@@ -131,117 +102,94 @@ exports.getCartWithItems = async (cartId) => {
     [cartId]
   );
 
-  // 4. Map into the agreed docs/API.md cross-slice Cart shape
-  const items = itemRows.map((row) => ({
-    itemId: row.itemId,
-    quantity: row.quantity,
-    lineTotal: row.lineTotal,
-    variant: {
-      variantId: row.variantId,
-      productId: row.productId,
-      productName: row.productName,
-      sku: row.sku,
-      price: row.price,
-      stockQuantity: row.stockQuantity,
-      inStock: Boolean(row.inStock),
-      isActive: Boolean(row.isActive),
-      imageUrl: row.imageUrl,
-      attributes: attributesByVariant[row.variantId] || [],
-    },
-  }));
-
   return {
     cartId: cart.cartId,
     customerId: cart.customerId,
     sessionToken: cart.sessionToken,
     cartStatus: cart.cartStatus,
-    items,
+    items: itemRows.map((row) => ({
+      itemId: row.itemId,
+      quantity: row.quantity,
+      lineTotal: String(row.lineTotal),
+      variant: {
+        variantId: row.variantId,
+        productId: row.productId,
+        productName: row.productName,
+        sku: row.sku,
+        price: String(row.price),
+        stockQuantity: row.stockQuantity,
+        inStock: Boolean(row.inStock),
+        isActive: Boolean(row.isActive),
+        imageUrl: row.imageUrl,
+        attributes: attributesByVariant[row.variantId] || [],
+      },
+    })),
     itemCount: Number(summary.itemCount),
-    subtotal: summary.subtotal,
+    subtotal: String(summary.subtotal),
     hasOutOfStockItems: Boolean(summary.hasOutOfStockItems),
   };
 };
 
-/**
- * Add an item to the cart.
- * REQ-3.4: Duplicate addition of the same variant sums quantities.
- */
+// Add item to cart — sums quantities if variant already in cart (REQ-3.4)
 exports.addItem = async ({ cartId, variantId, quantity }) => {
   await pool.query(
     `INSERT INTO cart_item (cart_id, variant_id, quantity)
      VALUES (?, ?, ?)
-     ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)`,
-    [cartId, variantId, quantity]
+     ON DUPLICATE KEY UPDATE quantity = quantity + ?`,
+    [cartId, variantId, quantity, quantity]
   );
 };
 
-/**
- * Update quantity for an existing cart item.
- */
+// Update item quantity (scoped to cart_id for security)
 exports.updateItemQuantity = async ({ cartId, itemId, quantity }) => {
-  const [result] = await pool.query(
-    `UPDATE cart_item
-        SET quantity = ?
-      WHERE item_id = ? AND cart_id = ?`,
+  const [res] = await pool.query(
+    `UPDATE cart_item SET quantity = ? WHERE item_id = ? AND cart_id = ?`,
     [quantity, itemId, cartId]
   );
-  return result.affectedRows > 0;
+  return res.affectedRows > 0;
 };
 
-/**
- * Remove an item from the cart.
- */
+// Remove item from cart (scoped to cart_id)
 exports.removeItem = async ({ cartId, itemId }) => {
-  const [result] = await pool.query(
-    `DELETE FROM cart_item
-      WHERE item_id = ? AND cart_id = ?`,
+  const [res] = await pool.query(
+    `DELETE FROM cart_item WHERE item_id = ? AND cart_id = ?`,
     [itemId, cartId]
   );
-  return result.affectedRows > 0;
+  return res.affectedRows > 0;// if an items is removed then it will return true
 };
 
-/**
- * Verify whether a variant exists, is active, and fetch its stock.
- */
+// Check if a variant exists and is active
 exports.findVariantById = async (variantId) => {
   const [rows] = await pool.query(
     `SELECT variant_id AS variantId, price, stock_quantity AS stockQuantity, is_active AS isActive
-       FROM variant
-      WHERE variant_id = ?`,
+       FROM variant WHERE variant_id = ?`,
     [variantId]
   );
   return rows[0] || null;
 };
 
-/**
- * Atomically merge a guest cart into a customer cart upon login (DECISIONS #14).
- * Sums duplicate items, moves non-duplicates, and marks guest cart 'converted'.
- */
+// Atomically merge guest cart into customer cart on login (DECISIONS #14)
 exports.mergeGuestCart = async (customerId, sessionToken) => {
   return withTransaction(async (conn) => {
-    // 1. Find the active guest cart
-    const [guestRows] = await conn.query(
-      `SELECT cart_id FROM cart
-        WHERE session_token = ? AND cart_status = 'active'
-        ORDER BY cart_id DESC
-        LIMIT 1`,
+    // Find active guest cart
+    const [guest] = await conn.query(
+      `SELECT cart_id FROM cart WHERE session_token = ? AND cart_status = 'active'
+       ORDER BY cart_id DESC LIMIT 1`,
       [sessionToken]
     );
-    if (!guestRows.length) return null;
-    const guestCartId = guestRows[0].cart_id;
+    if (!guest.length) return null;
+    const guestCartId = guest[0].cart_id;
 
-    // 2. Find or create the active customer cart
-    const [custRows] = await conn.query(
-      `SELECT cart_id FROM cart
-        WHERE customer_id = ? AND cart_status = 'active'
-        ORDER BY cart_id DESC
-        LIMIT 1`,
+    // Find or create active customer cart
+    const [cust] = await conn.query(
+      `SELECT cart_id FROM cart WHERE customer_id = ? AND cart_status = 'active'
+       ORDER BY cart_id DESC LIMIT 1`,
       [customerId]
     );
 
     let customerCartId;
-    if (custRows.length) {
-      customerCartId = custRows[0].cart_id;
+    if (cust.length) {
+      customerCartId = cust[0].cart_id;
     } else {
       const [res] = await conn.query(
         `INSERT INTO cart (customer_id, cart_status) VALUES (?, 'active')`,
@@ -250,42 +198,32 @@ exports.mergeGuestCart = async (customerId, sessionToken) => {
       customerCartId = res.insertId;
     }
 
-    // 3. Move items into customer cart, summing quantities for duplicates
+    // Move items to customer cart, summing quantities for duplicates
     await conn.query(
       `INSERT INTO cart_item (cart_id, variant_id, quantity)
-       SELECT ?, variant_id, quantity
-         FROM cart_item
-        WHERE cart_id = ?
+       SELECT ?, variant_id, quantity FROM cart_item WHERE cart_id = ?
        ON DUPLICATE KEY UPDATE quantity = cart_item.quantity + VALUES(quantity)`,
       [customerCartId, guestCartId]
     );
 
-    // 4. Mark the guest cart as converted
-    await conn.query(
-      `UPDATE cart SET cart_status = 'converted' WHERE cart_id = ?`,
-      [guestCartId]
-    );
+    // Mark guest cart converted
+    await conn.query(`UPDATE cart SET cart_status = 'converted' WHERE cart_id = ?`, [guestCartId]);
 
     return customerCartId;
   });
 };
 
-/**
- * Look up city details by city_id for delivery estimation.
- */
+// Look up city details for store pickup
 exports.getCityById = async (cityId) => {
   const [rows] = await pool.query(
     `SELECT city_id AS cityId, city_name AS cityName, is_main_city AS isMainCity
-       FROM city
-      WHERE city_id = ?`,
+       FROM city WHERE city_id = ?`,
     [cityId]
   );
   return rows[0] || null;
 };
 
-/**
- * Verify customer owns the address and retrieve its city info.
- */
+// Verify customer owns address and get its city info
 exports.getCustomerAddressCity = async (customerId, addressId) => {
   const [rows] = await pool.query(
     `SELECT a.address_id AS addressId, a.city_id AS cityId,
@@ -299,9 +237,7 @@ exports.getCustomerAddressCity = async (customerId, addressId) => {
   return rows[0] || null;
 };
 
-/**
- * Calls stored function fn_estimate_delivery_days to calculate delivery turnaround days.
- */
+// Call stored function to calculate delivery days turnaround
 exports.estimateDeliveryDays = async (cityId, hasOutOfStock) => {
   const [[row]] = await pool.query(
     `SELECT fn_estimate_delivery_days(?, ?) AS days`,
@@ -309,4 +245,3 @@ exports.estimateDeliveryDays = async (cityId, hasOutOfStock) => {
   );
   return row.days;
 };
-
