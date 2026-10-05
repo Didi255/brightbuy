@@ -35,10 +35,6 @@ export function CartProvider({ children }) {
     try {
       setLoading(true);
       setError(null);
-      const headers = {};
-      if (!user) {
-        headers['X-Cart-Session'] = getSessionToken();
-      }
       const data = await api.get('/cart');
       setCart(data);
     } catch (err) {
