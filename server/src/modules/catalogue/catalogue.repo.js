@@ -13,6 +13,23 @@ function escapeLike(text) {
  * Parameter order must match the order the pieces appear in the final SQL:
  * cte -> where -> having.
  */
+/**
+ * SQL ONLY. No business logic, no req/res.
+ * Every value goes through a ? placeholder — never string concatenation.
+ */
+const { pool } = require('../../config/db');
+
+// Make a user's keyword safe to use inside LIKE (so "50%" means a literal "50%").
+function escapeLike(text) {
+  return text.replace(/[\\%_]/g, '\\$&');
+}
+
+/**
+ * Builds the pieces shared by the "rows" query and the "count" query,
+ * adding a condition ONLY when that filter was supplied.
+ * Parameter order must match the order the pieces appear in the final SQL:
+ * cte -> where -> having.
+ */
 function buildFilter({ keyword, brand, categoryId, minPrice, maxPrice }) {
   const where = ['p.is_active = TRUE'];
   const having = [];
@@ -20,18 +37,19 @@ function buildFilter({ keyword, brand, categoryId, minPrice, maxPrice }) {
   const whereParams = [];
   const havingParams = [];
   let cte = '';
- 
+
   if (keyword) {
     const pattern = `%${escapeLike(keyword)}%`;
-    where.push('(p.product_name LIKE ? OR p.brand LIKE ?)');
-    whereParams.push(pattern, pattern);
+    // Keyword searches the product name only; brand has its own filter.
+    where.push('p.product_name LIKE ?');
+    whereParams.push(pattern);
   }
- 
+
   if (brand) {
     where.push('p.brand = ?');
     whereParams.push(brand);
   }
- 
+
   if (categoryId) {
     // The chosen category plus all of its sub-categories (category.parent_category_id).
     cte = `WITH RECURSIVE category_tree AS (
@@ -46,7 +64,7 @@ function buildFilter({ keyword, brand, categoryId, minPrice, maxPrice }) {
                   SELECT pc.product_id FROM product_category pc
                     JOIN category_tree ct ON ct.category_id = pc.category_id)`);
   }
- 
+
   // Price lives on variant, so "price in range" means "at least one variant is in range".
   if (minPrice !== undefined && maxPrice !== undefined) {
     having.push('SUM(v.price >= ? AND v.price <= ?) > 0');
@@ -58,36 +76,39 @@ function buildFilter({ keyword, brand, categoryId, minPrice, maxPrice }) {
     having.push('SUM(v.price <= ?) > 0');
     havingParams.push(maxPrice);
   }
- 
+
   const core = `
       FROM product p
       JOIN variant v ON v.product_id = p.product_id AND v.is_active = TRUE
      WHERE ${where.join(' AND ')}
      GROUP BY p.product_id
      ${having.length ? 'HAVING ' + having.join(' AND ') : ''}`;
- 
+
   return { cte, core, params: [...cteParams, ...whereParams, ...havingParams] };
 }
- 
+
 exports.searchProducts = async (filters) => {
   const { cte, core, params } = buildFilter(filters);
- 
+
   const rowsSql = `${cte}
-    SELECT p.product_id, p.product_name, p.brand, p.image_url,
-           MIN(v.price) AS price_from,
-           MAX(v.price) AS price_to,
-           SUM(v.stock_quantity) AS total_stock
+    SELECT p.product_id AS productId,
+           p.product_name AS name,
+           p.brand AS brand,
+           p.image_url AS imageUrl,
+           MIN(v.price) AS priceFrom,
+           MAX(v.price) AS priceTo,
+           CAST(SUM(v.stock_quantity) AS SIGNED) AS totalStock
     ${core}
     ORDER BY p.product_name, p.product_id
     LIMIT ? OFFSET ?`;
- 
+
   const countSql = `${cte}
     SELECT COUNT(*) AS total FROM (SELECT p.product_id ${core}) AS matched`;
- 
+
   const [[rows], [countRows]] = await Promise.all([
     pool.query(rowsSql, [...params, filters.limit, filters.offset]),
     pool.query(countSql, params),
   ]);
- 
+
   return { rows, total: countRows[0].total };
 };
