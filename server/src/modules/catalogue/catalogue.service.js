@@ -6,6 +6,11 @@
  * Validates + normalises the raw query string, applies defaults,
  * calls the repo, then shapes the result for the API.
  */
+/**
+ * Business rules for the catalogue. No SQL, no req/res.
+ * Validates + normalises the raw query string, applies defaults,
+ * calls the repo, then shapes the result for the API.
+ */
 const repo = require('./catalogue.repo');
 const ApiError = require('../../utils/ApiError');
 
@@ -81,15 +86,7 @@ exports.searchProducts = async (query) => {
   });
 
   return {
-    items: rows.map((r) => ({
-      productId: r.product_id,
-      name: r.product_name,
-      brand: r.brand,
-      imageUrl: r.image_url,
-      priceFrom: r.price_from,
-      priceTo: r.price_to,
-      totalStock: r.total_stock,
-    })),
+    items: rows, // the repo already returns camelCase keys (AGENTS.md rule 9)
     page,
     limit,
     total,
