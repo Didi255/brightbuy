@@ -1,20 +1,56 @@
 /**
  * Auth context — OWNER: M1.
- * TODO(M1): persist the user across reloads, expose register(), and add a
- * ProtectedRoute component that redirects guests to /login (REQ-4.5).
+ * Persists the authenticated user across reloads and exposes
+ * login, register, logout, and authentication state.
  */
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { api, setToken } from '../api/client';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('bb_user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      localStorage.removeItem('bb_user');
+      return null;
+    }
+  });
 
-  async function login(email, password) {
-    const res = await api.post('/auth/login', { email, password });
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    setAuthLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('bb_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('bb_user');
+    }
+  }, [user]);
+
+  async function register(input) {
+    const res = await api.post('/auth/register', input);
+
     setToken(res.token);
     setUser(res.user);
+
+    return res.user;
+  }
+
+  async function login(email, password) {
+    const res = await api.post('/auth/login', {
+      email,
+      password,
+    });
+
+    setToken(res.token);
+    setUser(res.user);
+
     return res.user;
   }
 
@@ -24,7 +60,17 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isStaff: user?.userType === 'staff' }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        authLoading,
+        register,
+        login,
+        logout,
+        isAuthenticated: Boolean(user),
+        isStaff: user?.userType === 'staff',
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
