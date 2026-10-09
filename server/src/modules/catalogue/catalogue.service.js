@@ -157,7 +157,13 @@ exports.getProduct = async (productId) => {
 function buildTree(rows) {
   const map = {};
   for (const r of rows) {
-    map[r.categoryId] = { ...r, children: [] };
+    map[r.categoryId] = {
+      categoryId:       r.categoryId,
+      categoryName:     r.categoryName,
+      parentCategoryId: r.parentCategoryId,
+      isActive:         Boolean(r.isActive),
+      children:         [],
+    };
   }
   const roots = [];
   for (const r of rows) {
