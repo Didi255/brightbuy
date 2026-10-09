@@ -17,6 +17,8 @@ import CheckoutSuccessPage from '../features/cart/CheckoutSuccessPage';
 
 /* ── Slice B: catalogue ───────────────────────────────────────────── */
 import HomePage from '../features/catalogue/HomePage';
+import ProductsPage from '../features/catalogue/ProductsPage';
+import ProductDetailPage from '../features/catalogue/ProductDetailPage';
 
 /* ── Slice D: auth & profile ──────────────────────────────────────── */
 import LoginPage from '../features/auth/LoginPage';
@@ -36,8 +38,8 @@ export default function AppRoutes() {
       <Route element={<AppShell cartItemCount={itemCount} />}>
         {/* --- Slice B: catalogue --- */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/products" element={<PlaceholderPage title="Products" slice="B" />} />
-        <Route path="/products/:productId" element={<PlaceholderPage title="Product Detail" slice="B" />} />
+        <Route path="/products" element={<ProductsPage />} />
+        <Route path="/products/:productId" element={<ProductDetailPage />} />
 
         {/* --- Slice C: cart & checkout --- */}
         <Route path="/cart" element={<CartPage />} />
