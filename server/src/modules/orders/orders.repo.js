@@ -133,3 +133,32 @@ exports.cancelOrder = async (orderId, actorUserId) => {
     await pool.query('CALL sp_cancel_order(?,?)',[orderId,actorUserId]);
 };
 
+exports.findPaymentForOrder = async (orderId) => {
+    const[rows] = await pool.query(
+        `SELECT p.order_id AS orderId,
+        p.payment_method AS paymentMethod,
+        p.payment_status AS paymentStatus,
+        p.gateway_ref AS gatewayRef
+        FROM payment p
+        WHERE p.order_id = ?`,
+        [orderId]
+    );
+    return rows[0] || null;
+    
+};
+
+exports.findPaymentsForOrders = async (orderIds) => {
+  if (orderIds.length === 0) return [];
+  const [rows] = await pool.query(
+    `SELECT p.order_id       AS orderId,
+            p.payment_method AS paymentMethod,
+            p.payment_status AS paymentStatus,
+            p.gateway_ref    AS gatewayRef
+       FROM payment p
+      WHERE p.order_id IN = ?`,
+    [orderIds]
+  );
+  return rows;
+};
+
+

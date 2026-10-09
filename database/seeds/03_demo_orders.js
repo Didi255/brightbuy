@@ -233,11 +233,14 @@ module.exports = async function seed(pool) {
           `UPDATE orders SET order_status = 'DeliveredOrPicked' WHERE order_id = ?`, [orderId]);
         await pool.query(
           `UPDATE delivery SET delivery_status = 'delivered' WHERE order_id = ?`, [orderId]);
+        // A delivered order was paid for - COD settles on handover.
+        await pool.query(
+          `UPDATE payment SET payment_status = 'Paid' WHERE order_id = ?`, [orderId]);
       }
 
-      // Backdate LAST: the statements above touch orders, delivery and payment,
-      // each of which would re-stamp its ON UPDATE timestamp to today.
+      
       await backdate(orderId, date);
+
       made++;
       seq++;
     }
