@@ -118,11 +118,13 @@ exports.getAdminUsers = async (req, res, next) => {
   }
 };
 
+
 exports.updateAdminUser = async (req, res, next) => {
   try {
     const result = await service.updateAdminUser(
       req.params.id,
-      req.body
+      req.body,
+      req.user.userId
     );
 
     res.json(result);

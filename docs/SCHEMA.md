@@ -47,6 +47,7 @@ once merged, never edited.
 | `012` | **E** | Views — `v_order_details`, `v_variant_stock` |
 | `013` | **D** | Roles, `GRANT`, `REVOKE` |
 | `014` | **D** | Address ownership — adds `address.customer_id` for customer address books |
+| `016` | **D** | User soft-deactivation — adds `user.is_active` |
 
 `002` is deliberately split from `011`: A and C are blocked on `variant`, so the four core
 tables ship first and attributes follow (DECISIONS #16).
@@ -85,6 +86,7 @@ tables ship first and attributes follow (DECISIONS #16).
 | `password_hash` | VARCHAR(255) NOT NULL | bcrypt. Plaintext never stored (REQ-4.3) |
 | `user_type` | ENUM NOT NULL | `'customer'`, `'staff'` |
 | `created_at` | TIMESTAMP DEFAULT CURRENT_TIMESTAMP | |
+| `is_active` | BOOLEAN NOT NULL DEFAULT TRUE | Soft-deactivation flag. FALSE blocks account access; added in migration 016 |
 
 ### `customer`
 | Column | Type | Notes |

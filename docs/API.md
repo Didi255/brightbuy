@@ -188,6 +188,8 @@ Owned by A. Consumed by C (confirmation page) and E (payments, reports).
 | POST | `/me/addresses` | customer | 4.6 |
 | GET | `/cities` | — | 7.3 |
 | GET/POST/PATCH | `/admin/cities` | staff | 7.3 |
+| GET | `/admin/users` | admin | Staff user management |
+| PATCH | `/admin/users/:id` | admin | Role changes and account deactivation |
 
 **POST /auth/register**
 ```json
@@ -204,6 +206,42 @@ Owned by A. Consumed by C (confirmation page) and E (payments, reports).
 **POST /auth/login** — request `{ "email", "password" }`, response same shape as register.
 On failure: 401 with a deliberately vague message. Never reveal which credential was wrong
 (SRS §4.4.2).
+
+**PATCH /admin/users/:id** — Admin only. Updates a user's staff role and/or account activation status.
+
+Request body (at least one field required):
+
+```json
+{
+  "role": "minor_exec",
+  "isActive": false
+}
+```
+
+- `role` is optional and must be one of `admin`, `major_exec`, `minor_exec`, `labour`.
+- `role` can only be changed for staff users. A role update on a customer returns 400.
+- `isActive` is optional and must be a boolean (`true` or `false`).
+- At least one of `role` or `isActive` must be provided.
+- An admin cannot deactivate their own account.
+- A deactivated user cannot log in or use an existing JWT.
+- Non-admin users receive 403; unauthenticated requests receive 401.
+- Unknown user IDs return 404.
+
+Successful response (200):
+
+```json
+{
+  "userId": 5,
+  "firstName": "John",
+  "lastName": "Smith",
+  "email": "john.smith@brightbuy.com",
+  "userType": "customer",
+  "role": null,
+  "isActive": false
+}
+```
+
+The response never includes `passwordHash`.
 
 ## Catalogue — B
 

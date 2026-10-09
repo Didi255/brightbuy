@@ -1,4 +1,5 @@
-const { pool } = require('../../config/db');
+
+const { pool, withTransaction } = require('../../config/db');
 
 exports.findCustomerById = async (userId) => {
   const [rows] = await pool.query(
@@ -133,6 +134,7 @@ exports.updateCity = async (cityId, {
 
   return result.affectedRows;
 };
+
 exports.findAllUsers = async () => {
   const [rows] = await pool.query(
     `SELECT
@@ -141,6 +143,7 @@ exports.findAllUsers = async () => {
         u.last_name AS lastName,
         u.email,
         u.user_type AS userType,
+        u.is_active AS isActive,
         u.created_at AS createdAt,
         c.phone,
         s.role
@@ -174,4 +177,148 @@ exports.createAuditLog = async ({
       afterValue ? JSON.stringify(afterValue) : null,
     ]
   );
+};
+
+// Find a user before changing their role or activation status.
+exports.findUserById = async (userId) => {
+  const [rows] = await pool.query(
+    `SELECT
+        u.user_id AS userId,
+        u.first_name AS firstName,
+        u.last_name AS lastName,
+        u.email,
+        u.user_type AS userType,
+        u.is_active AS isActive,
+        s.role
+     FROM user u
+     LEFT JOIN staff s ON s.user_id = u.user_id
+     WHERE u.user_id = ?
+     LIMIT 1`,
+    [userId]
+  );
+
+  return rows[0] || null;
+};
+
+// Update a user and record the changes in one transaction.
+exports.updateAdminUserWithAudit = async ({
+  userId,
+  actorUserId,
+  role,
+  isActive,
+}) => {
+  return withTransaction(async (connection) => {
+    // Lock the target user during the transaction.
+    const [rows] = await connection.query(
+      `SELECT
+          u.user_id AS userId,
+          u.user_type AS userType,
+          u.is_active AS isActive,
+          s.role
+       FROM user u
+       LEFT JOIN staff s ON s.user_id = u.user_id
+       WHERE u.user_id = ?
+       FOR UPDATE`,
+      [userId]
+    );
+
+    const beforeUser = rows[0] || null;
+
+    if (!beforeUser) {
+      return null;
+    }
+
+    // Enforce critical rules against the locked database state.
+    if (role !== undefined && beforeUser.userType !== 'staff') {
+      const err = new Error('Cannot change a customer role');
+      err.status = 400;
+      throw err;
+    }
+
+    if (
+      isActive === false &&
+      Number(userId) === Number(actorUserId)
+    ) {
+      const err = new Error('You cannot deactivate your own account');
+      err.status = 400;
+      throw err;
+    }
+
+    const beforeValue = {};
+    const afterValue = {};
+
+    // Change the staff role if necessary.
+    if (role !== undefined && role !== beforeUser.role) {
+      const [result] = await connection.query(
+        `UPDATE staff
+         SET role = ?
+         WHERE user_id = ?`,
+        [role, userId]
+      );
+
+      if (result.affectedRows !== 1) {
+        throw new Error('Staff record not found');
+      }
+
+      beforeValue.role = beforeUser.role;
+      afterValue.role = role;
+    }
+
+    // Change account activation status if necessary.
+    if (
+      isActive !== undefined &&
+      Boolean(beforeUser.isActive) !== isActive
+    ) {
+      await connection.query(
+        `UPDATE user
+         SET is_active = ?
+         WHERE user_id = ?`,
+        [isActive, userId]
+      );
+
+      beforeValue.isActive = Boolean(beforeUser.isActive);
+      afterValue.isActive = isActive;
+    }
+
+    // Log only actual changes.
+    if (Object.keys(afterValue).length > 0) {
+      await connection.query(
+        `INSERT INTO admin_audit_log
+           (actor_user_id, action, entity_type, entity_id,
+            before_value, after_value)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          actorUserId,
+          'update',
+          'user',
+          userId,
+          JSON.stringify(beforeValue),
+          JSON.stringify(afterValue),
+        ]
+      );
+    }
+
+    // Retrieve the updated account information.
+    const [updatedRows] = await connection.query(
+      `SELECT
+          u.user_id AS userId,
+          u.first_name AS firstName,
+          u.last_name AS lastName,
+          u.email,
+          u.user_type AS userType,
+          u.is_active AS isActive,
+          s.role
+       FROM user u
+       LEFT JOIN staff s ON s.user_id = u.user_id
+       WHERE u.user_id = ?`,
+      [userId]
+    );
+
+    const updatedUser = updatedRows[0];
+
+    return {
+      ...updatedUser,
+      isActive: Boolean(updatedUser.isActive),
+    };
+  });
 };
