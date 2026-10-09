@@ -132,3 +132,21 @@ exports.updateAdminUser = async (req, res, next) => {
     next(err);
   }
 };
+
+
+/**
+ * GET /api/admin/audit-log
+ *
+ * Retrieve the latest administrative audit records.
+ * Access is restricted to administrators by the route middleware.
+ */
+exports.getAuditLogs = async (req, res, next) => {
+  try {
+    const logs = await service.getAuditLogs();
+
+    return res.json(logs);
+  } catch (error) {
+    next(error);
+  }
+};
+

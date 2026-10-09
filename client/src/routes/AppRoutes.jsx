@@ -1,3 +1,4 @@
+
 /**
  * AppRoutes — route map for BrightBuy
  * OWNER: shared (everyone adds inside their own block)
@@ -24,6 +25,9 @@ import RegisterPage from '../features/auth/RegisterPage';
 import ProfilePage from '../features/auth/ProfilePage';
 import AddressBookPage from '../features/auth/AddressBookPage';
 import ProtectedRoute from './ProtectedRoute';
+import CityManagementPage from '../features/auth/CityManagementPage';
+import UserManagementPage from '../features/auth/UserManagementPage';
+import AuditLogPage from '../features/auth/AuditLogPage';
 
 /* ── Placeholder pages (replaced as each slice lands) ─────────────── */
 import PlaceholderPage from '../features/PlaceholderPage';
@@ -106,18 +110,28 @@ export default function AppRoutes() {
           path="/staff/cities"
           element={
             <ProtectedRoute requireStaff>
-              <PlaceholderPage title="City Management" slice="D" />
+              <CityManagementPage />
             </ProtectedRoute>
           }
         />
         <Route
           path="/staff/users"
           element={
-            <ProtectedRoute requireStaff>
-              <PlaceholderPage title="User Management" slice="D" />
+            <ProtectedRoute requireAdmin>
+              <UserManagementPage />
             </ProtectedRoute>
           }
         />
+        
+        <Route
+          path="/staff/audit-log"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AuditLogPage />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/staff/reports"
           element={
