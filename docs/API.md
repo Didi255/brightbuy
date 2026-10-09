@@ -146,7 +146,8 @@ Owned by A. Consumed by C (confirmation page) and E (payments, reports).
       "quantity": 2,
       "unitPriceAtOrder": "1299.00",
       "lineTotal": "2598.00",
-      "outOfStockFlag": false
+      "outOfStockFlag": false,
+      "imageUrl": "https://placehold.co/600x400?text=Aurora%2014%20Laptop"
     }
   ],
   "delivery": {
@@ -167,6 +168,9 @@ Owned by A. Consumed by C (confirmation page) and E (payments, reports).
 ```
 
 - `unitPriceAtOrder` — **never** read `variant.price` for a historical order (REQ-5.7).
+- `imageUrl` — from `product.image_url`, so it is the product's *current* image, not a
+  snapshot. Unlike price and address, an image is presentation rather than a term of the
+  sale, so showing today's picture for an old order is correct. May be `null`.
 - `addressSnapshot` — likewise never join to `address` (see DECISIONS #15).
 - For `deliveryMode: "store_pickup"`, `addressSnapshot` is `null` but `cityName` is still set.
 - `canRetry` is E's: true when payment is `Failed` and within the 24h window (REQ-8.5).

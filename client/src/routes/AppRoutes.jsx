@@ -28,6 +28,8 @@ import ProtectedRoute from './ProtectedRoute';
 /* ── Placeholder pages (replaced as each slice lands) ─────────────── */
 import PlaceholderPage from '../features/PlaceholderPage';
 
+import OrderHistoryPage from '../features/orders/OrderHistoryPage';
+
 export default function AppRoutes() {
   const { itemCount } = useCart();
 
@@ -65,7 +67,7 @@ export default function AppRoutes() {
         />
 
         {/* --- Slice A: orders --- */}
-        <Route path="/orders" element={<PlaceholderPage title="Order History" slice="A" />} />
+        <Route path="/orders" element={<OrderHistoryPage />} />
         <Route path="/orders/:orderId" element={<PlaceholderPage title="Order Detail" slice="A" />} />
 
         {/* --- Slice E: payments & staff --- */}
