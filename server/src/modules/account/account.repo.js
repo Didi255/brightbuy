@@ -322,3 +322,34 @@ exports.updateAdminUserWithAudit = async ({
     };
   });
 };
+
+
+/**
+ * Retrieve administrative audit history.
+ *
+ * Read-only query for the Audit Log Viewer.
+ * Includes the actor's name and email.
+ * Newest audit records appear first.
+ */
+exports.findAuditLogs = async () => {
+  const [rows] = await pool.query(
+    `SELECT
+        a.audit_id AS auditId,
+        a.actor_user_id AS actorUserId,
+        CONCAT(u.first_name, ' ', u.last_name) AS actorName,
+        u.email AS actorEmail,
+        a.action,
+        a.entity_type AS entityType,
+        a.entity_id AS entityId,
+        a.before_value AS beforeValue,
+        a.after_value AS afterValue,
+        a.created_at AS createdAt
+     FROM admin_audit_log a
+     JOIN user u ON u.user_id = a.actor_user_id
+     ORDER BY a.created_at DESC, a.audit_id DESC
+     LIMIT 100`
+  );
+
+  return rows;
+};
+

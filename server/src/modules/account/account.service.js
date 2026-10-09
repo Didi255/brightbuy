@@ -295,3 +295,26 @@ exports.updateAdminUser = async (userId, input, actorUserId) => {
 
   return updatedUser;
 };
+
+/**
+ * Retrieve audit history for the admin Audit Log Viewer.
+ *
+ * The repository performs the SQL query.
+ * The service returns the records to the controller.
+ */
+exports.getAuditLogs = async () => {
+  const logs = await repo.findAuditLogs();
+
+  return logs.map((log) => ({
+    ...log,
+    beforeValue:
+      typeof log.beforeValue === 'string'
+        ? JSON.parse(log.beforeValue)
+        : log.beforeValue,
+    afterValue:
+      typeof log.afterValue === 'string'
+        ? JSON.parse(log.afterValue)
+        : log.afterValue,
+  }));
+};
+

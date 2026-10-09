@@ -1,3 +1,4 @@
+
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LoadingSpinner } from '../components/ui';
@@ -12,12 +13,18 @@ import { LoadingSpinner } from '../components/ui';
  *
  * requireStaff:
  *   Only authenticated staff users may access the route.
+ *
+ * requireAdmin:
+ *   Only authenticated staff users with the admin role
+ *   may access the route.
  */
 export default function ProtectedRoute({
   children,
   requireStaff = false,
+  requireAdmin = false,
 }) {
   const {
+    user,
     authLoading,
     isAuthenticated,
     isStaff,
@@ -50,6 +57,14 @@ export default function ProtectedRoute({
   // Customer trying to access a staff-only route.
   if (requireStaff && !isStaff) {
     return <Navigate to="/" replace />;
+  }
+
+  // Only staff administrators may access admin-only routes.
+  if (
+    requireAdmin &&
+    (user?.userType !== 'staff' || user?.role !== 'admin')
+  ) {
+    return <Navigate to="/staff" replace />;
   }
 
   return children;
