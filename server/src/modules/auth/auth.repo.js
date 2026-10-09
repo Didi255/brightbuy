@@ -9,7 +9,7 @@ const { pool, withTransaction } = require('../../config/db');
 exports.findByEmail = async (email) => {
   const [rows] = await pool.query(
     `SELECT u.user_id, u.first_name, u.last_name, u.email,
-            u.password_hash, u.user_type, s.role
+            u.password_hash, u.user_type,u.is_active , s.role
        FROM user u
        LEFT JOIN staff s ON s.user_id = u.user_id
       WHERE u.email = ?`,

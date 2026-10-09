@@ -109,6 +109,11 @@ exports.login = async ({ email, password }) => {
   if (!ok) {
     throw ApiError.unauthorized('Invalid email or password');
   }
+// Do not issue JWTs to deactivated accounts.
+  if (!user.is_active) {
+    throw ApiError.unauthorized('Invalid email or password');
+  }
+
 
   return {
     user: {
