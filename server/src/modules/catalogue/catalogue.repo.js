@@ -6,23 +6,6 @@ const { pool, withTransaction } = require('../../config/db');
 function escapeLike(text) {
   return text.replace(/[\\%_]/g, '\\$&');
 }
- 
-/**
- * Builds the pieces shared by the "rows" query and the "count" query,
- * adding a condition ONLY when that filter was supplied.
- * Parameter order must match the order the pieces appear in the final SQL:
- * cte -> where -> having.
- */
-/**
- * SQL ONLY. No business logic, no req/res.
- * Every value goes through a ? placeholder — never string concatenation.
- */
-const { pool } = require('../../config/db');
-
-// Make a user's keyword safe to use inside LIKE (so "50%" means a literal "50%").
-function escapeLike(text) {
-  return text.replace(/[\\%_]/g, '\\$&');
-}
 
 /**
  * Builds the pieces shared by the "rows" query and the "count" query,
