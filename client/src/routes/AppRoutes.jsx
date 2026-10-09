@@ -18,6 +18,13 @@ import CheckoutSuccessPage from '../features/cart/CheckoutSuccessPage';
 /* ── Slice B: catalogue ───────────────────────────────────────────── */
 import HomePage from '../features/catalogue/HomePage';
 
+/* ── Slice D: auth & profile ──────────────────────────────────────── */
+import LoginPage from '../features/auth/LoginPage';
+import RegisterPage from '../features/auth/RegisterPage';
+import ProfilePage from '../features/auth/ProfilePage';
+import AddressBookPage from '../features/auth/AddressBookPage';
+import ProtectedRoute from './ProtectedRoute';
+
 /* ── Placeholder pages (replaced as each slice lands) ─────────────── */
 import PlaceholderPage from '../features/PlaceholderPage';
 
@@ -38,10 +45,24 @@ export default function AppRoutes() {
         <Route path="/checkout/success/:orderId" element={<CheckoutSuccessPage />} />
 
         {/* --- Slice D: auth & profile --- */}
-        <Route path="/login" element={<PlaceholderPage title="Sign In" slice="D" />} />
-        <Route path="/register" element={<PlaceholderPage title="Register" slice="D" />} />
-        <Route path="/account" element={<PlaceholderPage title="Profile" slice="D" />} />
-        <Route path="/account/addresses" element={<PlaceholderPage title="Addresses" slice="D" />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account/addresses"
+          element={
+            <ProtectedRoute>
+              <AddressBookPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* --- Slice A: orders --- */}
         <Route path="/orders" element={<PlaceholderPage title="Order History" slice="A" />} />
@@ -49,13 +70,62 @@ export default function AppRoutes() {
 
         {/* --- Slice E: payments & staff --- */}
         <Route path="/orders/:orderId/pay" element={<PlaceholderPage title="Payment" slice="E" />} />
-        <Route path="/staff" element={<PlaceholderPage title="Staff Dashboard" slice="E" />} />
-        <Route path="/staff/catalogue" element={<PlaceholderPage title="Catalogue Management" slice="B" />} />
-        <Route path="/staff/stock" element={<PlaceholderPage title="Stock Adjustments" slice="E" />} />
-        <Route path="/staff/orders" element={<PlaceholderPage title="Order Console" slice="E" />} />
-        <Route path="/staff/cities" element={<PlaceholderPage title="City Management" slice="D" />} />
-        <Route path="/staff/users" element={<PlaceholderPage title="User Management" slice="D" />} />
-        <Route path="/staff/reports" element={<PlaceholderPage title="Reports" slice="E" />} />
+        <Route
+          path="/staff"
+          element={
+            <ProtectedRoute requireStaff>
+              <PlaceholderPage title="Staff Dashboard" slice="E" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/catalogue"
+          element={
+            <ProtectedRoute requireStaff>
+              <PlaceholderPage title="Catalogue Management" slice="B" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/stock"
+          element={
+            <ProtectedRoute requireStaff>
+              <PlaceholderPage title="Stock Adjustments" slice="E" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/orders"
+          element={
+            <ProtectedRoute requireStaff>
+              <PlaceholderPage title="Order Console" slice="E" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/cities"
+          element={
+            <ProtectedRoute requireStaff>
+              <PlaceholderPage title="City Management" slice="D" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/users"
+          element={
+            <ProtectedRoute requireStaff>
+              <PlaceholderPage title="User Management" slice="D" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/reports"
+          element={
+            <ProtectedRoute requireStaff>
+              <PlaceholderPage title="Reports" slice="E" />
+            </ProtectedRoute>
+          }
+        />
 
         {/* 404 */}
         <Route path="*" element={<PlaceholderPage title="Page Not Found" slice="" />} />
