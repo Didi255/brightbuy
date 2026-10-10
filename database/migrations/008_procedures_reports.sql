@@ -73,7 +73,7 @@ END;
 
 -- sp_report_upcoming_deliveries()                                  (REQ-12.4)
 -- Not yet delivered/picked, with city + out-of-stock flag + estimated date.
-CREATE PROCEDURE sp_report_upcoming_deliveries()
+ CREATE PROCEDURE sp_report_upcoming_deliveries()
 BEGIN
     SELECT
         o.order_id                        AS orderId,
@@ -85,6 +85,7 @@ BEGIN
     JOIN city ci       ON ci.city_id = d.city_id
     JOIN order_item oi ON oi.order_id = o.order_id
     WHERE d.delivery_status != 'delivered'
+      AND o.order_status != 'Cancelled'
     GROUP BY o.order_id, ci.city_name, d.estimated_delivery_date
     ORDER BY d.estimated_delivery_date ASC;
 END;
