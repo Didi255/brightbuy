@@ -52,3 +52,27 @@ exports.findCodPendingPayments = async (filters = {}) => {
   const [rows] = await pool.query(query, params);
   return rows;
 };
+
+exports.findPaymentById = async (paymentId) => {
+  const [rows] = await pool.query(
+    `SELECT p.payment_id, p.order_id, p.payment_method, p.payment_status,
+            p.gateway_ref, p.updated_at, o.customer_id, o.total_amount,
+            u.email, u.first_name
+       FROM payment p
+       JOIN orders o ON o.order_id = p.order_id
+       JOIN customer c ON c.user_id = o.customer_id
+       JOIN user u ON u.user_id = c.user_id
+      WHERE p.payment_id = ?`,
+    [paymentId]
+  );
+  return rows[0] || null;
+};
+
+exports.updatePaymentStatus = async (paymentId, status, gatewayRef) => {
+  await pool.query(
+    `UPDATE payment
+        SET payment_status = ?, gateway_ref = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE payment_id = ?`,
+    [status, gatewayRef, paymentId]
+  );
+};

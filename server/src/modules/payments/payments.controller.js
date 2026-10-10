@@ -7,3 +7,14 @@ exports.payCard = async (req, res, next) => {
     res.json(result);
   } catch (err) { next(err); }
 };
+
+exports.retryPayment = async (req, res, next) => {
+  try {
+    const result = await service.retryPayment(
+      req.user.userId,
+      Number(req.params.id),
+      req.body.mockOutcome
+    );
+    res.json(result);
+  } catch (err) { next(err); }
+};
