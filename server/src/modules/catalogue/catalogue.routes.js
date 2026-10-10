@@ -1,8 +1,11 @@
+//* Main idea ----> mapping URL s and HTTP methods to the necessary functions
+
 // catalogue slice — OWNER: M2
 // URL → controller mapping only. No logic.
 
 const router     = require('express').Router();
 const controller = require('./catalogue.controller');
+
 const { requireAuth, requireRole } = require('../../middleware/auth');
 const { auditMutation }            = require('../../middleware/audit');
 
@@ -12,7 +15,7 @@ const staffRoles = requireRole('admin', 'major_exec', 'minor_exec');
 // ─── Customer routes (public) ────────────────────────────────────────────────
 
 // GET /api/products?q=&categoryId=&brand=&minPrice=&maxPrice=&page=&pageSize=
-router.get('/products', controller.getProducts);
+router.get('/products', controller.getProducts);     
 
 // GET /api/products/:id
 router.get('/products/:id', controller.getProduct);
