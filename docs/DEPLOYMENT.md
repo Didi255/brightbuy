@@ -844,26 +844,41 @@ Collected because each is a real trap in *this* stack.
 
 ## 23. Status and TODO
 
-**Done [REPO]**
+**Live.** First deploy succeeded in 3m 15s, all jobs green, on commit `480e0f2`.
+
+```
+https://brightbuy-g13.indiasouthcentral.cloudapp.azure.com
+```
+
+**Done**
 
 - [x] `Dockerfile.api`, `Dockerfile.web`, `.dockerignore`
-- [x] `docker-compose.prod.yml`, `Caddyfile`
-- [x] `ci.yml` — client build, server syntax, migrate + seed + concurrency against real MySQL
-- [x] `deploy.yml` — build both images, push to GHCR, SSH deploy, migrate, smoke + deep-link tests
-- [x] API image verified: builds, and the migration runner resolves `/app/database/migrations` inside it
-- [x] SPA verified to build inside Docker; Vite's output matches the cache policy
+- [x] `docker-compose.prod.yml`, `Caddyfile`, `.env.example`
+- [x] `ci.yml` — client build, server syntax, migrate + seed + concurrency test against a real MySQL 8
+- [x] `deploy.yml` — two images to GHCR, SSH deploy, migrations, smoke + deep-link tests
+- [x] Verified locally end to end before Azure existed
+- [x] Azure: resource group, VM, static IP, DNS label, NSG 22/80/443, 2 GB swap
+- [x] Docker on the VM; `/opt/brightbuy` with a `chmod 600` `.env`
+- [x] GHCR read token on the VM; SSH deploy key; three secrets + `APP_DOMAIN`
+- [x] **First deploy green**, including HTTPS, `/api/health`, and `GET /orders` returning 200
+- [x] `backup.sh`, shipped to the VM by the pipeline
 
-**Not done [TODO]**
+**Still to do**
 
-- [ ] Build the Caddy stage end-to-end (blocked only by a sandbox network restriction; run `docker build -f infrastructure/docker/Dockerfile.web .` on your machine)
-- [ ] Run the whole stack locally with `APP_DOMAIN=:80`
-- [ ] Create the Azure resource group, VM, DNS label, NSG
-- [ ] Install Docker on the VM, create `/opt/brightbuy`, write `.env`
-- [ ] GHCR read token on the VM; SSH deploy key in GitHub Secrets; `APP_DOMAIN` variable
-- [ ] First deploy, then seed **once**
-- [ ] Nightly `mysqldump` with `--routines --triggers`, copied off the VM
-- [ ] Practise one restore
-- [ ] Reboot test: all three containers should come back by themselves
+- [ ] **Install the cron entry** for `backup.sh` (one command, §18.2). The script is on the VM but nothing is calling it.
+- [ ] **Practise one restore** into a throwaway database. An untested backup is not a backup.
+- [ ] **Copy dumps off the VM.** A disk failure currently takes the backups with it.
+- [ ] **Reboot test** — restart from the portal, confirm all three containers return by themselves.
+- [ ] **Resize.** The VM has 8 GB (~$36/month); 4 GB is ample. Stop → Size → `B2als_v2` → Start.
+- [ ] **Rotate the GHCR token** before it expires in 90 days.
+- [ ] Restrict SSH (port 22) to known IPs if practical.
+
+**Known gaps in the app, not the hosting**
+
+- [ ] 22 of the 43 product images are generated mockups with the product name rendered into the artwork, so those cards show the name twice. Needs real photography; replace all 22 in one batch.
+- [ ] No light theme. The navbar toggle has been removed and `forceColorScheme: 'dark'` pinned, because the `ink` ramp has no light variant — see §22.
+- [ ] `GET /products` has no `sort` parameter, so sorting is client-side over the current page only.
+- [ ] `sp_report_upcoming_deliveries` returns cancelled orders; needs `AND o.order_status != 'Cancelled'`.
 
 ---
 
