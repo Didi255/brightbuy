@@ -200,3 +200,24 @@ exports.transitionOrderStatus = async (staffUserId, orderId, newStatus) => {
 
   return { orderId, orderStatus: newStatus };
 };
+
+
+exports.adjustStock = async (staffId, variantId, changeQty, reason) => {
+  if (!Number.isInteger(variantId) || variantId <= 0) {
+    throw ApiError.badRequest('Invalid variantId', { variantId: 'must be a positive integer' });
+  }
+  if (!Number.isInteger(changeQty) || changeQty === 0) {
+    throw ApiError.badRequest('Invalid changeQty', { changeQty: 'must be a non-zero integer' });
+  }
+  if (typeof reason !== 'string' || reason.trim().length === 0) {
+    throw ApiError.badRequest('Reason is required', { reason: 'must not be empty' });
+  }
+
+  const result = await repo.createStockAdjustment(variantId, staffId, changeQty, reason.trim());
+  if (result.notFound) throw ApiError.notFound('Variant not found');
+  if (result.insufficient) {
+    throw ApiError.conflict('INSUFFICIENT_STOCK', 'Adjustment would make stock negative');
+  }
+
+  return { adjustmentId: result.adjustmentId, variantId, staffId, changeQty, reason: reason.trim() };
+};

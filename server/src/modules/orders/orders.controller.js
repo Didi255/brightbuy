@@ -60,3 +60,15 @@ exports.updateStatus = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+
+exports.createAdjustment = async (req, res, next) => {
+  try {
+    const result = await service.adjustStock(
+      req.user.userId,
+      Number(req.body.variantId),
+      Number(req.body.changeQty),
+      req.body.reason
+    );
+    res.status(201).json(result);
+  } catch (err) { next(err); }
+};

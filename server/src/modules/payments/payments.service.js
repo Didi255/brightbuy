@@ -82,8 +82,7 @@ exports.retryPayment = async (userId, paymentId, mockOutcome) => {
   const status = paid ? 'Paid' : 'Failed';
   const gatewayRef = paid ? `MOCK-${Date.now()}` : null;
 
-  await repo.updatePaymentStatus(payment.payment_id, status, gatewayRef);
-
+await repo.updateStatus(payment.payment_id, status, gatewayRef);
   // Send email notification (stub logs to console)
   try {
     await transporter.sendMail({

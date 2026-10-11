@@ -28,3 +28,10 @@ router.patch(
 );
 
 module.exports = router;
+
+router.post(
+  '/admin/stock-adjustments',
+  requireAuth,
+  requireRole('admin', 'major_exec', 'minor_exec', 'labour'),
+  controller.createAdjustment
+);

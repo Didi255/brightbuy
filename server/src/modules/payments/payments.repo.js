@@ -16,9 +16,11 @@ exports.findByOrderId = async (orderId) => {
 exports.updateStatus = async (paymentId, status, gatewayRef) => {
   await pool.query(
     `UPDATE payment
-        SET payment_status = ?, gateway_ref = ?
+        SET updated_at = IF(payment_status <> ?, CURRENT_TIMESTAMP, updated_at),
+            payment_status = ?,
+            gateway_ref = ?
       WHERE payment_id = ?`,
-    [status, gatewayRef, paymentId]
+    [status, status, gatewayRef, paymentId]
   );
 };
 
@@ -68,14 +70,6 @@ exports.findPaymentById = async (paymentId) => {
   return rows[0] || null;
 };
 
-exports.updatePaymentStatus = async (paymentId, status, gatewayRef) => {
-  await pool.query(
-    `UPDATE payment
-        SET payment_status = ?, gateway_ref = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE payment_id = ?`,
-    [status, gatewayRef, paymentId]
-  );
-};
 
 exports.markCodPaid = async (paymentId, staffId) => {
   await pool.query(
