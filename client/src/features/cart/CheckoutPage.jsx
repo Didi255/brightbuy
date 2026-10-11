@@ -115,7 +115,7 @@ export default function CheckoutPage() {
         ]}
       />
 
-      {error && <ErrorAlert error={error} mb={20} />}
+      {error && <ErrorAlert error={error} mb={16} />}
 
       <Stepper
         active={step}
@@ -123,8 +123,8 @@ export default function CheckoutPage() {
         size="sm"
         mb={32}
         styles={{
-          stepIcon: { borderWidth: 2 },
-          separator: { marginLeft: 2, marginRight: 2 },
+          stepIcon: { borderRadius: 999, borderWidth: 2 },
+          separator: { height: 2, marginLeft: 4, marginRight: 4, background: 'rgba(255,236,214,0.12)' },
         }}
       >
         <Stepper.Step label="Delivery" icon={<IconTruck size={18} />}>
@@ -136,7 +136,7 @@ export default function CheckoutPage() {
                   value="standard"
                   label={
                     <Group gap={8}>
-                      <IconTruck size={18} color="#0066ff" />
+                      <IconTruck size={18} color="var(--mantine-color-brand-5)" />
                       <div>
                         <Text fw={500} size="sm">Standard Delivery</Text>
                         <Text size="xs" c="dimmed">Delivered to your address</Text>
@@ -148,10 +148,10 @@ export default function CheckoutPage() {
                   value="store_pickup"
                   label={
                     <Group gap={8}>
-                      <IconBuildingStore size={18} color="#0066ff" />
+                      <IconBuildingStore size={18} color="var(--mantine-color-brand-5)" />
                       <div>
                         <Text fw={500} size="sm">Store Pickup</Text>
-                        <Text size="xs" c="dimmed">Pick up from our Houston store</Text>
+                        <Text size="xs" c="dimmed">Pick up from our Colombo store</Text>
                       </div>
                     </Group>
                   }
@@ -166,12 +166,12 @@ export default function CheckoutPage() {
             {deliveryMode === 'store_pickup' ? (
               <Stack gap={12}>
                 <Text fw={600} size="lg">Store Pickup</Text>
-                <Paper withBorder radius="sm" p="md" style={{ background: '#f8f9fa' }}>
+                <Paper withBorder radius="sm" p="md" style={{ background: 'var(--mantine-color-ink-6)' }}>
                   <Group gap={8}>
-                    <IconBuildingStore size={20} color="#0066ff" />
+                    <IconBuildingStore size={20} color="var(--mantine-color-brand-5)" />
                     <div>
                       <Text fw={500} size="sm">BrightBuy Store</Text>
-                      <Text size="xs" c="dimmed">Houston, Texas</Text>
+                      <Text size="xs" c="dimmed">Colombo 03, Sri Lanka</Text>
                     </div>
                   </Group>
                 </Paper>
@@ -215,7 +215,7 @@ export default function CheckoutPage() {
                   value="card"
                   label={
                     <Group gap={8}>
-                      <IconCreditCard size={18} color="#0066ff" />
+                      <IconCreditCard size={18} color="var(--mantine-color-brand-5)" />
                       <div>
                         <Text fw={500} size="sm">Credit / Debit Card</Text>
                         <Text size="xs" c="dimmed">Pay securely online</Text>
@@ -227,7 +227,7 @@ export default function CheckoutPage() {
                   value="cod"
                   label={
                     <Group gap={8}>
-                      <IconCash size={18} color="#0066ff" />
+                      <IconCash size={18} color="var(--mantine-color-brand-5)" />
                       <div>
                         <Text fw={500} size="sm">Cash on Delivery</Text>
                         <Text size="xs" c="dimmed">Pay when you receive your order</Text>
@@ -251,7 +251,7 @@ export default function CheckoutPage() {
                 <Paper withBorder radius="sm" p="md">
                   <Text fw={600} size="sm" mb={8}>Delivery</Text>
                   <Group gap={8}>
-                    <Badge variant="light" color="blue">
+                    <Badge variant="light" color="brand">
                       {deliveryMode === 'store_pickup' ? 'Store Pickup' : 'Standard Delivery'}
                     </Badge>
                     {summary.cityName && <Text size="sm">{summary.cityName}</Text>}
@@ -264,7 +264,7 @@ export default function CheckoutPage() {
 
                 <Paper withBorder radius="sm" p="md">
                   <Text fw={600} size="sm" mb={8}>Payment</Text>
-                  <Badge variant="light" color="blue">
+                  <Badge variant="light" color="brand">
                     {paymentMethod === 'card' ? 'Credit/Debit Card' : 'Cash on Delivery'}
                   </Badge>
                 </Paper>
@@ -282,7 +282,7 @@ export default function CheckoutPage() {
                   <Divider my={8} />
                   <Group justify="space-between">
                     <Text fw={700}>Total</Text>
-                    <Money value={summary.total} fw={800} size="lg" c="blue" />
+                    <Money value={summary.total} fw={800} size="lg" />
                   </Group>
                 </Paper>
 
@@ -323,7 +323,8 @@ export default function CheckoutPage() {
             leftSection={<IconShoppingCart size={18} />}
             onClick={handleConfirm}
             style={{
-              background: 'linear-gradient(135deg, #0066ff 0%, #0052cc 100%)',
+              background: 'var(--mantine-color-brand-5)',
+                  color: '#000',
               fontWeight: 700,
             }}
           >

@@ -33,7 +33,7 @@ import {
   IconArrowLeft,
 } from '@tabler/icons-react';
 import { PageHeader } from '../../components/layout';
-import { Money, EmptyState, LoadingSpinner, ErrorAlert } from '../../components/ui';
+import { Money, EmptyState, LoadingSpinner, ErrorAlert, ProductTile } from '../../components/ui';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -85,7 +85,7 @@ export default function CartPage() {
         <EmptyState
           icon={IconShoppingCart}
           title="Your cart is empty"
-          message="Browse our collection of electronics and find something you love."
+          message="Browse the catalogue and find something you need."
           actionLabel="Start Shopping"
           actionTo="/products"
         />
@@ -97,32 +97,13 @@ export default function CartPage() {
               {cart.items.map((item) => (
                 <Card key={item.itemId} withBorder radius="md" padding="md">
                   <Group align="flex-start" wrap="nowrap" gap={16}>
-                    {/* product image */}
-                    <div
-                      style={{
-                        width: 100,
-                        height: 100,
-                        borderRadius: 8,
-                        background: '#f1f3f5',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {item.variant?.imageUrl ? (
-                        <Image
-                          src={item.variant.imageUrl}
-                          alt={item.variant.productName}
-                          w={100}
-                          h={100}
-                          fit="cover"
-                        />
-                      ) : (
-                        <IconShoppingBag size={32} stroke={1.2} color="#adb5bd" />
-                      )}
-                    </div>
+                    {/* product image in #F4F1EC tile (Rule 4) */}
+                    <ProductTile
+                      src={item.variant?.imageUrl}
+                      alt={item.variant?.productName || ''}
+                      size={96}
+                      zoom={1.04}
+                    />
 
                     {/* details */}
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -132,7 +113,7 @@ export default function CartPage() {
                             {item.variant?.productName || 'Product'}
                           </Text>
                           {item.variant?.attributes?.length > 0 && (
-                            <Group gap={6} mt={4}>
+                            <Group gap={4} mt={4}>
                               {item.variant.attributes.map((attr) => (
                                 <Badge
                                   key={attr.name}
@@ -166,8 +147,8 @@ export default function CartPage() {
 
                       {/* out-of-stock warning */}
                       {!item.variant?.inStock && (
-                        <Group gap={6} mt={8}>
-                          <IconAlertTriangle size={14} color="#e67700" />
+                        <Group gap={4} mt={8}>
+                          <IconAlertTriangle size={14} color="var(--mantine-color-brand-5)" />
                           <Text size="xs" c="orange" fw={500}>
                             Currently out of stock — delivery may be delayed
                           </Text>
@@ -203,7 +184,7 @@ export default function CartPage() {
             </Stack>
 
             {/* continue shopping */}
-            <Group mt={20}>
+            <Group mt={16}>
               <Button
                 component={Link}
                 to="/products"
@@ -224,14 +205,14 @@ export default function CartPage() {
               style={{
                 position: 'sticky',
                 top: 88,
-                background: 'linear-gradient(180deg, #fff 0%, #f8f9fa 100%)',
+                background: 'var(--mantine-color-ink-7)',
               }}
             >
               <Text fw={700} size="lg" mb={16}>
                 Order Summary
               </Text>
 
-              <Stack gap={10}>
+              <Stack gap={8}>
                 <Group justify="space-between">
                   <Text size="sm" c="dimmed">Items ({cart.itemCount})</Text>
                   <Money value={cart.subtotal} size="sm" />
@@ -246,7 +227,7 @@ export default function CartPage() {
 
               <Group justify="space-between">
                 <Text fw={700}>Subtotal</Text>
-                <Money value={cart.subtotal} fw={800} size="lg" c="blue" />
+                <Money value={cart.subtotal} fw={800} size="lg"  />
               </Group>
 
               {cart.hasOutOfStockItems && (
@@ -255,10 +236,10 @@ export default function CartPage() {
                   radius="sm"
                   p="xs"
                   mt={12}
-                  style={{ borderColor: '#ffd43b', background: '#fffbe6' }}
+                  style={{ borderColor: 'rgba(255,140,0,0.35)', background: 'rgba(255,140,0,0.08)' }}
                 >
                   <Group gap={8} wrap="nowrap">
-                    <IconAlertTriangle size={16} color="#e67700" style={{ flexShrink: 0 }} />
+                    <IconAlertTriangle size={16} color="var(--mantine-color-brand-5)" style={{ flexShrink: 0 }} />
                     <Text size="xs" c="orange.8">
                       Some items are out of stock. You can still order — delivery will be extended.
                     </Text>
@@ -269,7 +250,7 @@ export default function CartPage() {
               <Button
                 fullWidth
                 size="md"
-                mt={20}
+                mt={16}
                 rightSection={<IconArrowRight size={18} />}
                 onClick={() => {
                   if (!user) {
@@ -279,7 +260,8 @@ export default function CartPage() {
                   }
                 }}
                 style={{
-                  background: 'linear-gradient(135deg, #0066ff 0%, #0052cc 100%)',
+                  background: 'var(--mantine-color-brand-5)',
+                  color: '#000',
                   fontWeight: 700,
                 }}
               >
@@ -299,7 +281,7 @@ export default function CartPage() {
         size="sm"
       >
         <Text size="sm">Are you sure you want to remove this item from your cart?</Text>
-        <Group justify="flex-end" mt={20}>
+        <Group justify="flex-end" mt={16}>
           <Button variant="default" onClick={() => setConfirmRemove(null)}>
             Keep
           </Button>

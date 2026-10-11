@@ -1,3 +1,4 @@
+
 /**
  * AppRoutes — route map for BrightBuy
  * OWNER: shared (everyone adds inside their own block)
@@ -17,6 +18,8 @@ import CheckoutSuccessPage from '../features/cart/CheckoutSuccessPage';
 
 /* ── Slice B: catalogue ───────────────────────────────────────────── */
 import HomePage from '../features/catalogue/HomePage';
+import ProductListPage from '../features/catalogue/ProductListPage';
+import ProductDetailPage from '../features/catalogue/ProductDetailPage';
 
 /* ── Slice D: auth & profile ──────────────────────────────────────── */
 import LoginPage from '../features/auth/LoginPage';
@@ -24,20 +27,34 @@ import RegisterPage from '../features/auth/RegisterPage';
 import ProfilePage from '../features/auth/ProfilePage';
 import AddressBookPage from '../features/auth/AddressBookPage';
 import ProtectedRoute from './ProtectedRoute';
+import CityManagementPage from '../features/auth/CityManagementPage';
+import UserManagementPage from '../features/auth/UserManagementPage';
+import AuditLogPage from '../features/auth/AuditLogPage';
+
+/* ── Slice A: orders ──────────────────────────────────────────────── */
+import OrderHistoryPage from '../features/orders/OrderHistoryPage';
+
+/* ── Slice E: staff console ───────────────────────────────────────── */
+import StaffDashboardPage from '../features/staff/StaffDashboardPage';
+import NotFoundPage from '../features/staff/NotFoundPage';
 
 /* ── Placeholder pages (replaced as each slice lands) ─────────────── */
 import PlaceholderPage from '../features/PlaceholderPage';
+import ScrollToTop from './ScrollToTop';
 
 export default function AppRoutes() {
   const { itemCount } = useCart();
 
   return (
-    <Routes>
+    <>
+      {/* resets the scroll offset on every pathname change */}
+      <ScrollToTop />
+      <Routes>
       <Route element={<AppShell cartItemCount={itemCount} />}>
         {/* --- Slice B: catalogue --- */}
         <Route path="/" element={<HomePage />} />
-        <Route path="/products" element={<PlaceholderPage title="Products" slice="B" />} />
-        <Route path="/products/:productId" element={<PlaceholderPage title="Product Detail" slice="B" />} />
+        <Route path="/products" element={<ProductListPage />} />
+        <Route path="/products/:productId" element={<ProductDetailPage />} />
 
         {/* --- Slice C: cart & checkout --- */}
         <Route path="/cart" element={<CartPage />} />
@@ -65,8 +82,16 @@ export default function AppRoutes() {
         />
 
         {/* --- Slice A: orders --- */}
-        <Route path="/orders" element={<PlaceholderPage title="Order History" slice="A" />} />
-        <Route path="/orders/:orderId" element={<PlaceholderPage title="Order Detail" slice="A" />} />
+        {/* The list and the detail are one component: /orders/:orderId
+            renders the list with that order expanded. */}
+        <Route
+          path="/orders"
+          element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/orders/:orderId"
+          element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
+        />
 
         {/* --- Slice E: payments & staff --- */}
         <Route path="/orders/:orderId/pay" element={<PlaceholderPage title="Payment" slice="E" />} />
@@ -74,7 +99,7 @@ export default function AppRoutes() {
           path="/staff"
           element={
             <ProtectedRoute requireStaff>
-              <PlaceholderPage title="Staff Dashboard" slice="E" />
+              <StaffDashboardPage />
             </ProtectedRoute>
           }
         />
@@ -106,18 +131,28 @@ export default function AppRoutes() {
           path="/staff/cities"
           element={
             <ProtectedRoute requireStaff>
-              <PlaceholderPage title="City Management" slice="D" />
+              <CityManagementPage />
             </ProtectedRoute>
           }
         />
         <Route
           path="/staff/users"
           element={
-            <ProtectedRoute requireStaff>
-              <PlaceholderPage title="User Management" slice="D" />
+            <ProtectedRoute requireAdmin>
+              <UserManagementPage />
             </ProtectedRoute>
           }
         />
+        
+        <Route
+          path="/staff/audit-log"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AuditLogPage />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/staff/reports"
           element={
@@ -128,8 +163,9 @@ export default function AppRoutes() {
         />
 
         {/* 404 */}
-        <Route path="*" element={<PlaceholderPage title="Page Not Found" slice="" />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
-    </Routes>
+      </Routes>
+    </>
   );
 }

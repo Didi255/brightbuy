@@ -61,15 +61,15 @@ export default function CheckoutSuccessPage() {
       <Center>
         <Card
           withBorder
-          radius="lg"
+          radius="md"
           padding="xl"
           style={{ maxWidth: 600, width: '100%' }}
         >
-          <Stack align="center" gap={20}>
+          <Stack align="center" gap={16}>
             {/* success icon */}
             <ThemeIcon
               size={80}
-              radius="xl"
+              radius="md"
               variant="light"
               color="green"
               style={{
@@ -107,11 +107,11 @@ export default function CheckoutSuccessPage() {
                     </Group>
                     <Group justify="space-between">
                       <Text size="sm" c="dimmed">Delivery</Text>
-                      <Group gap={6}>
+                      <Group gap={4}>
                         {order.delivery?.deliveryMode === 'store_pickup' ? (
-                          <IconBuildingStore size={16} color="#0066ff" />
+                          <IconBuildingStore size={16} color="var(--mantine-color-brand-5)" />
                         ) : (
-                          <IconTruck size={16} color="#0066ff" />
+                          <IconTruck size={16} color="var(--mantine-color-brand-5)" />
                         )}
                         <Text size="sm">
                           {order.delivery?.deliveryMode === 'store_pickup'
@@ -135,14 +135,14 @@ export default function CheckoutSuccessPage() {
                     )}
                     <Group justify="space-between">
                       <Text size="sm" c="dimmed">Payment</Text>
-                      <Badge variant="light" color="blue" size="sm">
+                      <Badge variant="light" color="amber" size="sm">
                         {order.payment?.paymentMethod === 'card' ? 'Card' : 'Cash on Delivery'}
                       </Badge>
                     </Group>
                     <Divider />
                     <Group justify="space-between">
                       <Text fw={700}>Total</Text>
-                      <Money value={order.totalAmount} fw={800} size="lg" c="blue" />
+                      <Money value={order.totalAmount} fw={800} size="lg" />
                     </Group>
                   </Stack>
                 </Paper>

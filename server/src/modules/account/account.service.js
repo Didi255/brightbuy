@@ -181,3 +181,140 @@ exports.updateCity = async (cityId, input) => {
 exports.getAdminUsers = async () => {
   return repo.findAllUsers();
 };
+
+exports.updateAdminUser = async (userId, input, actorUserId) => {
+  // 1. Validate the target user ID.
+  const parsedUserId = Number(userId);
+
+  if (!Number.isSafeInteger(parsedUserId) || parsedUserId <= 0) {
+    throw ApiError.badRequest('Validation failed', {
+      id: 'Invalid user ID',
+    });
+  }
+
+  // 2. Validate the request body.
+  if (
+    !input ||
+    typeof input !== 'object' ||
+    Array.isArray(input)
+  ) {
+    throw ApiError.badRequest('Validation failed', {
+      body: 'A JSON object is required',
+    });
+  }
+
+  const fields = {};
+
+  const allowedFields = ['role', 'isActive'];
+
+  for (const key of Object.keys(input)) {
+    if (!allowedFields.includes(key)) {
+      fields[key] = 'Unknown field';
+    }
+  }
+
+  const hasRole = Object.prototype.hasOwnProperty.call(
+    input,
+    'role'
+  );
+
+  const hasIsActive = Object.prototype.hasOwnProperty.call(
+    input,
+    'isActive'
+  );
+
+  if (!hasRole && !hasIsActive) {
+    fields.body = 'Provide role or isActive';
+  }
+
+  // 3. Validate the staff role.
+  const allowedRoles = [
+    'admin',
+    'major_exec',
+    'minor_exec',
+    'labour',
+  ];
+
+  if (hasRole && !allowedRoles.includes(input.role)) {
+    fields.role = 'Invalid staff role';
+  }
+
+  // 4. Validate the activation status.
+  if (hasIsActive && typeof input.isActive !== 'boolean') {
+    fields.isActive = 'isActive must be true or false';
+  }
+
+  if (Object.keys(fields).length > 0) {
+    throw ApiError.badRequest('Validation failed', fields);
+  }
+
+  // 5. Validate the administrator's identity.
+  if (
+    !Number.isSafeInteger(actorUserId) ||
+    actorUserId <= 0
+  ) {
+    throw ApiError.unauthorized();
+  }
+
+  // 6. Check whether the target user exists.
+  const existingUser = await repo.findUserById(parsedUserId);
+
+  if (!existingUser) {
+    throw ApiError.notFound('User not found');
+  }
+
+  // 7. Only staff accounts can have staff roles.
+  if (hasRole && existingUser.userType !== 'staff') {
+    throw ApiError.badRequest(
+      'Cannot change a customer role'
+    );
+  }
+
+  // 8. Prevent administrators from deactivating themselves.
+  if (
+    hasIsActive &&
+    input.isActive === false &&
+    parsedUserId === actorUserId
+  ) {
+    throw ApiError.badRequest(
+      'You cannot deactivate your own account'
+    );
+  }
+
+  // 9. Update the account and audit log in one transaction.
+  const updatedUser = await repo.updateAdminUserWithAudit({
+    userId: parsedUserId,
+    actorUserId,
+    role: hasRole ? input.role : undefined,
+    isActive: hasIsActive ? input.isActive : undefined,
+  });
+
+  if (!updatedUser) {
+    throw ApiError.notFound('User not found');
+  }
+
+  return updatedUser;
+};
+
+/**
+ * Retrieve audit history for the admin Audit Log Viewer.
+ *
+ * The repository performs the SQL query.
+ * The service returns the records to the controller.
+ */
+exports.getAuditLogs = async () => {
+  const logs = await repo.findAuditLogs();
+
+  return logs.map((log) => ({
+    ...log,
+    beforeValue:
+      typeof log.beforeValue === 'string'
+        ? JSON.parse(log.beforeValue)
+        : log.beforeValue,
+    afterValue:
+      typeof log.afterValue === 'string'
+        ? JSON.parse(log.afterValue)
+        : log.afterValue,
+  }));
+};
+
