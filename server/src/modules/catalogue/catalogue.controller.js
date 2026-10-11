@@ -1,118 +1,88 @@
 // catalogue slice — OWNER: M2
-// HTTP in/out only. No SQL, no business logic.
-
+// HTTP in/out only. No SQL. Every function: call the service, send JSON, pass errors to next().
 const service = require('./catalogue.service');
 
-// ─── Customer endpoints ──────────────────────────────────────────────────────
+// ---- customer-facing ------------------------------------------------------
 
 // GET /api/products?q=&categoryId=&brand=&minPrice=&maxPrice=&page=&pageSize=
 exports.getProducts = async (req, res, next) => {
   try {
-    const result = await service.searchProducts(req.query);
-    res.json(result);
+    res.json(await service.searchProducts(req.query));
   } catch (err) { next(err); }
 };
 
 // GET /api/products/:id
 exports.getProduct = async (req, res, next) => {
   try {
-    const product = await service.getProduct(Number(req.params.id));
-    res.json(product);
+    res.json(await service.getProduct(req.params.id));
   } catch (err) { next(err); }
 };
 
 // GET /api/categories
 exports.getCategories = async (req, res, next) => {
   try {
-    const tree = await service.getCategories();
-    res.json(tree);
+    res.json(await service.getCategoryTree());
   } catch (err) { next(err); }
 };
 
-// ─── Admin: products ─────────────────────────────────────────────────────────
+// ---- staff: products ------------------------------------------------------
 
 // POST /api/admin/products
-exports.adminCreateProduct = async (req, res, next) => {
+exports.createProduct = async (req, res, next) => {
   try {
-    const result = await service.adminCreateProduct(req.body);
-    // Store entity info for the audit middleware.
-    res.locals.auditData = { entityId: result.productId, afterValue: req.body };
-    res.status(201).json(result);
+    res.status(201).json(await service.createProduct(req.body));
   } catch (err) { next(err); }
 };
 
 // PUT /api/admin/products/:id
-exports.adminUpdateProduct = async (req, res, next) => {
+exports.updateProduct = async (req, res, next) => {
   try {
-    const productId = Number(req.params.id);
-    const before = await service.adminUpdateProduct(productId, req.body);
-    res.locals.auditData = {
-      entityId: productId,
-      beforeValue: before,
-      afterValue: req.body,
-    };
-    res.json(before);
+    res.json(await service.updateProduct(req.params.id, req.body));
   } catch (err) { next(err); }
 };
 
-// DELETE /api/admin/products/:id  (deactivates — never hard-deletes)
-exports.adminDeactivateProduct = async (req, res, next) => {
+// DELETE /api/admin/products/:id  (deactivates, never deletes)
+exports.deactivateProduct = async (req, res, next) => {
   try {
-    const productId = Number(req.params.id);
-    await service.adminDeactivateProduct(productId);
-    res.locals.auditData = { entityId: productId };
-    res.json({ message: 'Product deactivated' });
+    res.json(await service.deactivateProduct(req.params.id));
   } catch (err) { next(err); }
 };
 
-// ─── Admin: categories ───────────────────────────────────────────────────────
+// ---- staff: categories ----------------------------------------------------
 
 // POST /api/admin/categories
-exports.adminCreateCategory = async (req, res, next) => {
+exports.createCategory = async (req, res, next) => {
   try {
-    const result = await service.adminCreateCategory(req.body);
-    res.locals.auditData = { entityId: result.categoryId, afterValue: req.body };
-    res.status(201).json(result);
+    res.status(201).json(await service.createCategory(req.body));
   } catch (err) { next(err); }
 };
 
 // PUT /api/admin/categories/:id
-exports.adminUpdateCategory = async (req, res, next) => {
+exports.updateCategory = async (req, res, next) => {
   try {
-    const categoryId = Number(req.params.id);
-    const updated = await service.adminUpdateCategory(categoryId, req.body);
-    res.locals.auditData = { entityId: categoryId, afterValue: req.body };
-    res.json(updated);
+    res.json(await service.updateCategory(req.params.id, req.body));
   } catch (err) { next(err); }
 };
 
-// DELETE /api/admin/categories/:id  (deactivates — blocks if active products exist)
-exports.adminDeactivateCategory = async (req, res, next) => {
+// DELETE /api/admin/categories/:id  (deactivates, never deletes)
+exports.deactivateCategory = async (req, res, next) => {
   try {
-    const categoryId = Number(req.params.id);
-    await service.adminDeactivateCategory(categoryId);
-    res.locals.auditData = { entityId: categoryId };
-    res.json({ message: 'Category deactivated' });
+    res.json(await service.deactivateCategory(req.params.id));
   } catch (err) { next(err); }
 };
 
-// ─── Admin: variants ─────────────────────────────────────────────────────────
+// ---- staff: variants ------------------------------------------------------
 
 // POST /api/admin/variants
-exports.adminCreateVariant = async (req, res, next) => {
+exports.createVariant = async (req, res, next) => {
   try {
-    const result = await service.adminCreateVariant(req.body);
-    res.locals.auditData = { entityId: result.variantId, afterValue: req.body };
-    res.status(201).json(result);
+    res.status(201).json(await service.createVariant(req.body));
   } catch (err) { next(err); }
 };
 
 // PUT /api/admin/variants/:id
-exports.adminUpdateVariant = async (req, res, next) => {
+exports.updateVariant = async (req, res, next) => {
   try {
-    const variantId = Number(req.params.id);
-    const updated = await service.adminUpdateVariant(variantId, req.body);
-    res.locals.auditData = { entityId: variantId, afterValue: req.body };
-    res.json(updated);
+    res.json(await service.updateVariant(req.params.id, req.body));
   } catch (err) { next(err); }
 };

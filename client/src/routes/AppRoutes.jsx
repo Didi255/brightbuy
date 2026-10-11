@@ -1,4 +1,3 @@
-
 /**
  * AppRoutes — route map for BrightBuy
  * OWNER: shared (everyone adds inside their own block)
@@ -18,11 +17,7 @@ import CheckoutSuccessPage from '../features/cart/CheckoutSuccessPage';
 
 /* ── Slice B: catalogue ───────────────────────────────────────────── */
 import HomePage from '../features/catalogue/HomePage';
-<<<<<<< HEAD
-import ProductsPage from '../features/catalogue/ProductsPage';
-=======
 import ProductListPage from '../features/catalogue/ProductListPage';
->>>>>>> origin/dev
 import ProductDetailPage from '../features/catalogue/ProductDetailPage';
 
 /* ── Slice D: auth & profile ──────────────────────────────────────── */
@@ -54,125 +49,121 @@ export default function AppRoutes() {
       {/* resets the scroll offset on every pathname change */}
       <ScrollToTop />
       <Routes>
-      <Route element={<AppShell cartItemCount={itemCount} />}>
-        {/* --- Slice B: catalogue --- */}
-        <Route path="/" element={<HomePage />} />
-<<<<<<< HEAD
-        <Route path="/products" element={<ProductsPage />} />
-=======
-        <Route path="/products" element={<ProductListPage />} />
->>>>>>> origin/dev
-        <Route path="/products/:productId" element={<ProductDetailPage />} />
+        <Route element={<AppShell cartItemCount={itemCount} />}>
+          {/* --- Slice B: catalogue --- */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/products" element={<ProductListPage />} />
+          <Route path="/products/:productId" element={<ProductDetailPage />} />
 
-        {/* --- Slice C: cart & checkout --- */}
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/checkout/success/:orderId" element={<CheckoutSuccessPage />} />
+          {/* --- Slice C: cart & checkout --- */}
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/checkout/success/:orderId" element={<CheckoutSuccessPage />} />
 
-        {/* --- Slice D: auth & profile --- */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route
-          path="/account"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/account/addresses"
-          element={
-            <ProtectedRoute>
-              <AddressBookPage />
-            </ProtectedRoute>
-          }
-        />
+          {/* --- Slice D: auth & profile --- */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account/addresses"
+            element={
+              <ProtectedRoute>
+                <AddressBookPage />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* --- Slice A: orders --- */}
-        {/* The list and the detail are one component: /orders/:orderId
-            renders the list with that order expanded. */}
-        <Route
-          path="/orders"
-          element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
-        />
-        <Route
-          path="/orders/:orderId"
-          element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
-        />
+          {/* --- Slice A: orders --- */}
+          {/* The list and the detail are one component: /orders/:orderId
+              renders the list with that order expanded. */}
+          <Route
+            path="/orders"
+            element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
+          />
+          <Route
+            path="/orders/:orderId"
+            element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
+          />
 
-        {/* --- Slice E: payments & staff --- */}
-        <Route path="/orders/:orderId/pay" element={<PlaceholderPage title="Payment" slice="E" />} />
-        <Route
-          path="/staff"
-          element={
-            <ProtectedRoute requireStaff>
-              <StaffDashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/catalogue"
-          element={
-            <ProtectedRoute requireStaff>
-              <PlaceholderPage title="Catalogue Management" slice="B" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/stock"
-          element={
-            <ProtectedRoute requireStaff>
-              <PlaceholderPage title="Stock Adjustments" slice="E" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/orders"
-          element={
-            <ProtectedRoute requireStaff>
-              <PlaceholderPage title="Order Console" slice="E" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/cities"
-          element={
-            <ProtectedRoute requireStaff>
-              <CityManagementPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/users"
-          element={
-            <ProtectedRoute requireAdmin>
-              <UserManagementPage />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route
-          path="/staff/audit-log"
-          element={
-            <ProtectedRoute requireAdmin>
-              <AuditLogPage />
-            </ProtectedRoute>
-          }
-        />
+          {/* --- Slice E: payments & staff --- */}
+          <Route path="/orders/:orderId/pay" element={<PlaceholderPage title="Payment" slice="E" />} />
+          <Route
+            path="/staff"
+            element={
+              <ProtectedRoute requireStaff>
+                <StaffDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/catalogue"
+            element={
+              <ProtectedRoute requireStaff>
+                <PlaceholderPage title="Catalogue Management" slice="B" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/stock"
+            element={
+              <ProtectedRoute requireStaff>
+                <PlaceholderPage title="Stock Adjustments" slice="E" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/orders"
+            element={
+              <ProtectedRoute requireStaff>
+                <PlaceholderPage title="Order Console" slice="E" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/cities"
+            element={
+              <ProtectedRoute requireStaff>
+                <CityManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/users"
+            element={
+              <ProtectedRoute requireAdmin>
+                <UserManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route
+            path="/staff/audit-log"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AuditLogPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/staff/reports"
-          element={
-            <ProtectedRoute requireStaff>
-              <PlaceholderPage title="Reports" slice="E" />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/staff/reports"
+            element={
+              <ProtectedRoute requireStaff>
+                <PlaceholderPage title="Reports" slice="E" />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* 404 */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
+          {/* 404 */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
       </Routes>
     </>
   );

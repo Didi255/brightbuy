@@ -1,48 +1,4 @@
 /**
-<<<<<<< HEAD
- * ProductDetailPage — Product view with variant selector and add-to-cart
- * OWNER: Slice B (Risandu)
- *
- * Implements:
- *   - REQ-2.1: Product detail view
- *   - REQ-2.2: Variant selector that live-updates price, SKU, stock quantity
- *   - REQ-2.6: Quantity input strictly rejecting 0, negative, non-numeric
- *   - Cart integration via useCart().addItem()
- */
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import {
-  Grid,
-  Card,
-  Image,
-  Text,
-  Title,
-  Badge,
-  Group,
-  Stack,
-  Button,
-  NumberInput,
-  Paper,
-  Divider,
-  Skeleton,
-  Radio,
-  Alert,
-  Box,
-} from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import {
-  IconCheck,
-  IconShoppingCart,
-  IconAlertCircle,
-  IconArrowLeft,
-  IconPackage,
-  IconTruckDelivery,
-} from '@tabler/icons-react';
-import { api } from '../../api/client';
-import { useCart } from '../../context/CartContext';
-import { PageHeader } from '../../components/layout';
-import { Money, ErrorAlert } from '../../components/ui';
-=======
  * ProductDetailPage — one product and its variants.   OWNER: Slice B
  *
  * GET /products/:id returns the product plus `variants`, each with its own
@@ -56,13 +12,13 @@ import { Money, ErrorAlert } from '../../components/ui';
  * Covers: REQ-2.1, REQ-2.2, REQ-1.4
  */
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box, Group, Stack, Text, Button, Divider, Skeleton, UnstyledButton, NumberInput,
 } from '@mantine/core';
 import {
   IconHeart, IconTruck, IconRotateClockwise, IconShieldCheck, IconCertificate,
-  IconMinus, IconPlus,
+  IconMinus, IconPlus, IconArrowLeft,
 } from '@tabler/icons-react';
 import { PageHeader } from '../../components/layout';
 import { Money, ErrorAlert, EmptyState, ProductTile, ProductRail } from '../../components/ui';
@@ -134,77 +90,18 @@ function SpecRow({ label, value }) {
     </Group>
   );
 }
->>>>>>> origin/dev
 
 export default function ProductDetailPage() {
   const { productId } = useParams();
   const { addItem } = useCart();
-<<<<<<< HEAD
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const [product, setProduct] = useState(null);
-  const [selectedVariantId, setSelectedVariantId] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [addingToCart, setAddingToCart] = useState(false);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    api.get(`/products/${productId}`)
-      .then((data) => {
-        setProduct(data);
-        if (data?.variants?.length > 0) {
-          // Default to the first in-stock variant, or the first variant
-          const firstInStock = data.variants.find((v) => v.inStock);
-          setSelectedVariantId(firstInStock ? firstInStock.variantId : data.variants[0].variantId);
-        }
-      })
-      .catch((err) => {
-        setError(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [productId]);
-
-  const selectedVariant = product?.variants?.find((v) => v.variantId === selectedVariantId) || null;
-
-  // Strict quantity change validator (rejects 0, negative, decimals, non-numbers)
-  const handleQuantityChange = (val) => {
-    if (val === '' || val === undefined || val === null) {
-      setQuantity(1);
-      return;
-    }
-    const parsed = parseInt(val, 10);
-    if (isNaN(parsed) || parsed < 1) {
-      setQuantity(1);
-    } else {
-      setQuantity(parsed);
-    }
-  };
-
-  const handleAddToCart = async () => {
-    if (!selectedVariant) return;
-    try {
-      setAddingToCart(true);
-      await addItem(selectedVariant.variantId, quantity);
-      notifications.show({
-        title: 'Added to cart!',
-        message: `${quantity} × ${product.productName} (${selectedVariant.sku}) has been added.`,
-        color: 'green',
-        icon: <IconCheck size={16} />,
-      });
-    } catch (err) {
-      notifications.show({
-        title: 'Failed to add item',
-        message: err.message || 'Please try again.',
-        color: 'red',
-        icon: <IconAlertCircle size={16} />,
-      });
-    } finally {
-      setAddingToCart(false);
-=======
+  /* Back to wherever the customer came from — the product list WITH its
+     filters, sort and page, because the list page keeps those in the URL.
+     If this page was opened directly (no history inside the app) there is
+     nothing to go back to, so fall back to the product list. */
+  const goBack = () => (location.key !== 'default' ? navigate(-1) : navigate('/products'));
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -293,62 +190,11 @@ export default function ProductDetailPage() {
       setAddError(err);
     } finally {
       setAdding(false);
->>>>>>> origin/dev
     }
   };
 
   if (loading) {
     return (
-<<<<<<< HEAD
-      <Box className="bb-page-enter">
-        <Skeleton height={30} width={250} mb={24} />
-        <Grid gutter={36}>
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <Skeleton height={380} radius="md" />
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <Stack gap={16}>
-              <Skeleton height={20} width={100} />
-              <Skeleton height={36} width="80%" />
-              <Skeleton height={28} width={120} />
-              <Skeleton height={80} />
-              <Skeleton height={120} />
-              <Skeleton height={44} width={200} />
-            </Stack>
-          </Grid.Col>
-        </Grid>
-      </Box>
-    );
-  }
-
-  if (error || !product) {
-    return (
-      <Box className="bb-page-enter">
-        <ErrorAlert
-          error={error || new Error('Product not found')}
-          onRetry={() => window.location.reload()}
-        />
-        <Button
-          component={Link}
-          to="/products"
-          variant="light"
-          leftSection={<IconArrowLeft size={16} />}
-          mt={16}
-        >
-          Back to Catalogue
-        </Button>
-      </Box>
-    );
-  }
-
-  return (
-    <Box className="bb-page-enter">
-      <PageHeader
-        title={product.productName}
-        crumbs={[
-          { label: 'Home', to: '/' },
-          { label: 'Products', to: '/products' },
-=======
       <>
         <PageHeader title=" " crumbs={[{ label: 'Home', to: '/' }, { label: 'Products', to: '/products' }]} />
         <Box style={{ display: 'flex', flexWrap: 'wrap', gap: 64 }}>
@@ -391,14 +237,28 @@ export default function ProductDetailPage() {
     ...BADGES_ALWAYS,
   ];
 
+  /* Stock 0 is NOT a dead end: the shop takes back-orders (REQ-6.6) and the
+     delivery estimate grows by 3 days (REQ-7.2). So the button stays live. */
   const stock = current?.stockQuantity ?? 0;
-  const stockTone = stock === 0 ? 'ink.4' : stock <= 5 ? 'brand.5' : 'green.5';
-  const stockText = stock === 0
-    ? 'Out of stock'
+  const backorder = stock === 0;
+  const stockTone = backorder ? 'brand.5' : stock <= 5 ? 'brand.5' : 'green.5';
+  const stockText = backorder
+    ? 'Back-order — delivery takes 3 extra days'
     : stock <= 5 ? `Only ${stock} left` : 'In stock — ships today';
 
   return (
     <>
+      <Button
+        variant="subtle"
+        color="gray"
+        size="xs"
+        leftSection={<IconArrowLeft size={14} />}
+        onClick={goBack}
+        mb={4}
+      >
+        Back to results
+      </Button>
+
       {/* crumbs only — the H1 lives in the buy box, and printing the
           product name twice was a real bug on this page */}
       <PageHeader
@@ -409,206 +269,10 @@ export default function ProductDetailPage() {
             ? [{ label: product.categories[0].categoryName,
                  to: `/products?categoryId=${product.categories[0].categoryId}` }]
             : []),
->>>>>>> origin/dev
           { label: product.productName },
         ]}
       />
 
-<<<<<<< HEAD
-      <Grid gutter={36}>
-        {/* ── Product Image ────────────────────────────────────────── */}
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <Paper p={24} radius="md" withBorder style={{ backgroundColor: '#fdfdfd' }}>
-            <Image
-              src={product.imageUrl || `https://placehold.co/600x500?text=${encodeURIComponent(product.productName)}`}
-              alt={product.productName}
-              radius="md"
-              height={380}
-              fit="contain"
-              fallbackSrc="https://placehold.co/600x500?text=No+Image"
-            />
-          </Paper>
-
-          {/* Value props */}
-          <Group justify="space-around" mt={24} p={16} style={{ backgroundColor: 'var(--mantine-color-gray-0)', borderRadius: 8 }}>
-            <Group gap={8}>
-              <IconTruckDelivery size={20} color="var(--mantine-color-dimmed)" />
-              <Text size="xs" c="dimmed">Standard or Store Pickup</Text>
-            </Group>
-            <Group gap={8}>
-              <IconPackage size={20} color="var(--mantine-color-dimmed)" />
-              <Text size="xs" c="dimmed">Safe & Tracked Delivery</Text>
-            </Group>
-          </Group>
-        </Grid.Col>
-
-        {/* ── Details & Variant Selector ───────────────────────────── */}
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <Stack gap={16}>
-            <Group justify="space-between" align="center">
-              <Group gap={8}>
-                {product.brand && (
-                  <Badge variant="filled" color="gray" size="md">
-                    {product.brand}
-                  </Badge>
-                )}
-                {product.categories?.map((cat) => (
-                  <Badge key={cat.categoryId} variant="outline" color="blue" size="md">
-                    {cat.categoryName}
-                  </Badge>
-                ))}
-              </Group>
-
-              {selectedVariant && (
-                <Text size="xs" c="dimmed" ff="monospace">
-                  SKU: {selectedVariant.sku}
-                </Text>
-              )}
-            </Group>
-
-            <Title order={2} size="h1" fw={800} style={{ letterSpacing: -0.5 }}>
-              {product.productName}
-            </Title>
-
-            {/* Price display (live update based on variant) */}
-            <Group align="baseline" gap={12}>
-              {selectedVariant ? (
-                <Money value={selectedVariant.price} size="2rem" fw={800} c="brightBlue" />
-              ) : (
-                <Text size="xl" fw={700}>Select variant</Text>
-              )}
-
-              {/* Stock status indicator */}
-              {selectedVariant && (
-                <Badge
-                  color={selectedVariant.inStock ? 'green' : 'orange'}
-                  variant="light"
-                  size="lg"
-                >
-                  {selectedVariant.inStock
-                    ? `In Stock (${selectedVariant.stockQuantity} available)`
-                    : 'Back-order (0 in stock, delivery +3 days)'}
-                </Badge>
-              )}
-            </Group>
-
-            {product.description && (
-              <Text size="sm" c="dimmed" style={{ lineHeight: 1.6 }}>
-                {product.description}
-              </Text>
-            )}
-
-            <Divider my={8} />
-
-            {/* ── Variant Selector ─────────────────────────────────── */}
-            {product.variants?.length > 0 && (
-              <Box>
-                <Text size="sm" fw={700} mb={10}>
-                  Choose Variant / Specification:
-                </Text>
-
-                <Radio.Group
-                  value={String(selectedVariantId)}
-                  onChange={(val) => setSelectedVariantId(Number(val))}
-                >
-                  <Stack gap={10}>
-                    {product.variants.map((variant) => {
-                      const attrSummary = variant.attributes?.length > 0
-                        ? variant.attributes.map((a) => `${a.name}: ${a.value}`).join(' · ')
-                        : variant.sku;
-
-                      return (
-                        <Paper
-                          key={variant.variantId}
-                          p={12}
-                          withBorder
-                          radius="md"
-                          onClick={() => setSelectedVariantId(variant.variantId)}
-                          style={{
-                            cursor: 'pointer',
-                            borderColor:
-                              selectedVariantId === variant.variantId
-                                ? 'var(--mantine-color-brightBlue-6)'
-                                : undefined,
-                            backgroundColor:
-                              selectedVariantId === variant.variantId
-                                ? 'var(--mantine-color-brightBlue-0)'
-                                : undefined,
-                          }}
-                        >
-                          <Group justify="space-between">
-                            <Radio
-                              value={String(variant.variantId)}
-                              label={
-                                <Box>
-                                  <Text size="sm" fw={600}>
-                                    {attrSummary}
-                                  </Text>
-                                  <Text size="xs" c="dimmed">
-                                    SKU: {variant.sku}
-                                  </Text>
-                                </Box>
-                              }
-                            />
-                            <Group gap={12}>
-                              <Money value={variant.price} fw={700} size="sm" />
-                              <Badge
-                                size="xs"
-                                variant="subtle"
-                                color={variant.inStock ? 'green' : 'orange'}
-                              >
-                                {variant.inStock ? `${variant.stockQuantity} in stock` : 'Back-order'}
-                              </Badge>
-                            </Group>
-                          </Group>
-                        </Paper>
-                      );
-                    })}
-                  </Stack>
-                </Radio.Group>
-              </Box>
-            )}
-
-            <Divider my={8} />
-
-            {/* ── Quantity & Add to Cart ───────────────────────────── */}
-            <Group align="flex-end" gap={16}>
-              <Box style={{ width: 130 }}>
-                <NumberInput
-                  label="Quantity"
-                  description="Min 1"
-                  min={1}
-                  max={99}
-                  step={1}
-                  allowDecimal={false}
-                  allowNegative={false}
-                  value={quantity}
-                  onChange={handleQuantityChange}
-                />
-              </Box>
-
-              <Button
-                size="md"
-                style={{ flex: 1 }}
-                leftSection={<IconShoppingCart size={18} />}
-                disabled={!selectedVariant}
-                loading={addingToCart}
-                onClick={handleAddToCart}
-              >
-                Add to Cart
-              </Button>
-            </Group>
-
-            {selectedVariant && !selectedVariant.inStock && (
-              <Alert icon={<IconAlertCircle size={16} />} color="orange" variant="light" mt={8}>
-                This item is currently out of stock. You can still order it, and delivery will take an additional 3 days (REQ-6.6, 7.2).
-              </Alert>
-            )}
-          </Stack>
-        </Grid.Col>
-      </Grid>
-    </Box>
-=======
       <Box style={{ display: 'flex', flexWrap: 'wrap', gap: 64, alignItems: 'flex-start' }}>
         {/* gallery */}
         <Box style={{ flex: '1 1 420px', minWidth: 0 }}>
@@ -737,11 +401,15 @@ export default function ProductDetailPage() {
             <NumberInput
               value={qty}
               onChange={(v) => {
-                setQty(Math.max(1, Number(v) || 1));
+                /* REQ-2.6: 0, negatives, decimals and non-numbers all fall back to a whole number >= 1 */
+                const n = Math.floor(Number(v));
+                setQty(n >= 1 ? n : 1);
                 setAdded(false);
               }}
               min={1}
-              max={Math.max(1, stock)}
+              max={backorder ? 99 : stock}
+              allowDecimal={false}
+              allowNegative={false}
               w={110}
               styles={{ input: { height: 52 } }}
             />
@@ -749,12 +417,12 @@ export default function ProductDetailPage() {
               h={52}
               color="brand.5"
               c="black"
-              disabled={stock === 0 || !current}
+              disabled={!current}
               loading={adding}
               onClick={handleAddToCart}
               style={{ flex: 1 }}
             >
-              {stock === 0 ? 'Out of stock' : added ? 'Added to cart ✓' : 'Add to cart'}
+              {added ? 'Added to cart ✓' : backorder ? 'Add to cart (back-order)' : 'Add to cart'}
             </Button>
             <UnstyledButton
               aria-label="Save for later"
@@ -829,7 +497,7 @@ export default function ProductDetailPage() {
                 </Stack>
                 <Group gap={16} wrap="nowrap">
                   <Text fz={12} c={v.stockQuantity === 0 ? 'ink.4' : 'ink.2'}>
-                    {v.stockQuantity === 0 ? 'OUT OF STOCK' : `${v.stockQuantity} IN STOCK`}
+                    {v.stockQuantity === 0 ? 'BACK-ORDER' : `${v.stockQuantity} IN STOCK`}
                   </Text>
                   <Money value={v.price} fz={16} fw={500} />
                 </Group>
@@ -846,11 +514,10 @@ export default function ProductDetailPage() {
       <ProductRail title="Recently viewed" items={recent} />
 
       <Group mt={48}>
-        <Button component={Link} to="/products" variant="default">
-          Back to all products
+        <Button variant="default" leftSection={<IconArrowLeft size={16} />} onClick={goBack}>
+          Back to results
         </Button>
       </Group>
     </>
->>>>>>> origin/dev
   );
 }

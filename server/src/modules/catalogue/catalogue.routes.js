@@ -1,89 +1,36 @@
-//* Main idea ----> mapping URL s and HTTP methods to the necessary functions
-
-// catalogue slice — OWNER: M2
-// URL → controller mapping only. No logic.
-
-const router     = require('express').Router();
+/**
+ * catalogue slice — OWNER: M2
+ * URL -> controller (plus auth middleware). No logic here.
+ *
+ * Mounted in src/app.js as:  app.use('/api', require('./modules/catalogue/catalogue.routes'));
+ * so GET /products here is GET /api/products.
+ */
+const router = require('express').Router();
 const controller = require('./catalogue.controller');
-
 const { requireAuth, requireRole } = require('../../middleware/auth');
-const { auditMutation }            = require('../../middleware/audit');
 
-// Staff roles allowed to manage the catalogue (REQ-10.5).
-const staffRoles = requireRole('admin', 'major_exec', 'minor_exec');
+// docs/API.md says "staff" for the admin routes, so every staff role is allowed.
+// To restrict catalogue editing to certain roles, change this one line.
+const staffOnly = [requireAuth, requireRole('admin', 'major_exec', 'minor_exec', 'labour')];
 
-// ─── Customer routes (public) ────────────────────────────────────────────────
-
-// GET /api/products?q=&categoryId=&brand=&minPrice=&maxPrice=&page=&pageSize=
-router.get('/products', controller.getProducts);     
-
-// GET /api/products/:id
+// --- customer-facing (no login needed) -------------------------------------
+router.get('/products', controller.getProducts);
 router.get('/products/:id', controller.getProduct);
-
-// GET /api/categories
 router.get('/categories', controller.getCategories);
 
-// ─── Admin: products (staff only) ────────────────────────────────────────────
+// --- staff only ------------------------------------------------------------
+// The auth check is attached to each route, NOT with router.use('/admin', ...).
+// This router is mounted at /api before the other slices, so a router-wide
+// /admin check would also run for /api/admin/orders, /admin/cities, etc.
+router.post('/admin/products', staffOnly, controller.createProduct);
+router.put('/admin/products/:id', staffOnly, controller.updateProduct);
+router.delete('/admin/products/:id', staffOnly, controller.deactivateProduct);
 
-router.post(
-  '/admin/products',
-  requireAuth, staffRoles,
-  auditMutation({ action: 'create', entityType: 'product' }),
-  controller.adminCreateProduct
-);
+router.post('/admin/categories', staffOnly, controller.createCategory);
+router.put('/admin/categories/:id', staffOnly, controller.updateCategory);
+router.delete('/admin/categories/:id', staffOnly, controller.deactivateCategory);
 
-router.put(
-  '/admin/products/:id',
-  requireAuth, staffRoles,
-  auditMutation({ action: 'update', entityType: 'product' }),
-  controller.adminUpdateProduct
-);
-
-// DELETE deactivates — never hard-deletes (REQ-10.1).
-router.delete(
-  '/admin/products/:id',
-  requireAuth, staffRoles,
-  auditMutation({ action: 'update', entityType: 'product' }),
-  controller.adminDeactivateProduct
-);
-
-// ─── Admin: categories (staff only) ──────────────────────────────────────────
-
-router.post(
-  '/admin/categories',
-  requireAuth, staffRoles,
-  auditMutation({ action: 'create', entityType: 'category' }),
-  controller.adminCreateCategory
-);
-
-router.put(
-  '/admin/categories/:id',
-  requireAuth, staffRoles,
-  auditMutation({ action: 'update', entityType: 'category' }),
-  controller.adminUpdateCategory
-);
-
-router.delete(
-  '/admin/categories/:id',
-  requireAuth, staffRoles,
-  auditMutation({ action: 'update', entityType: 'category' }),
-  controller.adminDeactivateCategory
-);
-
-// ─── Admin: variants (staff only) ────────────────────────────────────────────
-
-router.post(
-  '/admin/variants',
-  requireAuth, staffRoles,
-  auditMutation({ action: 'create', entityType: 'variant' }),
-  controller.adminCreateVariant
-);
-
-router.put(
-  '/admin/variants/:id',
-  requireAuth, staffRoles,
-  auditMutation({ action: 'update', entityType: 'variant' }),
-  controller.adminUpdateVariant
-);
+router.post('/admin/variants', staffOnly, controller.createVariant);
+router.put('/admin/variants/:id', staffOnly, controller.updateVariant);
 
 module.exports = router;
