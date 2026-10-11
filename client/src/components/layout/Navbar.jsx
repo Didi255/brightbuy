@@ -181,27 +181,29 @@ export default function Navbar({ cartItemCount = 0 }) {
               </ActionIcon>
             </Tooltip>
 
-            {/* cart */}
-            <Tooltip label="Shopping cart" withArrow>
-              <ActionIcon
-                variant="subtle"
-                radius="sm"
-                size="lg"
-                className="bb-action-icon bb-cart-badge"
-                style={{ overflow: 'visible' }}
-                onClick={() => navigate('/cart')}
-                aria-label={`Cart with ${cartItemCount} items`}
-              >
-                <IconShoppingCart size={25} stroke={1.8} />
-                {cartItemCount > 0 && (
-                  <span
-                    className={`bb-cart-badge__count ${cartBump ? 'bb-cart-badge__count--bump' : ''}`}
-                  >
-                    {cartItemCount > 99 ? '99+' : cartItemCount}
-                  </span>
-                )}
-              </ActionIcon>
-            </Tooltip>
+            {/* cart (customers & guests only) */}
+            {!isStaff && (
+              <Tooltip label="Shopping cart" withArrow>
+                <ActionIcon
+                  variant="subtle"
+                  radius="sm"
+                  size="lg"
+                  className="bb-action-icon bb-cart-badge"
+                  style={{ overflow: 'visible' }}
+                  onClick={() => navigate('/cart')}
+                  aria-label={`Cart with ${cartItemCount} items`}
+                >
+                  <IconShoppingCart size={25} stroke={1.8} />
+                  {cartItemCount > 0 && (
+                    <span
+                      className={`bb-cart-badge__count ${cartBump ? 'bb-cart-badge__count--bump' : ''}`}
+                    >
+                      {cartItemCount > 99 ? '99+' : cartItemCount}
+                    </span>
+                  )}
+                </ActionIcon>
+              </Tooltip>
+            )}
 
             {/* user menu / login */}
             {user ? (
@@ -353,25 +355,27 @@ export default function Navbar({ cartItemCount = 0 }) {
                 </Link>
               ))}
 
-              <Link to="/cart" className="bb-mobile-link">
-                <IconShoppingCart size={20} stroke={1.6} />
-                Cart
-                {cartItemCount > 0 && (
-                  <span
-                    style={{
-                      marginLeft: 'auto',
-                      background: 'var(--mantine-color-brand-5)',
-                      color: '#fff',
-                      fontSize: 12,
-                      fontWeight: 700,
-                      borderRadius: 10,
-                      padding: '2px 8px',
-                    }}
-                  >
-                    {cartItemCount}
-                  </span>
-                )}
-              </Link>
+              {!isStaff && (
+                <Link to="/cart" className="bb-mobile-link">
+                  <IconShoppingCart size={20} stroke={1.6} />
+                  Cart
+                  {cartItemCount > 0 && (
+                    <span
+                      style={{
+                        marginLeft: 'auto',
+                        background: 'var(--mantine-color-brand-5)',
+                        color: '#fff',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        borderRadius: 10,
+                        padding: '2px 8px',
+                      }}
+                    >
+                      {cartItemCount}
+                    </span>
+                  )}
+                </Link>
+              )}
 
               <Divider
                 my="sm"
