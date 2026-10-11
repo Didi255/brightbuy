@@ -1,0 +1,79 @@
+# BrightBuy — production stack. Lives at /opt/brightbuy on the VM.
+#
+# This file BUILDS NOTHING. The images are built on a GitHub runner and
+# pulled from GHCR by tag. ${IMAGE_TAG} is the commit SHA, rewritten by
+# each deploy, which is what makes a rollback a one-line .env edit.
+#
+# Three containers: mysql, api, web. Only `web` is reachable from the
+# internet; the other two sit on the private Docker network and are
+# addressed by service name (api -> mysql:3306, web -> api:4000).
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    # --log-bin-trust-function-creators is NOT optional here. The
+    # migrations create stored functions and procedures, and with binary
+    # logging on MySQL refuses to create them without it. Dropping this
+    # flag makes `npm run migrate` fail at 007.
+    command: >
+      --log-bin-trust-function-creators=1
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysqldata:/var/lib/mysql
+    healthcheck:
+      # $$ escapes the $ so Compose leaves it alone and the shell inside
+      # the container expands it instead.
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    # NO ports: block. The database must never be reachable from the
+    # internet. Reach it with `docker compose exec mysql ...`.
+
+  api:
+    image: ${API_IMAGE}:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DB_HOST: mysql          # the service name, resolved by Docker's DNS
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      CLIENT_ORIGIN: https://${APP_DOMAIN}
+      STORE_CITY_ID: ${STORE_CITY_ID:-1}
+    # healthcheck is declared in the image; see Dockerfile.api
+
+  web:
+    image: ${WEB_IMAGE}:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"       # HTTP/3
+    volumes:
+      - caddy_data:/data        # Let's Encrypt certificates
+      - caddy_config:/config
+
+volumes:
+  mysqldata:
+  caddy_data:
+  caddy_config:
