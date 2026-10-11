@@ -10,50 +10,40 @@
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root[data-mantine-color-scheme="light"] {
   --bb-bg-base: #ffffff;
   --bb-bg-alt: #f8f9fa;
-  --bb-bg-card: #ffffff;
   --bb-text-base: #1a1b1e;
   --bb-text-muted: #868e96;
-  --bb-shadow-highlight: rgba(255, 255, 255, 1);
-  --bb-shadow-dark: rgba(163, 177, 198, 0.25);
-  --bb-border-subtle: rgba(0, 0, 0, 0.05);
   --bb-nav-glass: #e9ecef;
   --bb-hero-bg: url('/Lightmodehome.png');
-  --bb-stats-bg: #ffffff;
-  --bb-stats-border: rgba(0, 0, 0, 0.05);
-  --bb-section-dark-bg: #ffffff;
-  --bb-section-dark-desc: var(--bb-text-muted);
-  --bb-stats-label: var(--bb-text-muted);
-  --bb-feature-bg: var(--bb-bg-alt);
-  --bb-feature-bg-hover: var(--bb-nav-glass);
-  --bb-feature-border: rgba(0, 0, 0, 0.05);
-  --bb-feature-border-hover: rgba(0, 0, 0, 0.1);
 }
 
 :root[data-mantine-color-scheme="dark"] {
-  --bb-bg-base: #0a0e17;
-  --bb-bg-alt: #0e1524;
-  --bb-bg-card: #152238;
-  --bb-text-base: #ffffff;
-  --bb-text-muted: rgba(255, 255, 255, 0.7);
-  --bb-shadow-highlight: rgba(35, 52, 85, 0.4);
-  --bb-shadow-dark: rgba(4, 6, 10, 0.8);
-  --bb-border-subtle: rgba(255, 255, 255, 0.05);
-  --bb-nav-glass: rgba(10, 14, 23, 0.85);
-  --bb-hero-bg: url('/hero-bg.png');
-  --bb-stats-bg: linear-gradient(180deg, #0f1a30 0%, #131d33 100%);
-  --bb-stats-border: rgba(255, 255, 255, 0.06);
-  --bb-section-dark-bg: linear-gradient(155deg, #0a0e17 0%, #111e38 100%);
-  --bb-section-dark-desc: rgba(255, 255, 255, 0.5);
-  --bb-stats-label: rgba(255, 255, 255, 0.45);
-  --bb-feature-bg: rgba(255, 255, 255, 0.06);
-  --bb-feature-bg-hover: rgba(255, 255, 255, 0.1);
-  --bb-feature-border: rgba(255, 255, 255, 0.08);
-  --bb-feature-border-hover: rgba(255, 255, 255, 0.15);
+  /* Warm neutrals. A cold ramp under a warm accent is what made the
+     accent read as foreign; every step here carries the same warmth. */
+  --bb-bg-base: #121110;
+  --bb-bg-alt: #1A1816;
+  --bb-text-base: #F5F0E8;
+  --bb-text-muted: #A89F93;
+  --bb-nav-glass: rgba(18, 17, 16, 0.88);
+  --bb-hero-bg: none;
+
+  --bb-action: #FF8C00;
+  --bb-line: rgba(255, 236, 214, 0.10);
+  --bb-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* ── Glow is LIGHTING, not neon. Warm, large, blurred — never a 1-2px
+     coloured ring. Maximum two glowing elements in a viewport. */
+  --glow-ambient: radial-gradient(60% 60% at 50% 40%,
+                  rgba(255, 140, 0, 0.16), transparent 70%);
+  --glow-lift: 0 18px 44px -14px rgba(0, 0, 0, 0.65),
+               0 0 0 1px rgba(255, 140, 0, 0.16);
+  --glow-cta: 0 8px 28px -8px rgba(255, 140, 0, 0.45);
+  --glow-cta-hot: 0 10px 34px -8px rgba(255, 140, 0, 0.54);
+  --glow-tile: 0 0 60px -10px rgba(255, 140, 0, 0.10);
 }
 
 /* ── base resets ──────────────────────────────────────────────────── */
@@ -67,17 +57,32 @@
 
 html {
   scroll-behavior: smooth;
+  /* The navbar is sticky, so an anchor jump would otherwise land the
+     target underneath it. 88px clears the 72px bar plus breathing room. */
+  scroll-padding-top: 88px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
   background: var(--bb-bg-base);
   color: var(--bb-text-base);
   line-height: 1.6;
   min-height: 100vh;
 }
+
+/* Data is mono: prices, SKUs, stock counts, order IDs, table numerals. */
+
+/* Section eyebrow: [ 01 ] SHOP BY CATEGORY */
+
+/* Focus is never removed, only restyled. */
+:focus-visible {
+  outline: 2px solid var(--bb-action, #FF8C00);
+  outline-offset: 2px;
+}
+
 
 a {
   text-decoration: none;
@@ -105,10 +110,6 @@ img {
 }
 
 /* ── navbar animations ────────────────────────────────────────────── */
-@keyframes slideDown {
-  from { transform: translateY(-100%); opacity: 0; }
-  to   { transform: translateY(0);     opacity: 1; }
-}
 
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -125,103 +126,110 @@ img {
   50%      { transform: scale(1.05); }
 }
 
-/* ── Navbar specific ──────────────────────────────────────────────── */
+/* ── Navbar — Circuit Noir ──────────────────────────────────────── */
+
 .bb-navbar {
   position: sticky;
   top: 0;
   z-index: 200;
-  animation: slideDown 0.4s ease-out;
+  background: var(--bb-nav-glass);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--bb-line, rgba(255, 255, 255, 0.08));
 }
 
 .bb-navbar--scrolled {
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: none;
+  border-bottom-color: var(--bb-line, rgba(255, 255, 255, 0.08));
 }
+
+/* Links, icons ───────────────────────────────────────
+   Nav links lose their pill backgrounds entirely. A 2px amber underline
+   scales in from the left on hover and stays at full width when the route
+   is active. Action icons are 36px squares with hairline borders — no
+   neumorphic shadows, nothing round. */
 
 .bb-nav-link {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 10px 2px;
+  margin: 0 12px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--bb-text-base);
-  border-radius: 12px;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  white-space: nowrap;
+  color: var(--bb-text-muted);
   background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  white-space: nowrap;
+  transition: color 150ms var(--bb-ease, ease);
+}
+
+.bb-nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--bb-action, #FF8C00);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 150ms var(--bb-ease, ease);
 }
 
 .bb-nav-link:hover {
   color: var(--bb-text-base);
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow: 
-    4px 4px 10px rgba(0, 0, 0, 0.4),
-    -4px -4px 10px rgba(255, 255, 255, 0.05);
-  transform: translateY(-2px);
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.bb-nav-link:hover::after {
+  transform: scaleX(1);
 }
 
 .bb-nav-link--active {
   color: var(--bb-text-base);
   font-weight: 600;
-  background: var(--bb-border-subtle);
-  box-shadow: 
-    inset 3px 3px 8px var(--bb-shadow-dark),
-    inset -3px -3px 8px var(--bb-shadow-highlight);
-}
-
-.bb-action-icon {
-  background: var(--bb-nav-glass) !important;
-  box-shadow: 
-    3px 3px 6px var(--bb-shadow-dark),
-    -3px -3px 6px var(--bb-shadow-highlight);
-  color: var(--bb-text-base) !important;
-  transition: all 0.3s ease;
-}
-
-.bb-action-icon svg {
-  color: var(--bb-text-base) !important;
-}
-
-.bb-action-icon:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    5px 5px 10px var(--bb-shadow-dark),
-    -5px -5px 10px var(--bb-shadow-highlight);
+  background: transparent;
+  box-shadow: none;
 }
 
 .bb-nav-link--active::after {
-  display: none;
+  display: block;
+  transform: scaleX(1);
 }
 
-/* ── neumorphic action icons ──────────────────────────────────────── */
 .bb-action-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
   background: transparent !important;
-  color: rgba(255, 255, 255, 0.85) !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  border-radius: 50% !important;
-  border: none !important;
+  border: 1px solid var(--bb-line, rgba(255, 255, 255, 0.08));
+  box-shadow: none;
+  color: var(--bb-text-muted) !important;
+  transition: border-color 150ms var(--bb-ease, ease),
+              color 150ms var(--bb-ease, ease);
+}
+
+.bb-action-icon svg {
+  color: inherit !important;
 }
 
 .bb-action-icon:hover {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.05) !important;
-  box-shadow: 
-    4px 4px 10px rgba(0, 0, 0, 0.4),
-    -4px -4px 10px rgba(255, 255, 255, 0.05) !important;
-  transform: translateY(-2px);
+  transform: none;
+  box-shadow: none;
+  border-color: var(--bb-line-hover, rgba(255, 255, 255, 0.16));
+  color: var(--bb-text-base) !important;
 }
 
 .bb-action-icon:active,
 .bb-action-icon[data-expanded="true"] {
-  background: rgba(0, 0, 0, 0.2) !important;
-  box-shadow: 
-    inset 3px 3px 6px rgba(0, 0, 0, 0.5),
-    inset -3px -3px 6px rgba(255, 255, 255, 0.05) !important;
-  transform: translateY(0);
+  border-color: var(--bb-action, #FF8C00);
+  color: var(--bb-action, #FF8C00) !important;
 }
 
-/* ── neumorphic join button ───────────────────────────────────────── */
 .bb-join-btn {
   display: inline-flex;
   align-items: center;
@@ -229,22 +237,19 @@ img {
   font-size: 13px;
   font-weight: 600;
   padding: 7px 16px;
-  border-radius: 8px;
-  background: #ff8c00;
-  color: var(--bb-text-base);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 4px;
+  background: var(--bb-action, #FF8C00);
+  color: #000;
+  transition: background 150ms var(--bb-ease, ease);
   border: none;
-  box-shadow: 
-    4px 4px 10px rgba(0, 0, 0, 0.4),
-    -4px -4px 10px rgba(255, 255, 255, 0.05);
+  box-shadow: none;
 }
 
 .bb-join-btn:hover {
-  color: var(--bb-text-base);
-  box-shadow: 
-    5px 5px 12px rgba(0, 0, 0, 0.5),
-    -5px -5px 12px rgba(255, 255, 255, 0.08);
-  transform: translateY(-2px);
+  color: #000;
+  background: #FF9A26;
+  box-shadow: none;
+  transform: none;
 }
 
 .bb-join-btn:active {
@@ -315,9 +320,10 @@ img {
   justify-content: center;
   font-size: 11px;
   font-weight: 700;
-  color: var(--bb-text-base);
-  background: #ff8c00;
-  border-radius: 9px;
+  color: #000;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  background: var(--bb-action, #FF8C00);
+  border-radius: 4px;
   padding: 0 5px;
   animation: fadeIn 0.3s ease;
 }
@@ -331,21 +337,6 @@ img {
   animation: fadeInUp 0.35s ease-out;
 }
 
-/* ── footer ───────────────────────────────────────────────────────── */
-.bb-footer {
-  background: linear-gradient(165deg, #1a1b1e 0%, #25262b 100%);
-  color: var(--bb-text-muted);
-}
-
-.bb-footer a {
-  color: var(--bb-text-muted);
-  transition: color 0.2s ease;
-}
-
-.bb-footer a:hover {
-  color: #ffa333;
-}
-
 /* ── utility ──────────────────────────────────────────────────────── */
 .bb-visually-hidden {
   position: absolute;
@@ -357,55 +348,6 @@ img {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   HOME PAGE — Scroll-reveal, hero, categories, features, CTA
-   OWNER: Slice C (Vidura)
-   ═══════════════════════════════════════════════════════════════════ */
-
-/* ── scroll reveal ────────────────────────────────────────────────── */
-.bb-scroll-reveal {
-  opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.bb-scroll-reveal--visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* stagger children — add delay-1 through delay-8 */
-.bb-scroll-reveal.bb-delay-1, .bb-slide-left.bb-delay-1, .bb-slide-right.bb-delay-1 { transition-delay: 0.2s; }
-.bb-scroll-reveal.bb-delay-2, .bb-slide-left.bb-delay-2, .bb-slide-right.bb-delay-2 { transition-delay: 0.4s; }
-.bb-scroll-reveal.bb-delay-3, .bb-slide-left.bb-delay-3, .bb-slide-right.bb-delay-3 { transition-delay: 0.6s; }
-.bb-scroll-reveal.bb-delay-4, .bb-slide-left.bb-delay-4, .bb-slide-right.bb-delay-4 { transition-delay: 0.8s; }
-.bb-scroll-reveal.bb-delay-5, .bb-slide-left.bb-delay-5, .bb-slide-right.bb-delay-5 { transition-delay: 1.0s; }
-.bb-scroll-reveal.bb-delay-6, .bb-slide-left.bb-delay-6, .bb-slide-right.bb-delay-6 { transition-delay: 1.2s; }
-.bb-scroll-reveal.bb-delay-7, .bb-slide-left.bb-delay-7, .bb-slide-right.bb-delay-7 { transition-delay: 1.4s; }
-.bb-scroll-reveal.bb-delay-8, .bb-slide-left.bb-delay-8, .bb-slide-right.bb-delay-8 { transition-delay: 1.6s; }
-
-/* ── custom directional reveal ────────────────────────────────────── */
-.bb-slide-left {
-  opacity: 0;
-  transform: translateX(-60px);
-  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.bb-slide-right {
-  opacity: 0;
-  transform: translateX(60px);
-  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.bb-slide-left.bb-scroll-reveal--visible,
-.bb-slide-right.bb-scroll-reveal--visible {
-  opacity: 1;
-  transform: translateX(0);
 }
 
 /* ── hero section ─────────────────────────────────────────────────── */
@@ -426,638 +368,631 @@ img {
 /* animated glow orb (Disabled for new background image) */
 /* .bb-hero::after { ... } */
 
-/* @keyframes bb-hero-glow { ... } */
-
-.bb-hero__inner {
-  position: relative;
-  z-index: 1;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 24px;
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
-  align-items: center;
-}
-
-.bb-hero__content {
-  max-width: 600px;
-}
-
-.bb-hero__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
-  border-radius: 50px;
-  background: rgba(255, 140, 0, 0.12);
-  border: 1px solid rgba(255, 140, 0, 0.25);
-  color: #ffa333;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  margin-bottom: 28px;
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.bb-hero__title {
-  font-size: clamp(2.4rem, 5vw, 3.6rem);
-  font-weight: 900;
-  color: var(--bb-text-base);
-  line-height: 1.1;
-  letter-spacing: -1.5px;
-  margin-bottom: 20px;
-  animation: fadeInUp 0.7s ease-out 0.1s both;
-}
-
-.bb-hero__title span {
-  background: linear-gradient(135deg, #ff8c00, #ffa333, #ffba66);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.bb-hero__subtitle {
-  font-size: 1.05rem;
-  color: rgba(255, 255, 255, 0.6);
-  line-height: 1.7;
-  margin-bottom: 36px;
-  max-width: 480px;
-  animation: fadeInUp 0.7s ease-out 0.2s both;
-}
-
-.bb-hero__actions {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  animation: fadeInUp 0.7s ease-out 0.3s both;
-}
-
-.bb-hero__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 32px;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  border: none;
-  text-decoration: none;
-}
-
-.bb-hero__btn--primary {
-  background: linear-gradient(135deg, #ff8c00, #ffa333);
-  color: var(--bb-text-base);
-  box-shadow: 0 4px 20px rgba(255, 140, 0, 0.3);
-}
-
-.bb-hero__btn--primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(255, 140, 0, 0.45);
-}
-
-.bb-hero__btn--outline {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--bb-text-base);
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-}
-
-.bb-hero__btn--outline:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.35);
-  transform: translateY(-2px);
-}
-
-/* hero visual (right side) */
-.bb-hero__visual {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  animation: fadeIn 1s ease-out 0.4s both;
-}
-
-.bb-hero__visual-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  max-width: 420px;
-}
-
-.bb-hero__visual-card {
-  padding: 28px 20px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  text-align: center;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.bb-hero__visual-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateY(-4px);
-}
-
-.bb-hero__visual-card:nth-child(2) {
-  transform: translateY(24px);
-}
-
-.bb-hero__visual-card:nth-child(2):hover {
-  transform: translateY(20px);
-}
-
-.bb-hero__visual-card:nth-child(3) {
-  transform: translateY(-12px);
-}
-
-.bb-hero__visual-card:nth-child(3):hover {
-  transform: translateY(-16px);
-}
-
-.bb-hero__visual-card:nth-child(4) {
-  transform: translateY(12px);
-}
-
-.bb-hero__visual-card:nth-child(4):hover {
-  transform: translateY(8px);
-}
-
-.bb-hero__visual-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 12px;
-}
-
-.bb-hero__visual-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.75);
-}
-
-/* ── stats bar ────────────────────────────────────────────────────── */
-.bb-stats {
-  background: var(--bb-stats-bg);
-  border-top: 1px solid var(--bb-stats-border);
-  padding: 48px 24px;
-}
-
-.bb-stats__inner {
-  max-width: 1280px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 32px;
-}
-
-.bb-stats__item {
-  text-align: center;
-}
-
-.bb-stats__number {
-  font-size: 2.2rem;
-  font-weight: 900;
-  color: var(--bb-text-base);
-  line-height: 1;
-  margin-bottom: 6px;
-}
-
-.bb-stats__number span {
-  color: #ffa333;
-}
-
-.bb-stats__label {
-  font-size: 14px;
-  color: var(--bb-stats-label);
-  font-weight: 500;
-}
-
-/* ── section common ───────────────────────────────────────────────── */
-.bb-section {
-  padding: 80px 24px;
-}
-
-.bb-section--alt {
-  background: var(--bb-bg-alt);
-}
-
-.bb-section--dark {
-  background: var(--bb-section-dark-bg);
-}
-
-.bb-section__inner {
-  max-width: 1280px;
-  margin: 0 auto;
-}
-
-.bb-section__header {
-  text-align: center;
-  margin-bottom: 48px;
-}
-
-.bb-section__overline {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: #0066ff;
-  margin-bottom: 12px;
-}
-
-.bb-section__title {
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: 800;
-  color: var(--bb-text-base);
-  letter-spacing: -0.5px;
-  margin-bottom: 12px;
-}
-
-.bb-section--dark .bb-section__title {
-  color: var(--bb-text-base);
-}
-
-.bb-section__desc {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.6);
-  max-width: 520px;
-  margin: 0 auto;
-  line-height: 1.6;
-}
-
-.bb-section--dark .bb-section__desc {
-  color: var(--bb-section-dark-desc);
-}
-
-/* ── category grid ────────────────────────────────────────────────── */
-.bb-categories {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-}
-
-@media (max-width: 992px) {
-  .bb-categories {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 576px) {
-  .bb-categories {
-    grid-template-columns: 1fr;
-  }
-}
-
-.bb-category-card {
-  position: relative;
-  padding: 32px 24px;
-  border-radius: 20px;
-  background: var(--bb-bg-card);
-  border: none;
-  box-shadow: 
-    6px 6px 14px var(--bb-shadow-dark),
-    -6px -6px 14px var(--bb-shadow-highlight);
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
-}
-
-.bb-category-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 
-    10px 10px 20px var(--bb-shadow-dark),
-    -10px -10px 20px var(--bb-shadow-highlight);
-}
-
-.bb-category-card__icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 18px;
-  background: var(--bb-bg-card);
-  box-shadow: 
-    inset 4px 4px 8px var(--bb-shadow-dark),
-    inset -4px -4px 8px var(--bb-shadow-highlight);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  color: #0066ff;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  z-index: 1;
-}
-
-.bb-category-card:hover .bb-category-card__icon {
-  background: #0066ff;
-  color: var(--bb-text-base);
-  box-shadow: 4px 4px 12px rgba(0, 102, 255, 0.4);
-  transform: scale(1.08);
-}
-
-.bb-category-card__name {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--bb-text-base);
-  margin-bottom: 4px;
-  position: relative;
-  z-index: 1;
-}
-
-.bb-category-card__count {
-  font-size: 13px;
-  color: var(--bb-text-muted);
-  position: relative;
-  z-index: 1;
-}
-
-/* ── feature strip ────────────────────────────────────────────────── */
-.bb-features {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-}
-
-.bb-feature-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 24px;
-  border-radius: 14px;
-  background: var(--bb-feature-bg);
-  border: 1px solid var(--bb-feature-border);
-  transition: all 0.3s ease;
-}
-
-.bb-feature-card:hover {
-  background: var(--bb-feature-bg-hover);
-  border-color: var(--bb-feature-border-hover);
-  transform: translateY(-3px);
-}
-
-.bb-feature-card__icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.bb-feature-card__title {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--bb-text-base);
-  margin-bottom: 4px;
-}
-
-.bb-feature-card__desc {
-  font-size: 13px;
-  color: var(--bb-text-muted);
-  line-height: 1.5;
-}
-
-/* ── why choose us ────────────────────────────────────────────────── */
-.bb-why-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-.bb-why-card {
-  padding: 36px 28px;
-  border-radius: 18px;
-  background: var(--bb-bg-card);
-  border: none;
-  box-shadow: 
-    6px 6px 14px var(--bb-shadow-dark),
-    -6px -6px 14px var(--bb-shadow-highlight);
-  text-align: center;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.bb-why-card::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #0066ff, #ffa333);
-  transform: scaleX(0);
-  transition: transform 0.4s ease;
-}
-
-.bb-why-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 
-    10px 10px 20px var(--bb-shadow-dark),
-    -10px -10px 20px var(--bb-shadow-highlight);
-}
-
-.bb-why-card:hover::after {
-  transform: scaleX(1);
-}
-
-.bb-why-card__icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  transition: transform 0.4s ease;
-}
-
-.bb-why-card:hover .bb-why-card__icon {
-  transform: scale(1.1) rotate(-3deg);
-}
-
-.bb-why-card__title {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--bb-text-base);
-  margin-bottom: 8px;
-}
-
-.bb-why-card__desc {
-  font-size: 14px;
-  color: var(--bb-text-muted);
-  line-height: 1.65;
-}
-
-/* ── newsletter CTA ───────────────────────────────────────────────── */
-.bb-newsletter {
-  position: relative;
-  padding: 72px 24px;
-  background: var(--bb-bg-card);
-  border-radius: 24px;
-  box-shadow: 
-    8px 8px 16px var(--bb-shadow-dark),
-    -8px -8px 16px var(--bb-shadow-highlight);
-  overflow: hidden;
-  max-width: 900px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.bb-newsletter__inner {
-  position: relative;
-  z-index: 1;
-  max-width: 600px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.bb-newsletter__title {
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: 800;
-  color: var(--bb-text-base);
-  margin-bottom: 12px;
-}
-
-.bb-newsletter__desc {
-  font-size: 15px;
-  color: var(--bb-text-muted);
-  margin-bottom: 32px;
-  line-height: 1.6;
-}
-
-.bb-newsletter__form {
-  display: flex;
-  gap: 12px;
-  max-width: 460px;
-  margin: 0 auto;
-}
-
-.bb-newsletter__input {
-  flex: 1;
-  padding: 14px 20px;
-  border-radius: 12px;
-  border: none;
-  background: var(--bb-bg-base);
-  box-shadow: 
-    inset 3px 3px 6px var(--bb-shadow-dark),
-    inset -3px -3px 6px var(--bb-shadow-highlight);
-  color: var(--bb-text-base);
-  font-size: 14px;
-  font-family: inherit;
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-.bb-newsletter__input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.bb-newsletter__input:focus {
-  background: #0d131f;
-  box-shadow: 
-    inset 4px 4px 8px rgba(4, 6, 10, 0.95),
-    inset -4px -4px 8px var(--bb-shadow-highlight);
-}
-
-.bb-newsletter__submit {
-  padding: 14px 28px;
-  border-radius: 12px;
-  border: none;
-  background: linear-gradient(135deg, #ff8c00, #ffa333);
-  color: var(--bb-text-base);
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-  font-family: inherit;
-}
-
-.bb-newsletter__submit:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(255, 140, 0, 0.4);
-}
-
-/* ── responsive ───────────────────────────────────────────────────── */
-@media (max-width: 992px) {
-  .bb-hero__inner {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-  .bb-hero__content {
-    max-width: 100%;
-  }
-  .bb-hero__subtitle {
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .bb-hero__actions {
-    justify-content: center;
-  }
-  .bb-hero__visual {
-    display: none;
-  }
-  .bb-stats__inner {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
-  }
-  .bb-features {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .bb-why-grid {
-    grid-template-columns: 1fr;
-    max-width: 400px;
-    margin: 0 auto;
-  }
-}
-
+/* 
 @media (max-width: 600px) {
   .bb-hero {
     min-height: 480px;
     padding: 60px 0 40px;
   }
-  .bb-hero__badge {
-    font-size: 12px;
-    padding: 6px 14px;
-  }
-  .bb-hero__actions {
+}
+
+/* ══ §4 MOTION ════════════════════════════════════════════════════
+   Animation that sells product, not animation that shows off. Every
+   one of these is CSS: Framer Motion is not a dependency here and a
+   50 kB library for ten transitions is not a trade worth making on a
+   bundle already over the size warning.
+
+   Micro-interactions 150-260ms. Nothing above 450ms. The whole file is
+   disabled under prefers-reduced-motion by the rule at the bottom. */
+
+/* ── section reveal: fade + 20px rise, children staggered 60ms ───── */
+@keyframes bb-reveal {
+  from { opacity: 0; transform: translate3d(0, 20px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+/* .bb-observe / .bb-in are defined once, in SCROLL REVEALS below.
+   They used to be declared here as well, with a different animation and
+   a different stagger — two competing definitions of one class, where
+   whichever came last in the file silently won. */
+
+/* ── status dot: the live statuses breathe ───────────────────────── */
+@keyframes bb-pulse-dot {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.74); }
+}
+.bb-status-dot--live { animation: bb-pulse-dot 2s ease-in-out infinite; }
+
+/* ── cart badge: springs 1 → 1.3 → 1 when an item lands ──────────── */
+
+/* ── filter chip: scale 0.9 → 1 with a small overshoot ───────────── */
+
+/* ── gallery swap: crossfade with a 1.02 settle ──────────────────── */
+
+/* ── popup: slide up 16px + fade ─────────────────────────────────── */
+@keyframes bb-popup-in {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+.bb-popup-in { animation: bb-popup-in 240ms var(--bb-ease) both; }
+
+/* ── skeleton: a warm gradient sweep, not a grey pulse ───────────── */
+
+/* ── loading dots ────────────────────────────────────────────────── */
+@keyframes bb-load-dot {
+  0%, 100% { transform: scale(1);   opacity: 0.45; }
+  40%      { transform: scale(1.4); opacity: 1; }
+}
+.bb-load-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bb-text-muted);
+  animation: bb-load-dot 600ms var(--bb-ease) infinite;
+}
+.bb-load-dot:nth-child(2) { animation-delay: 120ms; }
+.bb-load-dot:nth-child(3) { animation-delay: 240ms; }
+
+/* ══ HERO ═════════════════════════════════════════════════════════
+   A layered scene, not a photo under a black sheet. The flat overlay was
+   the single biggest problem: a DIRECTIONAL gradient is what creates
+   depth, because it is dark where the text sits and open where the
+   product sits.
+
+   Back to front: marquee (blurred to bokeh) → directional scrim →
+   ambient glow → the lit product → text → vignette. */
+
+/* 1. marquee, blurred into bokeh so it stops competing for attention */
+@keyframes bb-hero-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(0, -4%, 0); }
+}
+.bb-hero-marquee {
+  position: absolute;
+  inset: -8%;
+  pointer-events: none;
+  filter: blur(3px);
+  opacity: 0.40;
+  transform: scale(1.05);
+}
+.bb-hero-marquee__col {
+  animation: bb-hero-drift 60s linear infinite alternate;
+}
+
+/* 4. the product: floats, and enters once on mount */
+
+/* 3. ambient glow, fading up behind the product */
+
+/* 5. text: fades and rises on MOUNT. Above-the-fold content never waits
+   on a scroll position. */
+@keyframes bb-hero-text-in {
+  from { opacity: 0; transform: translate3d(0, 24px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+.bb-hero-line {
+  animation: bb-hero-text-in 500ms var(--bb-ease) both;
+  animation-delay: calc(var(--i, 0) * 120ms);
+}
+
+/* pause everything when the tab is hidden or the scene is hovered */
+body.bb-hidden .bb-hero-marquee__col,
+body.bb-hidden .bb-hero-product,
+.bb-hero:hover .bb-hero-product { animation-play-state: paused; }
+
+/* ══ SCROLL REVEALS ═══════════════════════════════════════════════
+   One reveal per SECTION, never per element. Movement is capped at
+   24px — more than that and it reads as a landing page. `once` is
+   enforced in the hook, which unobserves after the first intersection:
+   re-triggering on scroll-back is the single thing that makes a shop
+   feel like a demo reel.
+
+   Budget: 420ms base + stagger, never over 400ms of stagger. */
+/* NEVER hides content.
+   This used to be `opacity: 0`, revealed only when the IntersectionObserver
+   fired. That makes every way the observer can miss — a short block, a
+   layout shift, an overflow:hidden ancestor, a threshold never reached —
+   a silently blank section rather than a missing animation. Whole parts of
+   the home page disappeared that way.
+
+   Now the resting state is VISIBLE. `backwards` means the entrance still
+   starts from the hidden keyframe when .bb-in is added, so the animation is
+   unchanged — but with no .bb-in at all the element simply shows. An
+   entrance animation is never worth a blank page. */
+.bb-observe { opacity: 1; }
+.bb-observe.bb-in { animation: bb-reveal-up 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+
+@keyframes bb-reveal-up {
+  from { opacity: 0; transform: translate3d(0, 24px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes bb-reveal-scale {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes bb-reveal-right {
+  from { opacity: 0; transform: translate3d(40px, 0, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes bb-reveal-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.bb-observe[data-reveal="scale"].bb-in { animation-name: bb-reveal-scale; }
+.bb-observe[data-reveal="right"].bb-in { animation-name: bb-reveal-right; }
+/* utility copy gets no movement at all */
+.bb-observe[data-reveal="fade"].bb-in  { animation-name: bb-reveal-fade; }
+
+/* stagger: 50ms for tiles, 40ms for rail cards, 80ms for quotes */
+.bb-observe.bb-in            { animation-delay: calc(var(--i, 0) * 50ms); }
+.bb-observe[data-stagger="40"].bb-in { animation-delay: calc(var(--i, 0) * 40ms); }
+.bb-observe[data-stagger="80"].bb-in { animation-delay: calc(var(--i, 0) * 80ms); }
+
+/* ────────── the hero cluster ──────────
+   Bleeding off the bottom-right is what gives it scale: floated fully
+   inside the box it reads as a sticker pasted on the page.
+
+   ONE animation per LAYER, never two per element. Two @keyframes that
+   both touch `transform` do not compose — the last one declared wins
+   outright and the other is silently dropped. */
+.bb-hero-cluster {
+  position: absolute;
+  /* Nudged left and up off the corner. It still runs to the right edge,
+     but nothing is sliced any more: a bottom bleed used to cut the
+     artwork's own ground plate in half against the ticker below. */
+  right: 0;
+  bottom: 4%;
+  width: 54%;
+  /* 1100, not 880. The old cap bit at 1630px, so on a 1920 screen the
+     cluster was 46% of the page instead of 54% and kept shrinking as
+     the monitor got wider — the hero grew, the artwork did not. */
+  max-width: 1100px;
+  z-index: 5;                      /* layer 5 of the stack */
+  pointer-events: none;
+  will-change: transform;          /* mouse + scroll parallax, from JS */
+}
+
+/* entry, then it holds still for good. position: relative so the ring
+   and the ground shadow have something to size against. */
+.bb-hero-cluster__in {
+  position: relative;
+  animation: bb-cluster-in 800ms var(--bb-ease) 250ms both;
+}
+@keyframes bb-cluster-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ────────── layer 5: the artwork, and its float ────────── */
+.bb-hero-cluster__img {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: auto;
+  /* saturate + a whisper of sepia pulls the navy bag and the controller
+     into the same warm light as the rest of the page. Kept light: push
+     the hue-rotate further and the brand orange starts to shift. */
+  filter:
+    drop-shadow(0 30px 60px rgba(0, 0, 0, 0.55))
+    saturate(1.04)
+    sepia(0.06)
+    hue-rotate(-4deg);
+  will-change: transform;
+  animation: bb-cluster-float 7s ease-in-out 1050ms infinite;
+}
+@keyframes bb-cluster-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+
+/* the glow breathes on 9s — the layer that makes the cluster look LIT
+   rather than pasted on. */
+@keyframes bb-hero-pulse {
+  0%, 100% { opacity: 0.22; }
+  50%      { opacity: 0.30; }
+}
+.bb-hero-pulse { animation: bb-hero-pulse 9s ease-in-out infinite; }
+
+.bb-hero-parallax { position: absolute; inset: 0; will-change: transform; }
+
+/* ────────── the copy ──────────
+   maxWidth 1200 / padding 0 24px is what EVERY other section on this
+   page uses. A flat 32px gutter looked right against the navbar — the
+   navbar is full-bleed — but it put the headline ~350px left of every
+   heading below it on a 1920px screen. The hero is page content, so it
+   lines up with page content. */
+.bb-hero-copy {
+  position: relative;
+  width: 100%;
+  z-index: 8;                      /* above the vignette at 7 */
+  /* Left-anchored, NOT a centred 1200 container. A centred container
+     floats the headline inwards on a wide screen, and it also caps how
+     wide the headline can get before it reaches the cluster. Anchoring
+     left buys both things at once: the copy sits nearer the corner and
+     has more room. Trade-off: it no longer shares a left edge with the
+     1200px sections below. */
+  padding: 0 24px 0 clamp(24px, 5vw, 96px);
+}
+.bb-hero-text {
+  /* Both limits matter. 38vw keeps it clear of the cluster on a narrow
+     screen; 640px stops the line getting too long to read on a wide one.
+     Smallest clearance to the artwork is 31px, at 1025. */
+  max-width: min(640px, 38vw);
+  min-width: 300px;
+  /* clears the hero's top edge without re-centring it */
+  padding-top: clamp(24px, 4vh, 48px);
+}
+
+/* ────────── below 1024: stack, text first, parallax off, float kept ────────── */
+@media (max-width: 1024px) {
+  .bb-hero {
+    height: auto !important;
+    min-height: 0 !important;
     flex-direction: column;
-    align-items: center;
+    padding: 64px 0 0;
   }
-  .bb-hero__btn {
-    width: 100%;
-    justify-content: center;
+  .bb-hero-copy { padding: 0 24px; }   /* drop the wide left anchor */
+  .bb-hero-text {
+    max-width: 100%;
+    padding-top: 0;               /* the section already pads the top */
   }
-  .bb-stats__inner {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+  .bb-hero-cluster {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: 80%;
+    margin: 32px auto 0;
+    transform: none !important;   /* parallax off */
   }
-  .bb-stats__number {
-    font-size: 1.6rem;
+}
+
+@media (max-width: 640px) {
+  .bb-hero-copy { padding: 0 16px; }
+  .bb-hero-cluster { width: 95%; }
+  .bb-hero-vignette { display: none; }
+}
+
+
+/* ── full-bleed rail: hide the bar, keep wheel and keyboard ──────── */
+.bb-rail {
+  display: flex;
+  align-items: stretch;   /* equal-height cards */
+  gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+}
+.bb-rail::-webkit-scrollbar { display: none; }
+.bb-rail > * { scroll-snap-align: start; flex: 0 0 272px; }
+.bb-rail > * > * { height: 100%; }
+
+/* ────────── top-selling carousel ──────────
+   Paged, not a free scroll. Cards have to sit still long enough to read
+   a price and hit a button, which a continuous drift never allows.
+
+   THE PAGE SHIFT, since it is not just 100%: with `n` cards per view and
+   a gap `g`, each card is (100% - (n-1)g)/n wide, so one page of them
+   measures n*card + n*g = 100% + g. Shift by 100% alone and the track
+   creeps left by one gap per page.
+
+   --per and --page are set inline by the component. */
+.bb-carousel {
+  overflow: hidden;
+  /* the lift on a hovered card would otherwise be clipped at the top */
+  padding: 6px 0;
+  margin: -6px 0;
+}
+.bb-carousel__track {
+  display: flex;
+  align-items: stretch;          /* every card the height of the tallest */
+  gap: 24px;
+  transform: translateX(calc(-1 * var(--page, 0) * (100% + 24px)));
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.bb-carousel__cell {
+  flex: 0 0 calc((100% - (var(--per, 4) - 1) * 24px) / var(--per, 4));
+  min-width: 0;
+  display: flex;
+}
+/* the card fills its cell, so footers line up across the row */
+.bb-carousel__cell > * { width: 100%; }
+
+/* ── tactile press ───────────────────────────────────────────────── */
+.bb-press:active { transform: translateY(1px) scale(0.985); }
+
+/* Must be last: overrides every animation declared above.
+
+   Reduced motion means NO MOVEMENT, not "no animation" — killing
+   animation outright would leave .bb-observe stuck at opacity 0 and the
+   page would appear blank. So: every looping or decorative animation
+   stops, and the reveals degrade to a plain opacity fade. */
+/* ────────── delivery band ──────────
+   46 / 8 / 46. The gutter is a column in the grid rather than a gap, so
+   the two halves keep their proportions as the viewport changes. */
+.bb-delivery {
+  display: grid;
+  grid-template-columns: 46fr 8fr 46fr;
+  align-items: center;
+}
+.bb-delivery > :last-child { grid-column: 3; }
+.bb-delivery__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+.bb-stat-card {
+  background: var(--mantine-color-ink-7);
+  border: 1px solid var(--bb-line, rgba(255, 236, 214, 0.10));
+  border-radius: 16px;
+  padding: 28px;
+  /* no icon, no glow: the number is the content */
+}
+@media (max-width: 900px) {
+  .bb-delivery { grid-template-columns: 1fr; gap: 40px; }
+  .bb-delivery > :last-child { grid-column: 1; }
+}
+@media (max-width: 560px) {
+  .bb-delivery__stats { grid-template-columns: 1fr; }
+}
+
+/* ────────── category tile grade ────────────────────────
+   Supersedes the warming filter from the icon-set pass: that one pushed
+   saturation UP, this pulls it DOWN. Both cannot apply, so this wins. */
+.category-tile img {
+  filter: saturate(0.85) contrast(0.96);
+}
+
+/* ────────── category section header ──────────
+   Three items, one grid. The link shares ROW 1 with the heading and both
+   carry `align-self: baseline`, which puts them in the same baseline
+   group — so the link sits on the heading's baseline, not floating at
+   the centre of the two-line block the way `align-items: center` would.
+   The subhead takes row 2 under the heading only. */
+.bb-cat-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 24px;
+  margin-bottom: 48px;
+}
+.bb-cat-head__title {
+  grid-area: 1 / 1;
+  align-self: baseline;
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.bb-cat-head__link {
+  grid-area: 1 / 2;
+  align-self: baseline;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--mantine-color-brand-5);
+}
+.bb-cat-head__link svg { transition: transform 200ms var(--bb-ease); }
+.bb-cat-head__link:hover svg { transform: translateX(3px); }
+.bb-cat-head__sub {
+  grid-area: 2 / 1;
+  margin-top: 8px;
+  max-width: 52ch;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* below 768 the link drops under the subhead and goes left-aligned:
+   there is no room for a right-hand column at phone width. */
+@media (max-width: 768px) {
+  .bb-cat-head { grid-template-columns: 1fr; }
+  .bb-cat-head__link {
+    grid-area: 3 / 1;
+    justify-self: start;
+    margin-top: 16px;
   }
-  .bb-features {
-    grid-template-columns: 1fr;
+}
+
+/* ────────── CATALOGUE ──────────
+   Every colour here is a theme token, not a literal: ink.7 IS #211E1B,
+   ink.6 IS #2A2621, ink.2 IS #A89F93. The ramp was already built to these
+   values, so the listing page needs no palette of its own. */
+
+/* ────────── category chips — replace the old sidebar list ──────────
+   The right-edge fade is a mask rather than a gradient overlay. An
+   overlay would have to know the background it sits on; a mask does not,
+   and it also stops biting automatically when the row is short enough
+   not to overflow. */
+.bb-chips {
+  position: relative;
+  -webkit-mask-image:
+    linear-gradient(90deg, #000 0, #000 calc(100% - 48px), transparent 100%);
+          mask-image:
+    linear-gradient(90deg, #000 0, #000 calc(100% - 48px), transparent 100%);
+}
+.bb-chips__track {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;              /* Firefox */
+  scroll-snap-type: x proximity;
+}
+.bb-chips__track::-webkit-scrollbar { display: none; }
+
+.bb-chip {
+  flex: 0 0 auto;
+  height: 36px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  border-radius: 999px;
+  background: var(--mantine-color-ink-7);
+  border: 1px solid var(--bb-line, rgba(255, 236, 214, 0.10));
+  color: var(--mantine-color-ink-1);
+  font-size: 14px;
+  font-weight: 500;
+  scroll-snap-align: start;
+  transition: background 180ms var(--bb-ease), color 180ms var(--bb-ease),
+              border-color 180ms var(--bb-ease);
+}
+.bb-chip:hover {
+  border-color: rgba(255, 140, 0, 0.28);
+  color: var(--mantine-color-ink-0);
+}
+.bb-chip--on {
+  background: var(--mantine-color-brand-5);
+  border-color: transparent;
+  color: #000;
+  font-weight: 600;
+}
+
+/* ────────── filter cards — four separate surfaces, not one panel ────────── */
+.bb-filter-card {
+  background: var(--mantine-color-ink-7);
+  border: 1px solid var(--bb-line, rgba(255, 236, 214, 0.10));
+  border-radius: 16px;
+  padding: 20px;
+}
+.bb-price-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--mantine-color-ink-6);
+  color: var(--mantine-color-ink-0);
+  font-size: 12px;
+  font-weight: 600;
+}
+/* No brand logos exist, so a brand gets its initial on a disc. An empty
+   24px square next to every row reads as a broken image. */
+.bb-brand-mark {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--mantine-color-ink-6);
+  color: var(--mantine-color-ink-2);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ────────── the heart ────────── */
+.bb-heart {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+  color: #fff;
+  transition: background 160ms var(--bb-ease), color 160ms var(--bb-ease),
+              transform 160ms var(--bb-ease);
+}
+.bb-heart:hover { background: rgba(0, 0, 0, 0.55); transform: scale(1.08); }
+.bb-heart--on  { color: var(--mantine-color-brand-5); }
+
+/* ────────── the price pill: the price IS the add-to-cart ────────── */
+.bb-price-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--mantine-color-brand-5);
+  color: var(--mantine-color-brand-5);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 160ms var(--bb-ease), color 160ms var(--bb-ease);
+}
+.bb-price-pill:hover { background: var(--mantine-color-brand-5); color: #000; }
+.bb-price-pill[data-disabled] {
+  border-color: var(--mantine-color-ink-4);
+  color: var(--mantine-color-ink-3);
+  cursor: not-allowed;
+}
+.bb-price-pill[data-disabled]:hover {
+  background: transparent;
+  color: var(--mantine-color-ink-3);
+}
+
+/* ────────── the grid: 3 / 2 / 1 ────────── */
+.bb-catalogue-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px)  { .bb-catalogue-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1280px) { .bb-catalogue-grid { grid-template-columns: repeat(3, 1fr); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-  .bb-categories {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+
+  /* opacity only — no translate, no scale */
+  @keyframes bb-reveal-up    { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes bb-reveal-scale { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes bb-reveal-right { from { opacity: 0; } to { opacity: 1; } }
+
+  .bb-observe.bb-in,
+  .bb-hero-line,
+  .bb-hero-product,
+  .bb-hero-product__img,
+  .bb-hero-glow {
+    animation: bb-reveal-fade 200ms linear both !important;
+    animation-delay: 0ms !important;
+    transform: none !important;
   }
-  .bb-newsletter__form {
-    flex-direction: column;
+
+  /* The cluster sits still: no entry scale, no float, no pulse, no
+     parallax. Every layer is named explicitly — miss
+     one and it carries on animating by itself.
+
+     __in keeps a FADE rather than `animation: none`, because the layer
+     starts at opacity 0 — killing its animation outright would leave
+     the whole hero image invisible. */
+  .bb-hero-cluster,
+  .bb-hero-cluster__img,
+  .bb-hero-parallax {
+    animation: none !important;
+    transform: none !important;
   }
-  .bb-section {
-    padding: 56px 16px;
+  .bb-hero-cluster__in {
+    animation: bb-reveal-fade 200ms linear both !important;
+    transform: none !important;
   }
+  .bb-hero-pulse {
+    animation: none !important;
+    opacity: 0.22 !important;
+  }
+
+  /* The carousel still CHANGES page from the arrows and dots — it just
+     does not slide there, and the component already withholds the 6s
+     auto-advance under this query. */
+  .bb-carousel__track { transition: none !important; }
+
+  /* the marquee simply stops where it is */
+  .bb-hero-marquee__col,
+  .bb-ticker-track { animation: none !important; }
 }

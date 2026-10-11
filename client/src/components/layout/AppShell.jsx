@@ -3,169 +3,236 @@
  * OWNER: Slice C (Vidura)
  *
  * Wraps every page with:
- *  - Navbar (sticky, animated)
+ *  - Navbar (sticky)
  *  - Content area (centred, responsive padding)
  *  - Footer
+ *
+ * Circuit Noir: the page ground and its 64px grid come from index.css, so
+ * this file sets no background of its own. The footer is one ink.8 slab
+ * separated by a hairline — no cards, no shadows.
  */
-import { Container, Box, Text, Group, Anchor, Divider, useMantineColorScheme } from '@mantine/core';
+import { useEffect, useState } from 'react';
+import { Container, Box, Text, Group, Stack } from '@mantine/core';
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { api } from '../../api/client';
 import {
   IconBrandFacebook,
-  IconBrandTwitter,
+  IconBrandX,
   IconBrandInstagram,
+  IconBrandYoutube,
   IconMail,
   IconPhone,
   IconMapPin,
-  IconBolt,
 } from '@tabler/icons-react';
 import Navbar from './Navbar';
+import { NewArrivalsPopup } from '../ui';
 
-/* ── Footer ───────────────────────────────────────────────────────── */
-function Footer() {
-  const { colorScheme } = useMantineColorScheme();
+const LINE = 'rgba(255,236,214,0.10)';
+const EASE = 'cubic-bezier(0.2, 0, 0, 1)';
 
+/* Sentence-case body label. Monospace is reserved for SKU codes and
+   order numbers; everywhere else it reads as a generated-page tell. */
+const MONO = {
+  fontSize: 14,
+  fontWeight: 400,
+};
+
+/* ── footer pieces ────────────────────────────────────────────────── */
+
+function ColumnHeading({ children }) {
   return (
-    <footer className="bb-footer" style={{ background: 'var(--bb-bg-base)', borderTop: '1px solid var(--bb-border-subtle)' }}>
-      <div
-        style={{
-          maxWidth: 1280,
-          margin: '0 auto',
-          padding: '48px 24px 24px',
-        }}
-      >
-        {/* footer columns */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: 32,
-            marginBottom: 32,
-          }}
-        >
-          {/* brand */}
-          <div>
-            <img
-              src={colorScheme === 'dark' ? '/Logo.png' : '/lightmodelogo.png'}
-              alt="BrightBuy — Electronics Store"
-              style={{ height: 65, width: 'auto', objectFit: 'contain', marginBottom: 12 }}
-            />
-            <Text size="sm" style={{ color: 'var(--bb-text-muted)', lineHeight: 1.7 }}>
-              Your trusted electronics retailer in Texas. Quality products,
-              fast delivery, great prices.
-            </Text>
-          </div>
-
-          {/* quick links */}
-          <div>
-            <Text fw={700} size="sm" mb={12} style={{ color: 'var(--bb-text-base)' }}>
-              Quick Links
-            </Text>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <Link to="/" className="bb-footer-link" style={{ fontSize: 14, color: 'var(--bb-text-muted)', textDecoration: 'none' }}>Home</Link>
-              <Link to="/products" className="bb-footer-link" style={{ fontSize: 14, color: 'var(--bb-text-muted)', textDecoration: 'none' }}>Products</Link>
-              <Link to="/cart" className="bb-footer-link" style={{ fontSize: 14, color: 'var(--bb-text-muted)', textDecoration: 'none' }}>Cart</Link>
-              <Link to="/orders" className="bb-footer-link" style={{ fontSize: 14, color: 'var(--bb-text-muted)', textDecoration: 'none' }}>Orders</Link>
-            </div>
-          </div>
-
-          {/* account */}
-          <div>
-            <Text fw={700} size="sm" mb={12} style={{ color: 'var(--bb-text-base)' }}>
-              Account
-            </Text>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <Link to="/login" style={{ fontSize: 14, color: 'var(--bb-text-muted)', textDecoration: 'none' }}>Sign In</Link>
-              <Link to="/register" style={{ fontSize: 14, color: 'var(--bb-text-muted)', textDecoration: 'none' }}>Register</Link>
-              <Link to="/account" style={{ fontSize: 14, color: 'var(--bb-text-muted)', textDecoration: 'none' }}>My Profile</Link>
-              <Link to="/account/addresses" style={{ fontSize: 14, color: 'var(--bb-text-muted)', textDecoration: 'none' }}>Addresses</Link>
-            </div>
-          </div>
-
-          {/* contact */}
-          <div>
-            <Text fw={700} size="sm" mb={12} style={{ color: 'var(--bb-text-base)' }}>
-              Contact
-            </Text>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <Group gap={8}>
-                <IconMapPin size={16} style={{ color: '#ffa333', flexShrink: 0 }} />
-                <Text size="sm" style={{ color: 'var(--bb-text-muted)' }}>Houston, Texas</Text>
-              </Group>
-              <Group gap={8}>
-                <IconPhone size={16} style={{ color: '#ffa333', flexShrink: 0 }} />
-                <Text size="sm" style={{ color: 'var(--bb-text-muted)' }}>(713) 555-0123</Text>
-              </Group>
-              <Group gap={8}>
-                <IconMail size={16} style={{ color: '#ffa333', flexShrink: 0 }} />
-                <Text size="sm" style={{ color: 'var(--bb-text-muted)' }}>support@brightbuy.com</Text>
-              </Group>
-            </div>
-          </div>
-        </div>
-
-        {/* divider + bottom bar */}
-        <Divider color="var(--bb-border-subtle)" />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 16,
-            paddingTop: 20,
-          }}
-        >
-          <Text size="xs" style={{ color: 'var(--bb-text-muted)' }}>
-            © {new Date().getFullYear()} BrightBuy · Group 13 · University of Moratuwa
-          </Text>
-          <Group gap={12}>
-            <ActionIconCircle icon={IconBrandFacebook} />
-            <ActionIconCircle icon={IconBrandTwitter} />
-            <ActionIconCircle icon={IconBrandInstagram} />
-          </Group>
-        </div>
-      </div>
-    </footer>
+    <Text component="h2" style={MONO} c="ink.4" mb={16}>
+      {children}
+    </Text>
   );
 }
 
-function ActionIconCircle({ icon: Icon }) {
+/** Links shift 4px right on hover — the only movement in the footer. */
+function FooterLink({ to, children }) {
+  return (
+    <Text
+      component={Link}
+      to={to}
+      fz={14}
+      c="ink.2"
+      style={{
+        textDecoration: 'none',
+        display: 'inline-block',
+        transition: `transform 150ms ${EASE}, color 150ms ${EASE}`,
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateX(4px)';
+        e.currentTarget.style.color = 'var(--mantine-color-ink-0)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateX(0)';
+        e.currentTarget.style.color = 'var(--mantine-color-ink-2)';
+      }}
+    >
+      {children}
+    </Text>
+  );
+}
+
+/** Square, not circle. Hairline border, amber on hover. */
+function Social({ icon: Icon, label }) {
   return (
     <a
       href="#"
+      aria-label={label}
       style={{
         width: 32,
         height: 32,
-        borderRadius: '50%',
-        background: 'var(--bb-border-subtle)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'background 0.2s ease',
+        display: 'grid',
+        placeItems: 'center',
+        border: `1px solid ${LINE}`,
+        borderRadius: 4,
+        color: 'var(--mantine-color-ink-2)',
+        transition: `border-color 150ms ${EASE}, color 150ms ${EASE}`,
       }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,140,0,0.25)')}
-      onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--bb-border-subtle)')}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = 'rgba(255,140,0,0.35)';
+        e.currentTarget.style.color = 'var(--mantine-color-brand-5)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = LINE;
+        e.currentTarget.style.color = 'var(--mantine-color-ink-2)';
+      }}
     >
-      <Icon size={16} style={{ color: 'var(--bb-text-base)' }} />
+      <Icon size={15} />
     </a>
+  );
+}
+
+function ContactRow({ icon: Icon, children }) {
+  return (
+    <Group gap={8} wrap="nowrap">
+      <Icon size={15} style={{ color: 'var(--mantine-color-brand-5)', flexShrink: 0 }} />
+      <Text fz={14} c="ink.2">{children}</Text>
+    </Group>
+  );
+}
+
+function Footer() {
+  return (
+    <Box
+      component="footer"
+      style={{
+        background: 'var(--mantine-color-ink-8)',
+        borderTop: `1px solid ${LINE}`,
+      }}
+    >
+      <Container size="xl" px={{ base: 16, sm: 24 }} py={48}>
+        <Box
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: 40,
+          }}
+        >
+          {/* brand */}
+          <Stack gap={16}>
+            <Text
+              style={{
+                fontSize: 22,
+                fontWeight: 700,
+                letterSpacing: '-0.02em',
+              }}
+              c="ink.0"
+            >
+              Bright<span style={{ color: 'var(--mantine-color-brand-5)' }}>Buy</span>
+            </Text>
+            <Text fz={14} c="ink.2" style={{ lineHeight: 1.65, maxWidth: '34ch' }}>
+              Order online, pay by card or on delivery. Colombo warehouse,
+              island-wide dispatch.
+            </Text>
+            <Group gap={8}>
+              <Social icon={IconBrandX} label="BrightBuy on X" />
+              <Social icon={IconBrandInstagram} label="BrightBuy on Instagram" />
+              <Social icon={IconBrandFacebook} label="BrightBuy on Facebook" />
+              <Social icon={IconBrandYoutube} label="BrightBuy on YouTube" />
+            </Group>
+          </Stack>
+
+          {/* quick links */}
+          <Box>
+            <ColumnHeading>Quick links</ColumnHeading>
+            <Stack gap={8} align="flex-start">
+              <FooterLink to="/">Home</FooterLink>
+              <FooterLink to="/products">Products</FooterLink>
+              <FooterLink to="/cart">Cart</FooterLink>
+              <FooterLink to="/orders">Orders</FooterLink>
+            </Stack>
+          </Box>
+
+          {/* account */}
+          <Box>
+            <ColumnHeading>Account</ColumnHeading>
+            <Stack gap={8} align="flex-start">
+              <FooterLink to="/login">Sign in</FooterLink>
+              <FooterLink to="/register">Register</FooterLink>
+              <FooterLink to="/account">My profile</FooterLink>
+              <FooterLink to="/account/addresses">Addresses</FooterLink>
+            </Stack>
+          </Box>
+
+          {/* contact */}
+          <Box>
+            <ColumnHeading>Contact</ColumnHeading>
+            <Stack gap={12}>
+              <ContactRow icon={IconMapPin}>Colombo 03, Sri Lanka</ContactRow>
+              <ContactRow icon={IconPhone}>+94 11 234 5678</ContactRow>
+              <ContactRow icon={IconMail}>support@brightbuy.com</ContactRow>
+            </Stack>
+          </Box>
+        </Box>
+      </Container>
+
+      {/* bottom bar */}
+      <Box style={{ borderTop: `1px solid ${LINE}` }}>
+        <Container size="xl" px={{ base: 16, sm: 24 }} py={16}>
+          <Group justify="space-between" wrap="wrap" gap={16}>
+            <Text style={MONO} c="ink.4">
+              © {new Date().getFullYear()} BrightBuy · Colombo, Sri Lanka · Group 13, University of Moratuwa
+            </Text>
+            <Group gap={24}>
+              {['Privacy', 'Terms', 'Shipping'].map((l) => (
+                <Text
+                  key={l}
+                  component="a"
+                  href="#"
+                  style={{ ...MONO, textDecoration: 'none' }}
+                  c="ink.4"
+                >
+                  {l}
+                </Text>
+              ))}
+            </Group>
+          </Group>
+        </Container>
+      </Box>
+    </Box>
   );
 }
 
 /* ── AppShell ─────────────────────────────────────────────────────── */
 export default function AppShell({ cartItemCount = 0 }) {
   const location = useLocation();
-  /* The home page uses full-width sections (hero, stats, CTA).
+  const [newArrivals, setNewArrivals] = useState([]);
+
+  /* Three thumbnails for the popup. Fails silently: a marketing nudge
+     must never be the reason a page errors. */
+  useEffect(() => {
+    api.get('/products?pageSize=3')
+      .then((r) => setNewArrivals(r.data || []))
+      .catch(() => {});
+  }, []);
+  /* The home page uses full-width sections (hero, ticker, slabs).
      Every other page gets the centred Container. */
   const isFullWidth = location.pathname === '/';
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100vh',
-      }}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Navbar cartItemCount={cartItemCount} />
 
       <main style={{ flex: 1 }}>
@@ -179,7 +246,7 @@ export default function AppShell({ cartItemCount = 0 }) {
       </main>
 
       <Footer />
+      <NewArrivalsPopup products={newArrivals} />
     </div>
   );
 }
-

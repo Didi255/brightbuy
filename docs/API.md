@@ -146,7 +146,8 @@ Owned by A. Consumed by C (confirmation page) and E (payments, reports).
       "quantity": 2,
       "unitPriceAtOrder": "1299.00",
       "lineTotal": "2598.00",
-      "outOfStockFlag": false
+      "outOfStockFlag": false,
+      "imageUrl": "/product-images/aurora-14-laptop.jpg"
     }
   ],
   "delivery": {
@@ -167,6 +168,10 @@ Owned by A. Consumed by C (confirmation page) and E (payments, reports).
 ```
 
 - `unitPriceAtOrder` — **never** read `variant.price` for a historical order (REQ-5.7).
+- `imageUrl` — from `product.image_url`: a path under `/product-images/`, served by the
+  client so it works offline and on any host. Deliberately **not** snapshotted — unlike
+  price and address, an image is presentation rather than a term of the sale, so an old
+  order correctly shows today's picture. May be `null`.
 - `addressSnapshot` — likewise never join to `address` (see DECISIONS #15).
 - For `deliveryMode: "store_pickup"`, `addressSnapshot` is `null` but `cityName` is still set.
 - `canRetry` is E's: true when payment is `Failed` and within the 24h window (REQ-8.5).
@@ -259,7 +264,7 @@ The response never includes `passwordHash`.
 ```json
 { "data": [
     { "productId": 12, "productName": "Aurora 14 Laptop", "brand": "Aurora",
-      "imageUrl": "...", "priceFrom": "1299.00", "priceTo": "1899.00",
+      "imageUrl": "/product-images/aurora-14-laptop.jpg", "priceFrom": "1299.00", "priceTo": "1899.00",
       "categories": [ { "categoryId": 3, "categoryName": "Laptops" } ] }
   ], "page": 1, "pageSize": 20, "total": 137 }
 ```

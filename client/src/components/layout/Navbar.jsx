@@ -98,7 +98,7 @@ export default function Navbar({ cartItemCount = 0 }) {
       {isStaff && (
         <Box
           style={{
-            background: 'linear-gradient(90deg, #ff8c00, #ffa333)',
+            background: 'var(--mantine-color-brand-5)',
             textAlign: 'center',
             padding: '6px 0',
             fontSize: 13,
@@ -156,7 +156,7 @@ export default function Navbar({ cartItemCount = 0 }) {
           </Link>
 
           {/* ── desktop nav links ────────────────────────────── */}
-          <Group gap={6} visibleFrom="md">
+          <Group gap={4} visibleFrom="md">
             {customerLinks.map((link) => (
               <Link
                 key={link.to}
@@ -175,10 +175,11 @@ export default function Navbar({ cartItemCount = 0 }) {
             <Tooltip label="Toggle theme" withArrow>
               <ActionIcon
                 variant="subtle"
-                radius="xl"
+                radius="sm"
                 size="lg"
                 className="bb-action-icon"
                 onClick={() => toggleColorScheme()}
+                aria-label="Toggle colour scheme"
               >
                 {colorScheme === 'dark' ? (
                   <IconSun size={24} stroke={1.8} />
@@ -192,10 +193,11 @@ export default function Navbar({ cartItemCount = 0 }) {
             <Tooltip label="Search products" withArrow>
               <ActionIcon
                 variant="subtle"
-                radius="xl"
+                radius="sm"
                 size="lg"
                 className="bb-action-icon"
                 onClick={() => navigate('/products')}
+                aria-label="Search products"
               >
                 <IconSearch size={24} stroke={1.8} />
               </ActionIcon>
@@ -205,7 +207,7 @@ export default function Navbar({ cartItemCount = 0 }) {
             <Tooltip label="Shopping cart" withArrow>
               <ActionIcon
                 variant="subtle"
-                radius="xl"
+                radius="sm"
                 size="lg"
                 className="bb-action-icon bb-cart-badge"
                 onClick={() => navigate('/cart')}
@@ -224,12 +226,13 @@ export default function Navbar({ cartItemCount = 0 }) {
 
             {/* user menu / login */}
             {user ? (
-              <Menu shadow="lg" width={220} position="bottom-end" withArrow arrowPosition="center">
+              <Menu shadow="none" width={220} position="bottom-end" withArrow arrowPosition="center">
                 <Menu.Target>
                   <ActionIcon
                     variant="subtle"
-                    radius="xl"
+                    radius="sm"
                     size="lg"
+                    aria-label="Account menu"
                     className="bb-action-icon"
                   >
                     <IconUser size={24} stroke={1.8} />
@@ -307,7 +310,7 @@ export default function Navbar({ cartItemCount = 0 }) {
             {/* mobile hamburger */}
             <ActionIcon
               variant="subtle"
-              radius="xl"
+              radius="sm"
               size="lg"
               hiddenFrom="md"
               className="bb-action-icon"
@@ -343,7 +346,7 @@ export default function Navbar({ cartItemCount = 0 }) {
               />
               <ActionIcon
                 variant="subtle"
-                radius="xl"
+                radius="sm"
                 style={{ color: 'rgba(255,255,255,0.8)' }}
                 onClick={() => setMobileOpen(false)}
                 aria-label="Close menu"
@@ -372,7 +375,7 @@ export default function Navbar({ cartItemCount = 0 }) {
                   <span
                     style={{
                       marginLeft: 'auto',
-                      background: '#ff8c00',
+                      background: 'var(--mantine-color-brand-5)',
                       color: '#fff',
                       fontSize: 12,
                       fontWeight: 700,
@@ -424,7 +427,7 @@ export default function Navbar({ cartItemCount = 0 }) {
                       background: 'rgba(255,80,80,0.15)',
                       border: 'none',
                       cursor: 'pointer',
-                      color: '#ff8a8a',
+                      color: 'var(--mantine-color-red-4)',
                     }}
                     onClick={() => {
                       logout();
@@ -445,7 +448,7 @@ export default function Navbar({ cartItemCount = 0 }) {
                   <Link
                     to="/register"
                     className="bb-mobile-link"
-                    style={{ background: 'rgba(255,140,0,0.25)', color: '#ffa333' }}
+                    style={{ background: 'rgba(255,140,0,0.12)', color: 'var(--mantine-color-brand-5)' }}
                   >
                     <IconUserPlus size={20} stroke={1.6} />
                     Create Account

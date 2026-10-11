@@ -280,7 +280,7 @@ export default function UserManagementPage() {
       label: 'User',
       sortable: true,
       render: (user) => (
-        <Stack gap={2}>
+        <Stack gap={0}>
           <Text size="sm" fw={500}>
             {user.firstName} {user.lastName}
           </Text>
@@ -296,7 +296,7 @@ export default function UserManagementPage() {
       sortable: true,
       render: (user) => (
         <Badge
-          color={user.userType === 'staff' ? 'blue' : 'gray'}
+          color={user.userType === 'staff' ? 'gray' : 'blue'}
           variant="light"
         >
           {user.userType}
@@ -448,7 +448,7 @@ export default function UserManagementPage() {
                 />
               )}
 
-              <Stack gap={2}>
+              <Stack gap={0}>
                 <Text fw={600}>
                   {editingUser.firstName} {editingUser.lastName}
                 </Text>

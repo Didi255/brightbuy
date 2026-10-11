@@ -4,10 +4,13 @@
  *
  * Every page wraps its top section in this. It gives the whole app
  * a uniform title placement and optional breadcrumbs.
+ *
+ * Circuit Noir: mono breadcrumbs in uppercase with › separators, the title
+ * in Inter 700 at 32px, left-aligned, and a hairline rule beneath.
+ * Titles are never centred — rule 4.
  */
-import { Title, Text, Group, Breadcrumbs, Anchor, Box } from '@mantine/core';
+import { Title, Text, Group, Box } from '@mantine/core';
 import { Link } from 'react-router-dom';
-import { IconChevronRight } from '@tabler/icons-react';
 
 /**
  * @param {string}   title       – page title (h1)
@@ -16,50 +19,70 @@ import { IconChevronRight } from '@tabler/icons-react';
  * @param {ReactNode} [right]    – optional right-side action(s)
  */
 export default function PageHeader({ title, subtitle, crumbs, right }) {
+  const crumb = {
+    fontSize: 14,
+    fontWeight: 400,
+  };
+
   return (
-    <Box className="bb-page-enter" mb={24}>
+    <Box mb={title ? 32 : 20} pb={title ? 24 : 0} style={{ borderBottom: title ? '1px solid rgba(255,236,214,0.10)' : 'none' }}>
       {crumbs && crumbs.length > 0 && (
-        <Breadcrumbs
-          separator={<IconChevronRight size={14} stroke={1.6} color="#adb5bd" />}
-          mb={12}
-          styles={{
-            separator: { margin: '0 4px' },
-          }}
-        >
-          {crumbs.map((c, i) =>
-            i < crumbs.length - 1 ? (
-              <Anchor
-                key={i}
-                component={Link}
-                to={c.to || '/'}
-                size="sm"
-                c="dimmed"
-                style={{ textDecoration: 'none' }}
-              >
-                {c.label}
-              </Anchor>
-            ) : (
-              <Text key={i} size="sm" c="dimmed" fw={500}>
-                {c.label}
-              </Text>
-            ),
-          )}
-        </Breadcrumbs>
+        <Group gap={8} mb={12} wrap="wrap">
+          {crumbs.map((c, i) => {
+            const last = i === crumbs.length - 1;
+            return (
+              <Group gap={8} key={i} wrap="nowrap">
+                {last || !c.to ? (
+                  <Text component="span" style={crumb} c={last ? 'ink.2' : 'ink.3'}>
+                    {c.label}
+                  </Text>
+                ) : (
+                  <Text
+                    component={Link}
+                    to={c.to}
+                    style={{ ...crumb, textDecoration: 'none' }}
+                    c="ink.3"
+                  >
+                    {c.label}
+                  </Text>
+                )}
+                {!last && (
+                  <Text component="span" style={crumb} c="ink.4" aria-hidden="true">
+                    ›
+                  </Text>
+                )}
+              </Group>
+            );
+          })}
+        </Group>
       )}
 
-      <Group justify="space-between" align="flex-end" wrap="nowrap">
-        <div>
-          <Title order={1} size="h2" fw={800} style={{ letterSpacing: -0.5 }}>
+      {!title && !right ? null : (
+      <Group justify="space-between" align="flex-end" wrap="wrap" gap={16}>
+        <Box style={{ minWidth: 0 }}>
+          {title && (
+          <Title
+            order={1}
+            c="ink.0"
+            style={{
+              fontSize: '2rem',
+              fontWeight: 700,
+              lineHeight: 1.05,
+              letterSpacing: '-0.03em',
+            }}
+          >
             {title}
           </Title>
+          )}
           {subtitle && (
-            <Text size="sm" c="dimmed" mt={4}>
+            <Text size="md" c="ink.2" mt={8} style={{ maxWidth: '62ch', lineHeight: 1.5 }}>
               {subtitle}
             </Text>
           )}
-        </div>
-        {right && <div>{right}</div>}
+        </Box>
+        {right && <Box>{right}</Box>}
       </Group>
+      )}
     </Box>
   );
 }

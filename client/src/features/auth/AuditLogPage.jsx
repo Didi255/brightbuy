@@ -153,7 +153,7 @@ export default function AuditLogPage() {
       label: 'Performed By',
       sortable: true,
       render: (log) => (
-        <Stack gap={2}>
+        <Stack gap={0}>
           <Text size="sm" fw={500}>
             {log.actorName || `User ${log.actorUserId}`}
           </Text>
