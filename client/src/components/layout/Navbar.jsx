@@ -205,7 +205,14 @@ export default function Navbar({ cartItemCount = 0 }) {
 
             {/* user menu / login */}
             {user ? (
-              <Menu shadow="none" width={220} position="bottom-end" withArrow arrowPosition="center">
+              <Menu
+                shadow="xl"
+                width={220}
+                position="bottom-end"
+                withArrow
+                arrowPosition="center"
+                offset={10}
+              >
                 <Menu.Target>
                   <ActionIcon
                     variant="subtle"
@@ -220,10 +227,10 @@ export default function Navbar({ cartItemCount = 0 }) {
 
                 <Menu.Dropdown>
                   <Menu.Label>
-                    <Text size="sm" fw={600}>{user.firstName} {user.lastName || ''}</Text>
-                    <Text size="xs" c="dimmed">{user.email}</Text>
+                    <Text size="sm" fw={600} c="ink.0">{user.firstName} {user.lastName || ''}</Text>
+                    <Text size="xs" c="ink.3">{user.email}</Text>
                   </Menu.Label>
-                  <Divider />
+                  <Divider my={4} color="rgba(255,236,214,0.08)" />
                   <Menu.Item
                     leftSection={<IconUser size={16} />}
                     onClick={() => navigate('/account')}
@@ -244,7 +251,7 @@ export default function Navbar({ cartItemCount = 0 }) {
                   </Menu.Item>
                   {isStaff && (
                     <>
-                      <Divider label="Staff" labelPosition="center" />
+                      <Divider label="Staff" labelPosition="center" my={4} color="rgba(255,236,214,0.08)" />
                       <Menu.Item
                         leftSection={<IconDashboard size={16} />}
                         onClick={() => navigate('/staff')}
@@ -253,9 +260,8 @@ export default function Navbar({ cartItemCount = 0 }) {
                       </Menu.Item>
                     </>
                   )}
-                  <Divider />
+                  <Divider my={4} color="rgba(255,236,214,0.08)" />
                   <Menu.Item
-                    color="red"
                     leftSection={<IconLogout size={16} />}
                     onClick={() => {
                       logout();
@@ -403,10 +409,10 @@ export default function Navbar({ cartItemCount = 0 }) {
                     className="bb-mobile-link"
                     style={{
                       width: '100%',
-                      background: 'rgba(255,80,80,0.15)',
+                      background: 'rgba(255,140,0,0.12)',
                       border: 'none',
                       cursor: 'pointer',
-                      color: 'var(--mantine-color-red-4)',
+                      color: 'var(--mantine-color-brand-5)',
                     }}
                     onClick={() => {
                       logout();
