@@ -6,16 +6,11 @@
  * Run via `npm run seed` from server/.
  * Must be idempotent: rerunning must not duplicate seed data.
  *
- * BrightBuy trades in Sri Lanka. Main cities per REQ-7.3 are the six
- * commercial centres that get the 5-day estimate:
- *   Colombo, Kandy, Galle, Jaffna, Negombo, Kurunegala.
+ * Texas main cities per REQ-7.3:
+ * Houston, San Antonio, Dallas, Austin, Fort Worth, El Paso.
  *
- * Fifteen further cities across all nine provinces are included so the
- * 7-day branch of fn_estimate_delivery_days is exercised, and so the
- * delivery report shows a spread rather than one district.
- *
- * STORE_CITY_ID must point at a main city — Colombo is city 1, and the
- * server asserts this at startup.
+ * Other Texas cities are included to test the 7-day
+ * delivery rule.
  */
 
 const bcrypt = require('../../server/node_modules/bcrypt');
@@ -26,30 +21,28 @@ module.exports = async function seed(pool) {
   // --------------------------------------------------
 
   const cities = [
-    /* main cities — 5-day delivery (REQ-7.3) */
-    ['Colombo', true],
-    ['Kandy', true],
-    ['Galle', true],
-    ['Jaffna', true],
-    ['Negombo', true],
-    ['Kurunegala', true],
+    ['Houston', true],
+    ['San Antonio', true],
+    ['Dallas', true],
+    ['Austin', true],
+    ['Fort Worth', true],
+    ['El Paso', true],
 
-    /* the rest — 7-day delivery, one or more per province */
-    ['Dehiwala', false],
-    ['Moratuwa', false],
-    ['Sri Jayawardenepura Kotte', false],
-    ['Gampaha', false],
-    ['Kalutara', false],
-    ['Matara', false],
-    ['Hambantota', false],
-    ['Ratnapura', false],
-    ['Badulla', false],
-    ['Nuwara Eliya', false],
-    ['Anuradhapura', false],
-    ['Polonnaruwa', false],
-    ['Trincomalee', false],
-    ['Batticaloa', false],
-    ['Puttalam', false],
+    ['Arlington', false],
+    ['Corpus Christi', false],
+    ['Plano', false],
+    ['Lubbock', false],
+    ['Irving', false],
+    ['Garland', false],
+    ['Amarillo', false],
+    ['Grand Prairie', false],
+    ['McKinney', false],
+    ['Frisco', false],
+    ['Brownsville', false],
+    ['Pasadena', false],
+    ['Killeen', false],
+    ['Waco', false],
+    ['Midland', false],
   ];
 
   await pool.query(
@@ -68,29 +61,29 @@ module.exports = async function seed(pool) {
 
   const staffUsers = [
     {
-      firstName: 'Suranga',
-      lastName: 'Jayasuriya',
+      firstName: 'System',
+      lastName: 'Admin',
       email: 'admin@brightbuy.com',
       password: 'Admin@123',
       role: 'admin',
     },
     {
-      firstName: 'Anoma',
-      lastName: 'Senanayake',
+      firstName: 'Major',
+      lastName: 'Executive',
       email: 'majorexec@brightbuy.com',
       password: 'Major@123',
       role: 'major_exec',
     },
     {
-      firstName: 'Lakmal',
-      lastName: 'Ekanayake',
+      firstName: 'Minor',
+      lastName: 'Executive',
       email: 'minorexec@brightbuy.com',
       password: 'Minor@123',
       role: 'minor_exec',
     },
     {
-      firstName: 'Saman',
-      lastName: 'Pathirana',
+      firstName: 'Labour',
+      lastName: 'Staff',
       email: 'labour@brightbuy.com',
       password: 'Labour@123',
       role: 'labour',
@@ -148,144 +141,144 @@ module.exports = async function seed(pool) {
 
   const customers = [
     {
-      firstName: 'Nimal',
-      lastName: 'Perera',
-      email: 'nimal.perera@brightbuy.com',
+      firstName: 'John',
+      lastName: 'Smith',
+      email: 'john.smith@brightbuy.com',
       password: 'Customer@123',
-      phone: '077-412-8801',
+      phone: '713-555-1001',
     },
     {
-      firstName: 'Dilani',
-      lastName: 'Fernando',
-      email: 'dilani.fernando@brightbuy.com',
+      firstName: 'Emily',
+      lastName: 'Johnson',
+      email: 'emily.johnson@brightbuy.com',
       password: 'Customer@123',
-      phone: '071-905-3312',
+      phone: '210-555-1002',
     },
     {
-      firstName: 'Kasun',
-      lastName: 'Jayawardena',
-      email: 'kasun.jayawardena@brightbuy.com',
+      firstName: 'Michael',
+      lastName: 'Williams',
+      email: 'michael.williams@brightbuy.com',
       password: 'Customer@123',
-      phone: '076-338-7420',
+      phone: '214-555-1003',
     },
     {
-      firstName: 'Thilini',
-      lastName: 'Wickramasinghe',
-      email: 'thilini.wickramasinghe@brightbuy.com',
+      firstName: 'Sarah',
+      lastName: 'Brown',
+      email: 'sarah.brown@brightbuy.com',
       password: 'Customer@123',
-      phone: '070-221-9654',
+      phone: '512-555-1004',
     },
     {
-      firstName: 'Ruwan',
-      lastName: 'Bandara',
-      email: 'ruwan.bandara@brightbuy.com',
+      firstName: 'David',
+      lastName: 'Jones',
+      email: 'david.jones@brightbuy.com',
       password: 'Customer@123',
-      phone: '075-883-1207',
+      phone: '817-555-1005',
     },
     {
-      firstName: 'Shanika',
-      lastName: 'Gunawardena',
-      email: 'shanika.gunawardena@brightbuy.com',
+      firstName: 'Jessica',
+      lastName: 'Garcia',
+      email: 'jessica.garcia@brightbuy.com',
       password: 'Customer@123',
-      phone: '078-460-5538',
+      phone: '915-555-1006',
     },
     {
-      firstName: 'Mohamed',
-      lastName: 'Rizwan',
-      email: 'mohamed.rizwan@brightbuy.com',
+      firstName: 'Daniel',
+      lastName: 'Miller',
+      email: 'daniel.miller@brightbuy.com',
       password: 'Customer@123',
-      phone: '077-114-6093',
+      phone: '682-555-1007',
     },
     {
-      firstName: 'Fathima',
-      lastName: 'Nazeer',
-      email: 'fathima.nazeer@brightbuy.com',
+      firstName: 'Ashley',
+      lastName: 'Davis',
+      email: 'ashley.davis@brightbuy.com',
       password: 'Customer@123',
-      phone: '071-657-2284',
+      phone: '361-555-1008',
     },
     {
-      firstName: 'Arjun',
-      lastName: 'Thevarajah',
-      email: 'arjun.thevarajah@brightbuy.com',
+      firstName: 'Matthew',
+      lastName: 'Rodriguez',
+      email: 'matthew.rodriguez@brightbuy.com',
       password: 'Customer@123',
-      phone: '076-902-4471',
+      phone: '469-555-1009',
     },
     {
-      firstName: 'Priya',
-      lastName: 'Sivakumar',
-      email: 'priya.sivakumar@brightbuy.com',
+      firstName: 'Amanda',
+      lastName: 'Martinez',
+      email: 'amanda.martinez@brightbuy.com',
       password: 'Customer@123',
-      phone: '070-538-8816',
+      phone: '972-555-1010',
     },
     {
-      firstName: 'Chamara',
-      lastName: 'Rathnayake',
-      email: 'chamara.rathnayake@brightbuy.com',
+      firstName: 'Christopher',
+      lastName: 'Hernandez',
+      email: 'christopher.hernandez@brightbuy.com',
       password: 'Customer@123',
-      phone: '075-247-3350',
+      phone: '806-555-1011',
     },
     {
-      firstName: 'Nilusha',
-      lastName: 'Silva',
-      email: 'nilusha.silva@brightbuy.com',
+      firstName: 'Jennifer',
+      lastName: 'Lopez',
+      email: 'jennifer.lopez@brightbuy.com',
       password: 'Customer@123',
-      phone: '078-776-1129',
+      phone: '254-555-1012',
     },
     {
-      firstName: 'Dinesh',
-      lastName: 'Abeysekara',
-      email: 'dinesh.abeysekara@brightbuy.com',
+      firstName: 'Andrew',
+      lastName: 'Gonzalez',
+      email: 'andrew.gonzalez@brightbuy.com',
       password: 'Customer@123',
-      phone: '077-603-9962',
+      phone: '432-555-1013',
     },
     {
-      firstName: 'Hasini',
-      lastName: 'Ranasinghe',
-      email: 'hasini.ranasinghe@brightbuy.com',
+      firstName: 'Elizabeth',
+      lastName: 'Wilson',
+      email: 'elizabeth.wilson@brightbuy.com',
       password: 'Customer@123',
-      phone: '071-382-5074',
+      phone: '409-555-1014',
     },
     {
-      firstName: 'Sanjeewa',
-      lastName: 'Dissanayake',
-      email: 'sanjeewa.dissanayake@brightbuy.com',
+      firstName: 'Joshua',
+      lastName: 'Anderson',
+      email: 'joshua.anderson@brightbuy.com',
       password: 'Customer@123',
-      phone: '076-519-6628',
+      phone: '903-555-1015',
     },
     {
-      firstName: 'Ishara',
-      lastName: 'Weerasinghe',
-      email: 'ishara.weerasinghe@brightbuy.com',
+      firstName: 'Stephanie',
+      lastName: 'Thomas',
+      email: 'stephanie.thomas@brightbuy.com',
       password: 'Customer@123',
-      phone: '070-845-2293',
+      phone: '325-555-1016',
     },
     {
-      firstName: 'Ahamed',
-      lastName: 'Faizal',
-      email: 'ahamed.faizal@brightbuy.com',
+      firstName: 'Ryan',
+      lastName: 'Taylor',
+      email: 'ryan.taylor@brightbuy.com',
       password: 'Customer@123',
-      phone: '075-930-7715',
+      phone: '956-555-1017',
     },
     {
-      firstName: 'Yohan',
-      lastName: 'de Silva',
-      email: 'yohan.desilva@brightbuy.com',
+      firstName: 'Nicole',
+      lastName: 'Moore',
+      email: 'nicole.moore@brightbuy.com',
       password: 'Customer@123',
-      phone: '078-164-4486',
+      phone: '281-555-1018',
     },
     {
-      firstName: 'Menaka',
-      lastName: 'Amarasinghe',
-      email: 'menaka.amarasinghe@brightbuy.com',
+      firstName: 'Brandon',
+      lastName: 'Jackson',
+      email: 'brandon.jackson@brightbuy.com',
       password: 'Customer@123',
-      phone: '077-271-8359',
+      phone: '972-555-1019',
     },
     {
-      firstName: 'Tharindu',
-      lastName: 'Karunaratne',
-      email: 'tharindu.karunaratne@brightbuy.com',
+      firstName: 'Rachel',
+      lastName: 'Martin',
+      email: 'rachel.martin@brightbuy.com',
       password: 'Customer@123',
-      phone: '071-746-0921',
+      phone: '915-555-1020',
     },
   ];
 
@@ -343,26 +336,26 @@ module.exports = async function seed(pool) {
   // non-main cities. This allows delivery-rule testing.
 
   const deliveryCities = [
-    'Colombo',
-    'Kandy',
-    'Galle',
-    'Jaffna',
-    'Negombo',
-    'Kurunegala',
-    'Dehiwala',
-    'Moratuwa',
-    'Sri Jayawardenepura Kotte',
-    'Gampaha',
-    'Kalutara',
-    'Matara',
-    'Hambantota',
-    'Ratnapura',
-    'Badulla',
-    'Nuwara Eliya',
-    'Anuradhapura',
-    'Polonnaruwa',
-    'Trincomalee',
-    'Batticaloa',
+    'Houston',
+    'San Antonio',
+    'Dallas',
+    'Austin',
+    'Fort Worth',
+    'El Paso',
+    'Arlington',
+    'Corpus Christi',
+    'Plano',
+    'Lubbock',
+    'Irving',
+    'Garland',
+    'Amarillo',
+    'Grand Prairie',
+    'McKinney',
+    'Frisco',
+    'Brownsville',
+    'Pasadena',
+    'Killeen',
+    'Waco',
   ];
 
   let addressesCreated = 0;
@@ -424,34 +417,9 @@ module.exports = async function seed(pool) {
 
         const cityId = cityRows[0].cityId;
 
-        /* The address snapshot is shown verbatim on every historical order,
-           so a literal "Demo Street" would appear in the UI and in M5's
-           delivery report. Deterministic, but a real thoroughfare in the
-           matching city. */
-        const STREETS = {
-          'Colombo': 'Galle Road, Kollupitiya',
-          'Kandy': 'Dalada Veediya',
-          'Galle': 'Wakwella Road',
-          'Jaffna': 'Hospital Road',
-          'Negombo': 'Lewis Place',
-          'Kurunegala': 'Kandy Road',
-          'Dehiwala': 'Hill Street',
-          'Moratuwa': 'De Soysa Road',
-          'Sri Jayawardenepura Kotte': 'Pagoda Road',
-          'Gampaha': 'Colombo Road',
-          'Kalutara': 'Main Street',
-          'Matara': 'Anagarika Dharmapala Mawatha',
-          'Hambantota': 'Tissa Road',
-          'Ratnapura': 'Bandaranayake Mawatha',
-          'Badulla': 'Lower King Street',
-          'Nuwara Eliya': 'Badulla Road',
-          'Anuradhapura': 'Maithripala Senanayake Mawatha',
-          'Polonnaruwa': 'Batticaloa Road',
-          'Trincomalee': 'Dockyard Road',
-          'Batticaloa': 'Trincomalee Road',
-        };
-        const houseNum = String(12 + i * 7);
-        const address1 = STREETS[cityName] || 'Main Street';
+        // Deterministic fictional addresses for testing.
+        const houseNum = String(100 + i);
+        const address1 = `${100 + i} Demo Street`;
 
         // Reuse a matching seed address if it exists.
         const [addressRows] = await connection.query(
