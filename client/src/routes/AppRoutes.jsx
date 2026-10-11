@@ -38,6 +38,7 @@ import OrderHistoryPage from '../features/orders/OrderHistoryPage';
 import StaffDashboardPage from '../features/staff/StaffDashboardPage';
 import NotFoundPage from '../features/staff/NotFoundPage';
 import PaymentPage from '../features/payments/PaymentPage';
+import ReportsPage from '../features/staff/ReportsPage';
 
 /* ── Placeholder pages (replaced as each slice lands) ─────────────── */
 import PlaceholderPage from '../features/PlaceholderPage';
@@ -159,7 +160,7 @@ export default function AppRoutes() {
           path="/staff/reports"
           element={
             <ProtectedRoute requireStaff>
-              <PlaceholderPage title="Reports" slice="E" />
+              <ReportsPage/>
             </ProtectedRoute>
           }
         />
