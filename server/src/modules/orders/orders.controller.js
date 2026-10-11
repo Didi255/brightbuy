@@ -34,3 +34,29 @@ exports.cancelOrder = async (req, res, next) => {
 };
 
 
+
+// ---- Staff order console (slice E) ----
+exports.listAllOrders = async (req, res, next) => {
+  try {
+    const result = await service.listAllOrders({
+      status: req.query.status,
+      paymentStatus: req.query.paymentStatus,
+      deliveryMode: req.query.deliveryMode,
+      from: req.query.from,
+      to: req.query.to,
+    });
+    res.json(result);
+  } catch (err) { next(err); }
+};
+
+exports.updateStatus = async (req, res, next) => {
+  try {
+    const result = await service.transitionOrderStatus(
+      req.user.userId,
+      Number(req.params.id),
+      req.body.orderStatus
+    );
+    res.json(result);
+  } catch (err) { next(err); }
+};
+
