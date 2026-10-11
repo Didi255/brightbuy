@@ -165,7 +165,7 @@ export default function RegisterPage() {
         ]}
       />
 
-      <Paper withBorder shadow="sm" radius="md" p="xl">
+      <Paper withBorder radius="md" p="xl">
         <form onSubmit={handleSubmit}>
           <Stack gap="md">
             {citiesError && (
