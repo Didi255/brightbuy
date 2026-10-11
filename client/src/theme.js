@@ -67,6 +67,12 @@ export const STOCK = '#7BB686';
 
 export const theme = createTheme({
   primaryColor: 'brand',
+  /* Pinned. There is no light variant of the ink ramp — every
+     surface token is a dark value — so a scheme switch would leave
+     dark cards on a white page. The navbar toggle that used to
+     offer it only ever swapped the logo. Build the light ramp
+     first, then remove this line. */
+  forceColorScheme: 'dark',
   primaryShade: 5,
   colors: { brand, ink },
 
