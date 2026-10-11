@@ -123,8 +123,8 @@ export default function CheckoutPage() {
         size="sm"
         mb={32}
         styles={{
-          stepIcon: { borderWidth: 2 },
-          separator: { marginLeft: 2, marginRight: 2 },
+          stepIcon: { borderRadius: 999, borderWidth: 2 },
+          separator: { height: 2, marginLeft: 4, marginRight: 4, background: 'rgba(255,236,214,0.12)' },
         }}
       >
         <Stepper.Step label="Delivery" icon={<IconTruck size={18} />}>
@@ -282,7 +282,7 @@ export default function CheckoutPage() {
                   <Divider my={8} />
                   <Group justify="space-between">
                     <Text fw={700}>Total</Text>
-                    <Money value={summary.total} fw={800} size="lg" c="blue" />
+                    <Money value={summary.total} fw={800} size="lg" />
                   </Group>
                 </Paper>
 
