@@ -113,7 +113,10 @@ jobs:
           scp -i ~/.ssh/id_ed25519 \
             infrastructure/azure/docker-compose.prod.yml \
             infrastructure/azure/Caddyfile \
+            infrastructure/azure/backup.sh \
             "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:/opt/brightbuy/"
+          ssh -i ~/.ssh/id_ed25519 "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}" \
+            'chmod +x /opt/brightbuy/backup.sh'
 
       - name: Pull and restart
         run: |

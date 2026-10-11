@@ -22,7 +22,6 @@ import {
   Tooltip,
   Transition,
   Box,
-  useMantineColorScheme,
 } from '@mantine/core';
 import {
   IconShoppingCart,
@@ -41,8 +40,6 @@ import {
   IconUserPlus,
   IconDashboard,
   IconBolt,
-  IconSun,
-  IconMoon,
 } from '@tabler/icons-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -56,7 +53,6 @@ const customerLinks = [
 /* ─── component ──────────────────────────────────────────────────── */
 export default function Navbar({ cartItemCount = 0 }) {
   const { user, logout, isStaff } = useAuth();
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -144,7 +140,7 @@ export default function Navbar({ cartItemCount = 0 }) {
             }}
           >
             <img
-              src={colorScheme === 'dark' ? '/Logo.png' : '/lightmodelogo.png'}
+              src="/Logo.png"
               alt="BrightBuy — Electronics Store"
               style={{
                 height: 95,
@@ -171,24 +167,6 @@ export default function Navbar({ cartItemCount = 0 }) {
 
           {/* ── right actions ────────────────────────────────── */}
           <Group gap={8}>
-            {/* theme toggle */}
-            <Tooltip label="Toggle theme" withArrow>
-              <ActionIcon
-                variant="subtle"
-                radius="sm"
-                size="lg"
-                className="bb-action-icon"
-                onClick={() => toggleColorScheme()}
-                aria-label="Toggle colour scheme"
-              >
-                {colorScheme === 'dark' ? (
-                  <IconSun size={24} stroke={1.8} />
-                ) : (
-                  <IconMoon size={24} stroke={1.8} />
-                )}
-              </ActionIcon>
-            </Tooltip>
-
             {/* search shortcut */}
             <Tooltip label="Search products" withArrow>
               <ActionIcon
@@ -340,7 +318,7 @@ export default function Navbar({ cartItemCount = 0 }) {
               }}
             >
               <img
-                src={colorScheme === 'dark' ? '/Logo.png' : '/lightmodelogo.png'}
+                src="/Logo.png"
                 alt="BrightBuy"
                 style={{ height: 36, width: 'auto', objectFit: 'contain' }}
               />

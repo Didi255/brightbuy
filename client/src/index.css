@@ -18,7 +18,6 @@
   --bb-text-base: #1a1b1e;
   --bb-text-muted: #868e96;
   --bb-nav-glass: #e9ecef;
-  --bb-hero-bg: url('/Lightmodehome.png');
 }
 
 :root[data-mantine-color-scheme="dark"] {
@@ -29,7 +28,6 @@
   --bb-text-base: #F5F0E8;
   --bb-text-muted: #A89F93;
   --bb-nav-glass: rgba(18, 17, 16, 0.88);
-  --bb-hero-bg: none;
 
   --bb-action: #FF8C00;
   --bb-line: rgba(255, 236, 214, 0.10);
