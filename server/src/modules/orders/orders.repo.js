@@ -254,13 +254,4 @@ exports.createStockAdjustment = async (variantId, staffId, changeQty, reason) =>
     return { adjustmentId: result.insertId };
   });
 };
-
-    // Remove this UPDATE if a trigger already applies the change.
-    await conn.query(
-      'UPDATE product_variant SET stock_qty = stock_qty + ? WHERE variant_id = ?',
-      [changeQty, variantId]
-    );
-
-    return { adjustmentId: result.insertId };
-  });
-};
+ 
