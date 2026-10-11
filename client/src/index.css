@@ -303,14 +303,16 @@ img {
 }
 
 /* ── cart badge pulse ─────────────────────────────────────────────── */
-.bb-cart-badge {
+.bb-cart-badge,
+.bb-action-icon.bb-cart-badge {
   position: relative;
+  overflow: visible !important;
 }
 
 .bb-cart-badge__count {
   position: absolute;
-  top: -6px;
-  right: -8px;
+  top: -5px;
+  right: -5px;
   min-width: 18px;
   height: 18px;
   display: flex;
@@ -318,16 +320,133 @@ img {
   justify-content: center;
   font-size: 11px;
   font-weight: 700;
-  color: #000;
+  color: #141414;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   background: var(--bb-action, #FF8C00);
-  border-radius: 4px;
-  padding: 0 5px;
+  border-radius: 999px;
+  padding: 0 4px;
+  line-height: 1;
+  box-shadow: 0 0 0 2px #0f0f0f;
   animation: fadeIn 0.3s ease;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .bb-cart-badge__count--bump {
   animation: pulse 0.3s ease;
+}
+
+/* ── Mantine Modal (Circuit Noir theme) ────────────────────────── */
+.mantine-Modal-content {
+  background: var(--mantine-color-ink-8, #1A1816) !important;
+  border: 1px solid rgba(255, 236, 214, 0.14) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 140, 0, 0.12) !important;
+  color: var(--mantine-color-ink-0, #F5F0E8) !important;
+  overflow: hidden;
+  padding: 6px !important;
+}
+
+.mantine-Modal-header {
+  background: transparent !important;
+  padding: 16px 20px 12px !important;
+  border-bottom: 1px solid rgba(255, 236, 214, 0.08) !important;
+}
+
+.mantine-Modal-title {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 18px !important;
+  color: var(--mantine-color-ink-0, #F5F0E8) !important;
+  letter-spacing: -0.01em;
+}
+
+.mantine-Modal-close {
+  color: var(--mantine-color-ink-3, #7A7267) !important;
+  border-radius: 999px !important;
+  transition: all 180ms ease !important;
+}
+
+.mantine-Modal-close:hover {
+  background: rgba(255, 140, 0, 0.15) !important;
+  color: var(--mantine-color-brand-5, #FF8C00) !important;
+}
+
+.mantine-Modal-body {
+  padding: 20px !important;
+  color: var(--mantine-color-ink-2, #A89F93) !important;
+  font-size: 15px !important;
+  line-height: 1.5;
+}
+
+/* ── Mantine Menu (Circuit Noir theme) ────────────────────────── */
+.mantine-Menu-dropdown {
+  background: var(--mantine-color-ink-8, #1A1816) !important;
+  border: 1px solid rgba(255, 236, 214, 0.12) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 140, 0, 0.05) !important;
+  padding: 6px !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.mantine-Menu-arrow {
+  background: var(--mantine-color-ink-8, #1A1816) !important;
+  border-color: rgba(255, 236, 214, 0.12) !important;
+}
+
+.mantine-Menu-label {
+  padding: 8px 12px 6px !important;
+  color: var(--mantine-color-ink-3, #7A7267) !important;
+}
+
+.mantine-Menu-item {
+  border-radius: 8px !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  color: var(--mantine-color-ink-1, #D8D1C6) !important;
+  padding: 9px 12px !important;
+  transition: all 160ms var(--bb-ease, ease) !important;
+}
+
+.mantine-Menu-item:hover,
+.mantine-Menu-item[data-hovered] {
+  background: rgba(255, 140, 0, 0.12) !important;
+  color: var(--mantine-color-brand-5, #FF8C00) !important;
+}
+
+.mantine-Menu-item[data-hovered] .mantine-Menu-itemSection,
+.mantine-Menu-item:hover .mantine-Menu-itemSection {
+  color: var(--mantine-color-brand-5, #FF8C00) !important;
+}
+
+.mantine-Menu-itemSection {
+  color: var(--mantine-color-ink-2, #A89F93) !important;
+  transition: color 160ms ease !important;
+}
+
+.mantine-Menu-divider {
+  border-top: 1px solid rgba(255, 236, 214, 0.08) !important;
+  margin: 4px 0 !important;
+}
+
+/* Sign out menu item - styled with warm theme accent */
+.mantine-Menu-item[data-color="red"] {
+  color: var(--mantine-color-ink-1, #D8D1C6) !important;
+}
+
+.mantine-Menu-item[data-color="red"] .mantine-Menu-itemSection {
+  color: var(--mantine-color-ink-2, #A89F93) !important;
+}
+
+.mantine-Menu-item[data-color="red"]:hover,
+.mantine-Menu-item[data-color="red"][data-hovered] {
+  background: rgba(255, 140, 0, 0.12) !important;
+  color: var(--mantine-color-brand-5, #FF8C00) !important;
+}
+
+.mantine-Menu-item[data-color="red"]:hover .mantine-Menu-itemSection {
+  color: var(--mantine-color-brand-5, #FF8C00) !important;
 }
 
 /* ── page transitions ─────────────────────────────────────────────── */
@@ -534,10 +653,9 @@ body.bb-hidden .bb-hero-product,
    outright and the other is silently dropped. */
 .bb-hero-cluster {
   position: absolute;
-  /* Nudged left and up off the corner. It still runs to the right edge,
-     but nothing is sliced any more: a bottom bleed used to cut the
-     artwork's own ground plate in half against the ticker below. */
-  right: 0;
+  /* Nudged left away from the right edge so the illustration sits
+     more balanced on screen, while remaining safely clear of the headline text. */
+  right: clamp(24px, 4.5vw, 68px);
   bottom: 4%;
   width: 54%;
   /* 1100, not 880. The old cap bit at 1630px, so on a 1920 screen the
@@ -611,13 +729,80 @@ body.bb-hidden .bb-hero-product,
   padding: 0 24px 0 clamp(24px, 5vw, 96px);
 }
 .bb-hero-text {
-  /* Both limits matter. 38vw keeps it clear of the cluster on a narrow
-     screen; 640px stops the line getting too long to read on a wide one.
-     Smallest clearance to the artwork is 31px, at 1025. */
-  max-width: min(640px, 38vw);
+  /* 36vw keeps comfortable clearance from the shifted cluster on narrow viewports;
+     580px prevents line length runaway on wide viewports. */
+  max-width: min(580px, 36vw);
   min-width: 300px;
   /* clears the hero's top edge without re-centring it */
-  padding-top: clamp(24px, 4vh, 48px);
+  padding-top: clamp(18px, 3vh, 38px);
+}
+
+/* ────────── hero decorative elements ────────── */
+.bb-hero-bg-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 236, 214, 0.07) 1px, transparent 0);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 65% 65% at 22% 50%, black 15%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 65% 65% at 22% 50%, black 15%, transparent 75%);
+}
+
+.bb-hero-ambient-glow {
+  position: absolute;
+  top: 10%;
+  left: 4%;
+  width: min(480px, 45vw);
+  height: min(480px, 45vw);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(circle, rgba(255, 140, 0, 0.08) 0%, rgba(255, 100, 0, 0.02) 50%, transparent 70%);
+  filter: blur(55px);
+  animation: bb-ambient-breath 11s ease-in-out infinite alternate;
+}
+
+@keyframes bb-ambient-breath {
+  0%   { transform: scale(0.95); opacity: 0.7; }
+  100% { transform: scale(1.08); opacity: 1; }
+}
+
+/* Headline accent highlight text */
+.bb-hero-accent-text {
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(135deg, #FFFFFF 15%, #FCE8D3 50%, #FF9E2C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bb-hero-accent-text::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  width: 100%;
+  height: 2.5px;
+  background: linear-gradient(90deg, #FF8C00 0%, rgba(255, 140, 0, 0.45) 70%, transparent 100%);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Trust / perks strip under CTAs */
+.bb-hero-perks {
+  padding-top: 4px;
+}
+
+.bb-hero-perk__icon {
+  color: var(--mantine-color-brand-5);
+  filter: drop-shadow(0 0 6px rgba(255, 140, 0, 0.3));
+}
+
+.bb-hero-perk__dot {
+  color: var(--mantine-color-ink-4);
+  font-size: 12px;
+  user-select: none;
 }
 
 /* ────────── below 1024: stack, text first, parallax off, float kept ────────── */
@@ -980,7 +1165,8 @@ body.bb-hidden .bb-hero-product,
     animation: bb-reveal-fade 200ms linear both !important;
     transform: none !important;
   }
-  .bb-hero-pulse {
+  .bb-hero-pulse,
+  .bb-hero-ambient-glow {
     animation: none !important;
     opacity: 0.22 !important;
   }
