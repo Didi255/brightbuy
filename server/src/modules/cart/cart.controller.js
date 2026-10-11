@@ -4,8 +4,9 @@ const service = require('./cart.service');
 
 // Helper to extract authentication and session token from request
 function getContext(req) {
+  const isCustomer = req.user?.userType === 'customer';
   return {
-    customerId: req.user?.userId || null,
+    customerId: isCustomer ? req.user.userId : null,
     sessionToken: req.headers['x-cart-session'] || null,
   };
 }

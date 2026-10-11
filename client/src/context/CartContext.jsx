@@ -32,6 +32,11 @@ export function CartProvider({ children }) {
   const itemCount = cart?.itemCount || 0;
 
   const fetchCart = useCallback(async () => {
+    if (user?.userType === 'staff') {
+      setCart(null);
+      setError(null);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
