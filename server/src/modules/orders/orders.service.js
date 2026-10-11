@@ -121,6 +121,7 @@ function toOrderShape(row, items, payment){
             unitPriceAtOrder: i.unitPriceAtOrder,
             lineTotal:        i.lineTotal,
             outOfStockFlag:   Boolean(i.outOfStockFlag),
+            imageUrl:         i.imageUrl,
         })),
         delivery: {
             deliveryMode:          row.deliveryMode,

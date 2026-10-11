@@ -32,15 +32,18 @@ module.exports = async function seed(pool) {
   // addresses
 
   const DEMO_ADDRESSES = [
-    // email,                          city,          house, street
-    ['john.smith@brightbuy.com',       'Houston',     '12',  'Westheimer Rd'],
-    ['emily.johnson@brightbuy.com',    'Dallas',      '48',  'Elm St'],
-    ['michael.williams@brightbuy.com', 'Austin',      '7',   'Congress Ave'],
-    ['daniel.miller@brightbuy.com',    'San Antonio', '33',  'Commerce St'],
-    ['sarah.brown@brightbuy.com',      'Lubbock',     '221', 'Broadway'],
-    ['david.jones@brightbuy.com',      'Waco',        '15',  'Austin Ave'],
-    ['jessica.garcia@brightbuy.com',   'Plano',       '90',  'Legacy Dr'],
-    ['ashley.davis@brightbuy.com',     'Amarillo',    '5',   'Polk St'],
+    /* Four main cities and four others, so the 2x2 delivery grid below has
+       both a 5-day and a 7-day side. Streets are real thoroughfares in each
+       city, which makes the address snapshot on an old order read plausibly.
+       email,                                  city,          house, street */
+    ['nimal.perera@brightbuy.com',             'Colombo',     '142', 'Galle Road, Bambalapitiya'],
+    ['dilani.fernando@brightbuy.com',          'Kandy',       '27',  'Peradeniya Road'],
+    ['kasun.jayawardena@brightbuy.com',        'Galle',       '8',   'Wakwella Road'],
+    ['thilini.wickramasinghe@brightbuy.com',   'Negombo',     '63',  'Lewis Place'],
+    ['ruwan.bandara@brightbuy.com',            'Matara',      '215', 'Anagarika Dharmapala Mawatha'],
+    ['shanika.gunawardena@brightbuy.com',      'Badulla',     '19',  'Bandaranayake Mawatha'],
+    ['mohamed.rizwan@brightbuy.com',           'Gampaha',     '74',  'Colombo Road'],
+    ['fathima.nazeer@brightbuy.com',           'Anuradhapura','36',  'Maithripala Senanayake Mawatha'],
   ];
 
   const addressIdFor = new Map();
