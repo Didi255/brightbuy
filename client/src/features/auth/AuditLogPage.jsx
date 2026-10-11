@@ -45,7 +45,7 @@ function actionColor(action) {
     case 'create':
       return 'green';
     case 'update':
-      return 'blue';
+      return 'gray';
     case 'delete':
       return 'red';
     case 'status_change':
