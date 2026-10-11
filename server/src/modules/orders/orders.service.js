@@ -145,5 +145,79 @@ function toOrderShape(row, items, payment){
 module.exports = {confirmCheckout,getOrder,listOrders,cancelOrder};
 
 
+exports.listAllOrders = async (filters = {}) => {
+  if (filters.from && isNaN(Date.parse(filters.from))) {
+    throw ApiError.badRequest('Invalid from date');
+  }
+  if (filters.to && isNaN(Date.parse(filters.to))) {
+    throw ApiError.badRequest('Invalid to date');
+  }
+
+  const orders = await repo.findAllOrders(filters);
+  
+  // Translate snake_case to camelCase
+  return orders.map(order => ({
+    orderId: order.order_id,
+    customerId: order.customer_id,
+    firstName: order.first_name,
+    lastName: order.last_name,
+    email: order.email,
+    orderDate: order.order_date,
+    orderStatus: order.order_status,
+    totalAmount: order.total_amount,
+    paymentStatus: order.payment_status || null,
+    paymentMethod: order.payment_method || null,
+    deliveryMode: order.delivery_mode,
+    city: order.city,
+  }));
+};
+
+const STAFF_TRANSITIONS = {
+  Placed: ['Processing', 'Cancelled'],
+  Processing: ['ReadyOrOut', 'Cancelled'],
+  ReadyOrOut: ['DeliveredOrPicked'],
+  DeliveredOrPicked: [],
+  Cancelled: [],
+};
+
+exports.transitionOrderStatus = async (staffUserId, orderId, newStatus) => {
+  const order = await repo.findOrderStatusById(orderId);
+  if (!order) throw ApiError.notFound('Order not found');
+
+  const allowed = STAFF_TRANSITIONS[order.order_status] || [];
+  if (!allowed.includes(newStatus)) {
+    throw ApiError.conflict(
+      'INVALID_TRANSITION',
+      `Cannot move from '${order.order_status}' to '${newStatus}'`
+    );
+  }
+
+  if (newStatus === 'Cancelled') {
+    await repo.cancelOrder(orderId, staffUserId);
+  } else {
+    await repo.updateOrderStatus(orderId, newStatus);
+  }
+
+  return { orderId, orderStatus: newStatus };
+};
 
 
+exports.adjustStock = async (staffId, variantId, changeQty, reason) => {
+  if (!Number.isInteger(variantId) || variantId <= 0) {
+    throw ApiError.badRequest('Invalid variantId', { variantId: 'must be a positive integer' });
+  }
+  if (!Number.isInteger(changeQty) || changeQty === 0) {
+    throw ApiError.badRequest('Invalid changeQty', { changeQty: 'must be a non-zero integer' });
+  }
+  if (typeof reason !== 'string' || reason.trim().length === 0) {
+    throw ApiError.badRequest('Reason is required', { reason: 'must not be empty' });
+  }
+
+  const result = await repo.createStockAdjustment(variantId, staffId, changeQty, reason.trim());
+  if (result.notFound) throw ApiError.notFound('Variant not found');
+  if (result.insufficient) {
+    throw ApiError.conflict('INSUFFICIENT_STOCK', 'Adjustment would make stock negative');
+  }
+
+  return { adjustmentId: result.adjustmentId, variantId, staffId, changeQty, reason: reason.trim() };
+};
