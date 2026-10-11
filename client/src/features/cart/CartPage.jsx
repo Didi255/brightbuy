@@ -280,13 +280,30 @@ export default function CartPage() {
         centered
         size="sm"
       >
-        <Text size="sm">Are you sure you want to remove this item from your cart?</Text>
-        <Group justify="flex-end" mt={16}>
-          <Button variant="default" onClick={() => setConfirmRemove(null)}>
+        <Text size="sm" c="ink.2">
+          Are you sure you want to remove this item from your cart?
+        </Text>
+        <Group justify="flex-end" mt={24} gap={12}>
+          <Button
+            variant="outline"
+            color="gray"
+            onClick={() => setConfirmRemove(null)}
+            style={{
+              color: '#F5F0E8',
+              borderColor: 'rgba(255,240,232,0.22)',
+              backgroundColor: 'rgba(255,255,255,0.03)',
+            }}
+          >
             Keep
           </Button>
           <Button
-            color="red"
+            color="brand.5"
+            c="black"
+            fw={600}
+            className="bb-press"
+            style={{
+              boxShadow: 'var(--glow-cta)',
+            }}
             loading={removing === confirmRemove}
             onClick={() => handleRemove(confirmRemove)}
           >

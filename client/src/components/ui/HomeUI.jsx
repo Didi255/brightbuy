@@ -217,9 +217,13 @@ export function HeroSection({ products = [] }) {
           inset: 0,
           pointerEvents: 'none',
           background:
-            'radial-gradient(55% 55% at 62% 55%, rgba(255,140,0,0.22), transparent 70%)',
+            'radial-gradient(55% 55% at 58% 55%, rgba(255,140,0,0.22), transparent 70%)',
         }}
       />
+
+      {/* ── 3b. ambient background decorations for the left/copy area ── */}
+      <Box aria-hidden="true" className="bb-hero-bg-grid" />
+      <Box aria-hidden="true" className="bb-hero-ambient-glow" />
 
       {/* ── 4. the cluster, bleeding off the bottom-right ────────── */}
       {/* Two nested layers, because an element can only run ONE
@@ -281,7 +285,8 @@ export function HeroSection({ products = [] }) {
             {/* Broken at the sentence, not wherever the column runs out.
                 Left to itself the balancer gives "Add to cart. We'll / do
                 the rest.", which splits the second sentence across lines. */}
-            Add to cart.<br />We&rsquo;ll do the rest.
+            Add to cart.<br />
+            <span className="bb-hero-accent-text">We&rsquo;ll do the rest.</span>
           </Text>
 
           <Group gap={16} wrap="wrap" className="bb-hero-line" style={{ '--i': 1 }}>
@@ -314,6 +319,23 @@ export function HeroSection({ products = [] }) {
             >
               Track an order
             </Button>
+          </Group>
+
+          <Group gap={18} wrap="wrap" className="bb-hero-line bb-hero-perks" style={{ '--i': 2 }}>
+            <Group gap={6} align="center">
+              <IconTruckDelivery size={15} stroke={1.8} className="bb-hero-perk__icon" />
+              <Text size="xs" c="ink.2" fw={500}>Fast Dispatch</Text>
+            </Group>
+            <span className="bb-hero-perk__dot">&bull;</span>
+            <Group gap={6} align="center">
+              <IconLock size={15} stroke={1.8} className="bb-hero-perk__icon" />
+              <Text size="xs" c="ink.2" fw={500}>Secure Checkout</Text>
+            </Group>
+            <span className="bb-hero-perk__dot">&bull;</span>
+            <Group gap={6} align="center">
+              <IconCertificate size={15} stroke={1.8} className="bb-hero-perk__icon" />
+              <Text size="xs" c="ink.2" fw={500}>100% Genuine</Text>
+            </Group>
           </Group>
         </Stack>
       </Box>
@@ -351,24 +373,18 @@ export function HeroSection({ products = [] }) {
    catalogue grid would look broken. Product imagery comes from
    product.imageUrl and nowhere else.
 
-   When real photography arrives, replace all nine in one go. Three
-   photos among six drawings looks like a bug; nine of either looks
-   like a decision. */
+/* Modern, high-definition category photography matching Circuit Noir theme. */
 const CATEGORY_ART = {
-  Laptops: '/category-icons/laptops.png',
-  Monitors: '/category-icons/monitors.png',
-  'Computer Accessories': '/category-icons/computer-accessories.png',
-  Phones: '/category-icons/phones.png',
-  Audio: '/category-icons/audio.png',
-  Kitchen: '/category-icons/kitchen.png',
-  Cleaning: '/category-icons/cleaning.png',
+  Laptops: '/categories/laptops.jpg',
+  Monitors: '/categories/monitors.jpg',
+  'Computer Accessories': '/categories/computer-accessories.jpg',
+  Phones: '/categories/phones.jpg',
+  Audio: '/categories/audio.jpg',
+  Kitchen: '/categories/kitchen.jpg',
+  Cleaning: '/categories/cleaning.jpg',
+  Gaming: '/categories/gaming.jpg',
+  Wearables: '/categories/wearables.jpg',
 };
-
-/* Gaming, Wearables and Toys have no drawn icon yet — the supplied set
-   covered the old nine categories. Rather than ship an empty tile, those
-   fall back to a real product photo from the category, which is what this
-   grid did before the icons existed. Draw the three missing icons and
-   they take over automatically. */
 
 /* Spelled out to ten, digits past it. "Nine categories" reads as prose;
    "9 categories" reads as a database row. 43 products is fine as digits. */
@@ -450,7 +466,7 @@ function CategoryTile({ category, art, index }) {
         style={{
           display: 'block',
           width: '100%',
-          padding: 16,
+          padding: 12,
           borderRadius: 16,
           background: 'var(--mantine-color-ink-7)',
           border: `1px solid ${hot ? LINE_HOT : LINE}`,
@@ -459,53 +475,68 @@ function CategoryTile({ category, art, index }) {
           transition: `box-shadow 240ms ${EASE}, transform 240ms ${EASE}, border-color 240ms ${EASE}`,
         }}
       >
-        {/* The icon tile. No padding on the box: the 70% width below is
-            measured against the TILE, and padding would quietly make it
-            60% instead. */}
         <Box
           className="category-tile"
           style={{
-            background: TILE,
-            borderRadius: 16,
+            background: 'var(--mantine-color-ink-8)',
+            borderRadius: 12,
             aspectRatio: '4 / 3',
             overflow: 'hidden',
-            display: 'grid',
-            placeItems: 'center',
+            position: 'relative',
           }}
         >
           {art && (
             <img
               src={art}
-              alt=""
+              alt={category.categoryName}
               loading="lazy"
               decoding="async"
               style={{
-                width: '70%',
-                maxHeight: '86%',
-                objectFit: 'contain',
-                /* the colour grade lives in .category-tile img, in
-                   index.css — not inline */
-                transform: hot ? 'scale(1.05)' : 'scale(1)',
-                transition: `transform 240ms ${EASE}`,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                transform: hot ? 'scale(1.06)' : 'scale(1)',
+                transition: `transform 320ms ${EASE}`,
               }}
             />
           )}
+          <Box
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(180deg, transparent 65%, rgba(0,0,0,0.3) 100%)',
+              pointerEvents: 'none',
+            }}
+          />
         </Box>
 
-        {/* The label sits BELOW the tile, on the dark card surface.
-            White-on-light-tile was invisible, and fighting it with a
-            scrim is less reliable than simply moving the text out of
-            the image — which is the standard retail pattern anyway. */}
-        <Stack gap={0} pt={16} pb={4} px={4}>
-          <Text fz={18} fw={600} c="ink.0" style={{ lineHeight: 1.3 }}>
-            {category.categoryName}
-          </Text>
-          {typeof category.productCount === 'number' && (
-            <Text fz={14} c="ink.2">
-              {category.productCount} {category.productCount === 1 ? 'item' : 'items'}
+        <Group justify="space-between" align="center" pt={14} pb={4} px={4}>
+          <Stack gap={2}>
+            <Text fz={17} fw={600} c="ink.0" style={{ lineHeight: 1.3 }}>
+              {category.categoryName}
             </Text>
-          )}
-        </Stack>
+            {typeof category.productCount === 'number' && (
+              <Text fz={13} c="ink.2">
+                {category.productCount} {category.productCount === 1 ? 'item' : 'items'}
+              </Text>
+            )}
+          </Stack>
+          <Box
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 999,
+              display: 'grid',
+              placeItems: 'center',
+              background: hot ? 'var(--mantine-color-brand-5)' : 'rgba(255,236,214,0.06)',
+              color: hot ? '#000' : 'var(--mantine-color-ink-2)',
+              transition: `all 200ms ${EASE}`,
+              transform: hot ? 'translateX(2px)' : 'none',
+            }}
+          >
+            <IconArrowRight size={15} stroke={2} />
+          </Box>
+        </Group>
       </UnstyledButton>
     </Box>
   );
