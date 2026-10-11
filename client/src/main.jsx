@@ -12,9 +12,16 @@ import '@mantine/notifications/styles.css';
 import '@mantine/dates/styles.css';
 import './index.css';
 
+/* The hero marquee and the ticker run on infinite CSS animations. A
+   background tab should not burn battery on motion nobody is watching,
+   so a body class pauses them (see .bb-hidden in index.css). */
+document.addEventListener('visibilitychange', () => {
+  document.body.classList.toggle('bb-hidden', document.hidden);
+});
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <MantineProvider theme={theme} defaultColorScheme="light">
+    <MantineProvider theme={theme} defaultColorScheme="dark">
       <Notifications position="top-right" />
       <BrowserRouter>
         <App />

@@ -10,8 +10,13 @@
  *     actionLabel="Shop Now"
  *     actionTo="/products"
  *   />
+ *
+ * Circuit Noir: a dashed hairline outline rather than a filled card — an
+ * empty region should read as an unfilled slot in the grid, not as content.
+ * An empty state always says what would appear here and offers a way to
+ * make it appear; a bare "No data" is never acceptable.
  */
-import { Stack, Text, Button, ThemeIcon, Center } from '@mantine/core';
+import { Stack, Text, Button, Center, Box } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { IconMoodEmpty } from '@tabler/icons-react';
 
@@ -25,39 +30,47 @@ export default function EmptyState({
   ...rest
 }) {
   return (
-    <Center py={64} {...rest}>
-      <Stack align="center" gap={16} style={{ maxWidth: 360, textAlign: 'center' }}>
-        <ThemeIcon
-          size={72}
-          radius="xl"
-          variant="light"
-          color="gray"
-          style={{ opacity: 0.7 }}
-        >
-          <Icon size={36} stroke={1.4} />
-        </ThemeIcon>
+    <Box
+      style={{
+        border: '1px dashed var(--mantine-color-ink-5)',
+        borderRadius: 8,
+      }}
+      {...rest}
+    >
+      <Center py={64} px={24}>
+        <Stack align="center" gap={16} style={{ maxWidth: 380, textAlign: 'center' }}>
+          <Icon size={40} stroke={1.3} color="var(--mantine-color-ink-4)" aria-hidden="true" />
 
-        <Text fw={700} size="lg">{title}</Text>
-
-        {message && (
-          <Text size="sm" c="dimmed" style={{ lineHeight: 1.6 }}>
-            {message}
-          </Text>
-        )}
-
-        {(actionLabel && (actionTo || onAction)) && (
-          <Button
-            component={actionTo ? Link : undefined}
-            to={actionTo}
-            onClick={onAction}
-            variant="light"
-            size="sm"
-            mt={4}
+          <Text
+            fw={600}
+            size="20px"
+            c="ink.0"
+            style={{ letterSpacing: '-0.02em' }}
           >
-            {actionLabel}
-          </Button>
-        )}
-      </Stack>
-    </Center>
+            {title}
+          </Text>
+
+          {message && (
+            <Text size="sm" c="ink.2" style={{ lineHeight: 1.6 }}>
+              {message}
+            </Text>
+          )}
+
+          {(actionLabel && (actionTo || onAction)) && (
+            <Button
+              component={actionTo ? Link : undefined}
+              to={actionTo}
+              onClick={onAction}
+              color="brand.5"
+              c="black"
+              size="sm"
+              mt={8}
+            >
+              {actionLabel}
+            </Button>
+          )}
+        </Stack>
+      </Center>
+    </Box>
   );
 }

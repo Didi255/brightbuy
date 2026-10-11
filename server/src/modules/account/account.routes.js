@@ -14,13 +14,13 @@ router.get('/cities', controller.getCities);
 router.get(
   '/admin/cities',
   requireAuth,
-  requireRole('admin'),
+  requireRole('admin', 'major_exec', 'minor_exec', 'labour'),
   controller.getAdminCities
 );
 router.post(
   '/admin/cities',
   requireAuth,
-  requireRole('admin'),
+  requireRole('admin', 'major_exec', 'minor_exec', 'labour'),
   auditMutation({
     action: 'create',
     entityType: 'city',
@@ -30,7 +30,7 @@ router.post(
 router.patch(
   '/admin/cities/:id',
   requireAuth,
-  requireRole('admin'),
+  requireRole('admin', 'major_exec', 'minor_exec', 'labour'),
   auditMutation({
     action: 'update',
     entityType: 'city',
@@ -51,5 +51,14 @@ router.patch(
   requireRole('admin'),
   controller.updateAdminUser
 );
+
+
+router.get(
+  '/admin/audit-log',
+  requireAuth,
+  requireRole('admin'),
+  controller.getAuditLogs
+);
+
 
 module.exports = router;

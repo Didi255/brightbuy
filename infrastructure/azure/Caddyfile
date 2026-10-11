@@ -1,0 +1,65 @@
+# BrightBuy — reverse proxy, static host and HTTPS
+#
+# {$APP_DOMAIN} comes from the container's environment (set in compose from
+# .env). Because it is a real hostname, Caddy obtains and renews a Let's
+# Encrypt certificate by itself and redirects HTTP to HTTPS. That needs
+# ports 80 AND 443 reachable from the internet. Certificates live in the
+# caddy_data volume, so they survive a redeploy.
+#
+# One origin for everything: the browser never makes a cross-origin call,
+# so CORS cannot bite in production. The API still sets CLIENT_ORIGIN as a
+# second line of defence.
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+	root * /srv
+
+	# ── the API ──────────────────────────────────────────────────
+	# Checked FIRST, so /api/* never falls through to the SPA
+	# fallback below and get served index.html with a 200.
+	@api path /api/*
+	handle @api {
+		reverse_proxy api:4000
+	}
+
+	# ── Vite's hashed bundles ────────────────────────────────────
+	# Vite puts a content hash in these filenames, so a changed file is a
+	# changed URL. They can be cached effectively forever.
+	@hashed path /assets/*
+	handle @hashed {
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+
+	# ── files copied straight from client/public ─────────────────
+	# NOT hashed: /product-images/acer-aspire-5-laptop.jpg keeps its name
+	# when the picture changes. A year would strand people on the old one,
+	# so a week, which is what the delivery promise is measured in anyway.
+	@static path *.png *.jpg *.jpeg *.webp *.avif *.svg *.ico *.woff2
+	handle @static {
+		header Cache-Control "public, max-age=604800"
+		file_server
+	}
+
+	# ── the SPA ──────────────────────────────────────────────────
+	handle {
+		# index.html must NEVER be cached. It names the hashed bundles, so
+		# a stale copy points a browser at JavaScript that no longer
+		# exists and the site breaks until a hard refresh.
+		header Cache-Control "no-store"
+
+		# React Router owns the URL. Without this, refreshing on
+		# /products/12 asks Caddy for a file that was never built and
+		# returns 404. try_files hands back index.html and lets the
+		# router read the path.
+		try_files {path} /index.html
+		file_server
+	}
+
+	# A deploy swaps the whole image, so there is nothing to tail here;
+	# container logs go to Docker.
+	log {
+		output stdout
+		format console
+	}
+}

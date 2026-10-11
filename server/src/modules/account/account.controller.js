@@ -118,11 +118,13 @@ exports.getAdminUsers = async (req, res, next) => {
   }
 };
 
+
 exports.updateAdminUser = async (req, res, next) => {
   try {
     const result = await service.updateAdminUser(
       req.params.id,
-      req.body
+      req.body,
+      req.user.userId
     );
 
     res.json(result);
@@ -130,3 +132,21 @@ exports.updateAdminUser = async (req, res, next) => {
     next(err);
   }
 };
+
+
+/**
+ * GET /api/admin/audit-log
+ *
+ * Retrieve the latest administrative audit records.
+ * Access is restricted to administrators by the route middleware.
+ */
+exports.getAuditLogs = async (req, res, next) => {
+  try {
+    const logs = await service.getAuditLogs();
+
+    return res.json(logs);
+  } catch (error) {
+    next(error);
+  }
+};
+
