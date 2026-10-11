@@ -303,6 +303,83 @@ main city.
 
 **Action required:** `STORE_CITY_ID` must be added to `.env.example` so every member sets it.
 
+### #25 — Cancelling an order resolves its payment row; `payment_status` gains `'Cancelled'`
+
+**Question:** `sp_cancel_order` sets `orders.order_status = 'Cancelled'`, but nothing specified
+what happens to that order's `payment` row. The original ENUM was
+`'Pending' | 'Paid' | 'Failed' | 'Refunded'` (SCHEMA.md §005) — **none of which describes a
+payment that will now never be collected.** A cancelled cash-on-delivery order would sit at
+`'Pending'` indefinitely.
+
+**Decision — two parts.**
+
+1. `payment_status` gains a fifth value, **`'Cancelled'`**, by `ALTER TABLE` in a later
+   migration. `005` is merged and untouched. SCHEMA.md §005 is updated to match.
+2. `sp_cancel_order` resolves the payment row **in the same transaction**:
+
+| `payment_status` was | Becomes |
+|---|---|
+| `'Paid'` | **`'Refunded'`** — money moved and must come back |
+| `'Pending'` or `'Failed'` | **`'Cancelled'`** — nothing was ever collected |
+| already `'Refunded'`/`'Cancelled'` | unchanged |
+
+**Rejected alternative — leave it `'Pending'` and have every reader join `orders`.** This was
+the cheaper option: one extra `AND o.order_status <> 'Cancelled'` clause in slice E's queries.
+Rejected because **data that requires a join to interpret correctly will eventually be
+interpreted incorrectly.** A row reading `'Pending'` on a dead order is simply false, and the
+only thing preventing a wrong answer is every future reader remembering the filter. One
+omission in the COD console sends staff to collect money for an order that does not exist.
+
+**Rejected alternative — `'Refunded'` for every cancellation.** Records a refund that never
+happened for every cash-on-delivery order, because no money ever moved. Slice E's reports
+would show refunds against orders nobody paid for.
+
+**Rationale:** the payment row becomes self-describing — no join is needed to know whether a
+payment is collectable.
+
+**Consequences for slice E:**
+- exclude `'Cancelled'` from the COD collection console
+- exclude it from `POST /payments/:id/retry` — a cancelled payment must not be retryable
+- any report reading `payment_status` must handle a fifth value rather than assuming four
+
+**Timing:** done now because there is no production data. Once cancelled orders exist, adding
+the value requires a backfill.
+
+### #26 — `sp_cancel_order` writes the audit row, and only for staff actors
+
+**Question:** `sp_cancel_order(IN p_order_id, IN p_actor_user_id)` accepts an actor, but the
+original design gave it nowhere to go — `orders` has no `cancelled_by` column. Meanwhile
+`admin_audit_log` (#11) is written by middleware on staff mutations. So either the procedure
+records the cancellation, the middleware does, or nobody does.
+
+**Decision:** the procedure writes it, inside the same transaction, and only when the actor is
+a member of staff:
+
+```sql
+INSERT INTO admin_audit_log (actor_user_id, action, entity_type, entity_id)
+SELECT p_actor_user_id, 'status_change', 'orders', p_order_id
+  FROM staff
+ WHERE user_id = p_actor_user_id;
+```
+
+**Rationale:**
+
+1. **Atomicity** — the same argument as #22. Middleware writing the row *after* the call leaves
+   a window in which a crash produces a cancelled order with no audit trail.
+2. **Coverage** — customer self-cancellation (REQ-9.4) never passes through staff middleware,
+   so middleware-only auditing would miss it entirely. The procedure covers every caller: the
+   customer endpoint and slice E's 24-hour auto-cancel job (REQ-8.5 / BR-7).
+3. **Scope** — §5.3 requires *administrative* activity to be logged. A customer cancelling
+   their own order is not administrative, so it is not written to `admin_audit_log`; it is
+   recorded by `orders.order_status = 'Cancelled'` itself.
+
+**On the `INSERT … SELECT … FROM staff` form:** the `WHERE` does the branching. A staff actor
+matches one row and one audit entry is written; a customer matches none, so zero rows are
+inserted — no error and no `IF`. The same technique resolves the payment row in #25.
+
+`p_actor_user_id` is therefore used rather than accepted and ignored, which was the
+alternative and would have left a parameter in a published signature doing nothing.
+
 ---
 
 ## C. Technology and tooling decisions
@@ -388,6 +465,98 @@ those lines; this is not an inconsistency to tidy up.
 
 **Supersedes** the instruction in the `007_procedures_orders.sql` stub comment, which said the
 opposite and has been corrected.
+
+---
+
+### #27 — The interface is redesigned as "Circuit Noir"; the design skill is rewritten to match
+
+**Date:** 2026-10-10 · **Raised by:** M4 (team lead) · **Affects:** every screen
+
+The original visual direction — light surfaces, soft shadows, two competing
+accents (blue and orange), Inter for everything — produced a competent but
+forgettable build. Nine home-page sections shared one centred rhythm, cards had
+no character, and nothing read as *the* action colour.
+
+**Decision.** The interface moves to a dark, engineered direction called
+Circuit Noir, defined by six rules:
+
+1. **One accent.** Amber `#FF8C00` only. Blue survives *solely* inside
+   `StatusBadge`, where colour carries semantic meaning, never as decoration.
+2. **Borders, not shadows.** `1px solid rgba(255,255,255,0.08)` replaces every
+   `shadow`. Elevation comes from border brightness and background lift.
+3. **Mono for data.** Prices, SKUs, stock counts, order IDs, spec values and
+   section eyebrows are JetBrains Mono. Prose and UI chrome stay Inter.
+4. **Display type is a graphic.** Headings run 40–120px in Space Grotesk,
+   left-aligned. No heading above 40px is ever centred.
+5. **Asymmetry by default.** Adjacent sections never share a shape.
+6. **Motion is mechanical.** 150–250ms on `cubic-bezier(0.2, 0, 0, 1)`.
+   Nothing bounces, nothing floats.
+
+**Consequence for the design skill.** `.claude/skills/design-system/SKILL.md`
+previously mandated the opposite — *"restraint reads as professional"*, light
+surfaces, shadows over borders, no gradients. Leaving both in the repository
+would mean two committed design specifications contradicting each other, which
+is worse than either one alone. The skill has been rewritten to state Circuit
+Noir. Its rules on spacing scale, the four states, forms, tables, microcopy and
+accessibility are unchanged, because those were never the problem.
+
+**Contrast constraint, which is not negotiable.** Amber on `ink.9` passes AA
+for large text but **fails for body text at 14px**. Amber is therefore for
+headings, numerals, icons, borders and button fills only, and text on an amber
+fill is always **black** — white on amber is 2.3:1. Body copy is `ink.0` or
+`ink.2`. `ink.3` (`#7D8699`) exists specifically because `ink.4` fails contrast
+for the mono micro-labels the design uses throughout; `ink.4` is for dividers
+and disabled states only.
+
+**What was deliberately NOT built.** The direction document specified a
+testimonials section, star ratings on every product card, a wishlist, promo
+codes and struck-through RRPs. The schema has no `review`, `wishlist`, `promo`
+or `rrp` entity, so none of those were implemented with invented data. Rating
+markup exists in `ProductCard` but renders only when the API supplies the
+fields. This project is assessed on whether the interface reflects its
+database; hardcoded figures that contradict the data would be a defect, not
+polish.
+
+---
+
+### #28 — The storefront trades in Sri Lanka, not Texas
+
+**Date:** 2026-10-10 · **Raised by:** M4 (team lead) · **Affects:** seeds, `Money`, all copy
+
+The scaffold shipped with Texas demo data — Houston and Dallas as main cities,
+US names, `713-555-xxxx` phone numbers and USD prices. BrightBuy is a
+University of Moratuwa project; the demo data should read as a Sri Lankan
+shop.
+
+**Decision.** The seed data and all user-facing copy are localised:
+
+| | |
+|---|---|
+| Main cities (REQ-7.3, 5-day) | Colombo, Kandy, Galle, Jaffna, Negombo, Kurunegala |
+| Other cities (7-day) | 15 more, at least one per province |
+| `STORE_CITY_ID` | 1 = Colombo, still a main city as the server asserts |
+| Customers | 20 Sri Lankan names across Sinhala, Tamil, Muslim and Burgher communities |
+| Phone numbers | real `07x` mobile prefixes |
+| Addresses | real thoroughfares in the matching city, so the address snapshot reads plausibly |
+| Currency | LKR. `Money` renders `Rs. 231,990.00` |
+
+**Prices were rescaled, not just relabelled.** Catalogue prices were USD
+($14.90–$1,499). Simply changing the symbol would have printed "Rs. 749.99"
+for a laptop, which is absurd in context. All 74 variant prices were converted
+at ~310 LKR and rounded to figures a Sri Lankan shop would actually print
+(ending in 90), giving a Rs. 4,490 – Rs. 464,990 range. A Dell Inspiron 15 now
+reads Rs. 231,990 / 278,990 / 324,990.
+
+**This does not touch the schema.** `city.is_main_city`, the DECIMAL(10,2)
+money type and `fn_estimate_delivery_days` are unchanged — only the rows
+differ. The 5/7/+3 rule was re-verified after the change: Colombo 5, Matara 7,
+Kandy with a back-order 8, Badulla with a back-order 10.
+
+**Consequence for the team.** Every customer login email changed, because the
+names did. `admin@brightbuy.com` and the three staff logins are unchanged. The
+database must be rebuilt (`docker compose down -v`, `npm run migrate`,
+`npm run seed`) — the old Texas rows and USD prices cannot be migrated in
+place, and nothing depends on them.
 
 ---
 

@@ -47,6 +47,7 @@ once merged, never edited.
 | `012` | **E** | Views — `v_order_details`, `v_variant_stock` |
 | `013` | **D** | Roles, `GRANT`, `REVOKE` |
 | `014` | **D** | Address ownership — adds `address.customer_id` for customer address books |
+| `016` | **D** | User soft-deactivation — adds `user.is_active` |
 
 `002` is deliberately split from `011`: A and C are blocked on `variant`, so the four core
 tables ship first and attributes follow (DECISIONS #16).
@@ -85,6 +86,7 @@ tables ship first and attributes follow (DECISIONS #16).
 | `password_hash` | VARCHAR(255) NOT NULL | bcrypt. Plaintext never stored (REQ-4.3) |
 | `user_type` | ENUM NOT NULL | `'customer'`, `'staff'` |
 | `created_at` | TIMESTAMP DEFAULT CURRENT_TIMESTAMP | |
+| `is_active` | BOOLEAN NOT NULL DEFAULT TRUE | Soft-deactivation flag. FALSE blocks account access; added in migration 016 |
 
 ### `customer`
 | Column | Type | Notes |
@@ -231,7 +233,7 @@ One row per order, **including Store Pickup** (REQ-7.6, DECISIONS #9).
 | `payment_id` | INT PK AI | |
 | `order_id` | INT NOT NULL | FK → `orders`. **`UNIQUE`** — exactly one payment per order (BR-5) |
 | `payment_method` | ENUM NOT NULL | `'cod'`, `'card'` |
-| `payment_status` | ENUM NOT NULL DEFAULT `'Pending'` | `'Pending'`, `'Paid'`, `'Failed'`, `'Refunded'` |
+| `payment_status` | ENUM NOT NULL DEFAULT `'Pending'` | `'Pending'`, `'Paid'`, `'Failed'`, `'Refunded'`, `'Cancelled'` — `'Cancelled'` added by a later `ALTER`, see DECISIONS #25 |
 | `gateway_ref` | VARCHAR(100) NULL | Gateway transaction reference — REQ-8.4 |
 | `staff_id` | INT NULL | FK → `staff`. Who marked COD paid — REQ-11.3 |
 | `created_at` | TIMESTAMP DEFAULT CURRENT_TIMESTAMP | |

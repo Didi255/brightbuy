@@ -1,0 +1,39 @@
+# Build context for BOTH images is the repo root, so this one file covers
+# the api build (which needs server/ and database/) and the web build
+# (which needs client/). Anything listed here is never sent to the Docker
+# daemon, which keeps builds fast and — the part that matters — keeps .env
+# out of every image.
+
+# dependencies and build output: reinstalled and rebuilt inside the image
+node_modules
+*/node_modules
+client/dist
+server/dist
+
+# secrets. The ONLY reason this file is non-negotiable.
+.env
+.env.*
+!.env.example
+
+# version control and editor noise
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# never needed at runtime
+docs/
+*.md
+.claude/
+.github/
+server/tests/
+
+# Source artwork and originals: roughly 10 MB of JPEGs that exist only to
+# regenerate assets. The GENERATED files in client/public are what ship.
+database/scratch/
+
+# logs and local databases
+*.log
+npm-debug.log*

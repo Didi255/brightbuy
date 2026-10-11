@@ -1,0 +1,163 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:        # lets you redeploy, or roll forward, by hand
+
+# Two deploys must never interleave. cancel-in-progress is false on
+# purpose: cancelling a deploy halfway leaves the VM in an unknown state.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # Nothing is built, let alone shipped, until CI passes again on main.
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  build-api:
+    name: Build API image
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # GHCR rejects anything that is not lowercase, and the repository
+      # name is mixed case. ,, lowercases it.
+      - id: name
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}-api" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          # Repo root, NOT server/: the image has to carry database/ too,
+          # because the migration runner reads ../../database.
+          context: .
+          file: infrastructure/docker/Dockerfile.api
+          push: true
+          tags: |
+            ${{ steps.name.outputs.image }}:${{ github.sha }}
+            ${{ steps.name.outputs.image }}:latest
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+
+  build-web:
+    name: Build web image
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: name
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}-web" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # No build-args. The client calls /api relatively, so the bundle
+      # contains no hostname and this image is domain-independent.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infrastructure/docker/Dockerfile.web
+          push: true
+          tags: |
+            ${{ steps.name.outputs.image }}:${{ github.sha }}
+            ${{ steps.name.outputs.image }}:latest
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
+
+  deploy:
+    name: Deploy to the VM
+    needs: [build-api, build-web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "${{ secrets.VM_HOST }}" >> ~/.ssh/known_hosts
+
+      # The only files that travel over SSH. The IMAGES do not: the VM
+      # pulls those from GHCR itself, which is far faster and transfers
+      # only changed layers.
+      - name: Upload stack files
+        run: |
+          scp -i ~/.ssh/id_ed25519 \
+            infrastructure/azure/docker-compose.prod.yml \
+            infrastructure/azure/Caddyfile \
+            "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:/opt/brightbuy/"
+
+      - name: Pull and restart
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}" bash -se <<'EOSSH'
+          set -euo pipefail
+          cd /opt/brightbuy
+
+          # Point .env at this commit. Written with sed if the line exists,
+          # appended if it does not, so a fresh VM works too.
+          if grep -q '^IMAGE_TAG=' .env; then
+            sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${{ github.sha }}/" .env
+          else
+            echo "IMAGE_TAG=${{ github.sha }}" >> .env
+          fi
+
+          docker compose -f docker-compose.prod.yml pull api web
+          docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+          # Migrations run on every deploy and that is safe: the runner
+          # records what it has applied in schema_migrations and skips it
+          # next time. Seeds are NOT run — they would overwrite live data.
+          docker compose -f docker-compose.prod.yml exec -T api npm run migrate
+
+          docker image prune -f
+          EOSSH
+
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          DOMAIN="${{ vars.APP_DOMAIN }}"
+          for i in 1 2 3 4 5 6; do
+            if curl --fail --silent --show-error "https://$DOMAIN/api/health" > /dev/null; then
+              echo "health ok"; break
+            fi
+            echo "attempt $i failed, retrying"; sleep 5
+            if [ "$i" = 6 ]; then exit 1; fi
+          done
+          curl --fail --silent --show-error "https://$DOMAIN/" > /dev/null
+          echo "site ok"
+
+      # A deep link must not 404. This is the one that catches a broken
+      # try_files in the Caddyfile, and it is invisible from the home page.
+      - name: Deep link must serve the SPA, not a 404
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' "https://${{ vars.APP_DOMAIN }}/orders")
+          echo "GET /orders -> $code"
+          [ "$code" = "200" ]

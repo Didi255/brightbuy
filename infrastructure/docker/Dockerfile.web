@@ -1,0 +1,30 @@
+# BrightBuy web — Caddy serving the built SPA and proxying /api
+#
+# This one image is both the static file server AND the public entrance.
+# Sky Nest needed a separate Node container for Next.js; Vite emits plain
+# files, so Caddy can serve them itself and we save a container.
+#
+# NOTE: no build args. The client calls the API through the relative path
+# `/api` (client/src/api/client.js), so the bundle contains no hostname and
+# the same image runs against any domain. Changing the domain is an .env
+# edit on the VM, not a rebuild.
+
+# ── stage 1: build the SPA ──────────────────────────────────────────
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+COPY client/package.json client/package-lock.json ./
+RUN npm ci
+
+COPY client/ ./
+RUN npm run build          # → /app/dist
+
+# ── stage 2: Caddy + the built files ────────────────────────────────
+FROM caddy:2-alpine AS runner
+
+# Caddy's root. Nothing from node_modules or the sources follows it here.
+COPY --from=builder /app/dist /srv
+
+COPY infrastructure/azure/Caddyfile /etc/caddy/Caddyfile
+
+EXPOSE 80 443
