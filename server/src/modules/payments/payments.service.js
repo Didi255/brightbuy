@@ -106,3 +106,37 @@ exports.retryPayment = async (userId, paymentId, mockOutcome) => {
     canRetry: status === 'Failed' && hoursSinceFailure < 24,
   };
 };
+
+exports.markCodPaid = async (staffId, paymentId) => {
+  const payment = await repo.findPaymentById(paymentId);
+  if (!payment) throw ApiError.notFound('Payment not found');
+
+  if (payment.payment_method !== 'cod') {
+    throw ApiError.conflict('NOT_COD_PAYMENT', 'Only COD payments can be marked paid this way');
+  }
+
+  if (payment.payment_status !== 'Pending') {
+    throw ApiError.conflict('NOT_PENDING', `Payment is already ${payment.payment_status}`);
+  }
+
+  await repo.markCodPaid(paymentId, staffId);
+
+  // Email to customer
+  try {
+    await transporter.sendMail({
+      from: 'noreply@brightbuy.com',
+      to: payment.email,
+      subject: 'Payment Received',
+      text: `Payment for order ${payment.order_id} has been received. Thank you!`,
+    });
+  } catch (err) {
+    console.error('Email send failed (stub mode):', err.message);
+  }
+
+  return {
+    paymentId: paymentId,
+    orderId: payment.order_id,
+    paymentStatus: 'Paid',
+    staffId: staffId,
+  };
+};

@@ -18,3 +18,10 @@ exports.retryPayment = async (req, res, next) => {
     res.json(result);
   } catch (err) { next(err); }
 };
+
+exports.markCodPaid = async (req, res, next) => {
+  try {
+    const result = await service.markCodPaid(req.user.userId, Number(req.params.id));
+    res.json(result);
+  } catch (err) { next(err); }
+};

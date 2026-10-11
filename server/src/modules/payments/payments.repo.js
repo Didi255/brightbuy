@@ -76,3 +76,12 @@ exports.updatePaymentStatus = async (paymentId, status, gatewayRef) => {
     [status, gatewayRef, paymentId]
   );
 };
+
+exports.markCodPaid = async (paymentId, staffId) => {
+  await pool.query(
+    `UPDATE payment
+        SET payment_status = 'Paid', staff_id = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE payment_id = ?`,
+    [staffId, paymentId]
+  );
+};
