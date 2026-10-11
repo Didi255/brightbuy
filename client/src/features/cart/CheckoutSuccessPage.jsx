@@ -142,7 +142,7 @@ export default function CheckoutSuccessPage() {
                     <Divider />
                     <Group justify="space-between">
                       <Text fw={700}>Total</Text>
-                      <Money value={order.totalAmount} fw={800} size="lg" c="blue" />
+                      <Money value={order.totalAmount} fw={800} size="lg" />
                     </Group>
                   </Stack>
                 </Paper>

@@ -33,7 +33,7 @@ import {
   IconArrowLeft,
 } from '@tabler/icons-react';
 import { PageHeader } from '../../components/layout';
-import { Money, EmptyState, LoadingSpinner, ErrorAlert } from '../../components/ui';
+import { Money, EmptyState, LoadingSpinner, ErrorAlert, ProductTile } from '../../components/ui';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 
@@ -97,32 +97,13 @@ export default function CartPage() {
               {cart.items.map((item) => (
                 <Card key={item.itemId} withBorder radius="md" padding="md">
                   <Group align="flex-start" wrap="nowrap" gap={16}>
-                    {/* product image */}
-                    <div
-                      style={{
-                        width: 100,
-                        height: 100,
-                        borderRadius: 8,
-                        background: 'var(--mantine-color-ink-6)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {item.variant?.imageUrl ? (
-                        <Image
-                          src={item.variant.imageUrl}
-                          alt={item.variant.productName}
-                          w={100}
-                          h={100}
-                          fit="cover"
-                        />
-                      ) : (
-                        <IconShoppingBag size={32} stroke={1.2} color="var(--mantine-color-ink-4)" />
-                      )}
-                    </div>
+                    {/* product image in #F4F1EC tile (Rule 4) */}
+                    <ProductTile
+                      src={item.variant?.imageUrl}
+                      alt={item.variant?.productName || ''}
+                      size={96}
+                      zoom={1.04}
+                    />
 
                     {/* details */}
                     <div style={{ flex: 1, minWidth: 0 }}>
