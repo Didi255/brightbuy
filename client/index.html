@@ -3,11 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="BrightBuy — Your trusted electronics retailer in Texas. Quality products, fast delivery, great prices." />
+
+    <title>BrightBuy — Consumer electronics, delivered across Texas</title>
+    <meta
+      name="description"
+      content="Laptops, phones, audio, gaming and toys. Five days to any main city in Texas, seven elsewhere. Card, or cash when it arrives."
+    />
+
+    <!--
+      Link previews (WhatsApp, Slack, Discord, Facebook, LinkedIn).
+      Without these a crawler falls back to the favicon, which renders as
+      a tiny square in the corner of the card.
+
+      og:image MUST be an absolute URL — most crawlers will not resolve a
+      relative one. This is the one place in the client that hardcodes the
+      domain, so if the VM's DNS label ever changes, change it here too.
+      Nothing else needs touching: the app itself calls the API through a
+      relative /api path and is domain-independent.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="BrightBuy" />
+    <meta property="og:title" content="BrightBuy — Consumer electronics, delivered across Texas" />
+    <meta
+      property="og:description"
+      content="Laptops, phones, audio, gaming and toys. Five days to any main city in Texas, seven elsewhere. Card, or cash when it arrives."
+    />
+    <meta
+      property="og:image"
+      content="https://brightbuy-g13.indiasouthcentral.cloudapp.azure.com/og-image.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="BrightBuy — consumer electronics, gaming and toys" />
+
+    <!-- Twitter/X reads its own namespace; summary_large_image gives the
+         wide card rather than a thumbnail beside the text. -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="BrightBuy — Consumer electronics, delivered across Texas" />
+    <meta
+      name="twitter:description"
+      content="Laptops, phones, audio, gaming and toys. Five days to any main city in Texas, seven elsewhere."
+    />
+    <meta
+      name="twitter:image"
+      content="https://brightbuy-g13.indiasouthcentral.cloudapp.azure.com/og-image.png"
+    />
+
+    <meta name="theme-color" content="#121110" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <title>BrightBuy — Electronics Store</title>
   </head>
   <body>
     <div id="root"></div>

@@ -240,8 +240,9 @@ export default function ProductListPage() {
   );
 
   /* Bounds come from the data. They used to be a hardcoded [0, 4000] —
-     a US-dollar figure. After the move to rupees that capped the slider
-     below almost the entire catalogue. */
+     a figure typed in by hand rather than read from the data, and it
+     drifted out of range the moment prices changed. Reading the bounds
+     from the catalogue means it can never drift again. */
   const bounds = useMemo(() => {
     if (!prices.length) return [0, 500000];
     return [roundTo(Math.min(...prices), 500, -1), roundTo(Math.max(...prices), 500, 1)];
@@ -395,7 +396,7 @@ export default function ProductListPage() {
           { label: 'Products', to: '/products' },
           ...(activeCategoryName ? [{ label: activeCategoryName }] : []),
         ]}
-        subtitle="Checked before it leaves us. Five days to any main city, seven island-wide."
+        subtitle="Checked before it leaves us. Five days to any main city in Texas, seven elsewhere."
       />
 
       {/* Categories are chips across the top, not a list down the side.

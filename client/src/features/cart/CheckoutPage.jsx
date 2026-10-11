@@ -151,7 +151,7 @@ export default function CheckoutPage() {
                       <IconBuildingStore size={18} color="var(--mantine-color-brand-5)" />
                       <div>
                         <Text fw={500} size="sm">Store Pickup</Text>
-                        <Text size="xs" c="dimmed">Pick up from our Colombo store</Text>
+                        <Text size="xs" c="dimmed">Pick up from our Houston store</Text>
                       </div>
                     </Group>
                   }
@@ -171,7 +171,7 @@ export default function CheckoutPage() {
                     <IconBuildingStore size={20} color="var(--mantine-color-brand-5)" />
                     <div>
                       <Text fw={500} size="sm">BrightBuy Store</Text>
-                      <Text size="xs" c="dimmed">Colombo 03, Sri Lanka</Text>
+                      <Text size="xs" c="dimmed">Houston, Texas</Text>
                     </div>
                   </Group>
                 </Paper>

@@ -69,7 +69,7 @@ const BADGE_ICONS = {
 };
 
 const BADGES_ALWAYS = [
-  ['delivery', 'Free delivery over Rs 25,000'],
+  ['delivery', 'Free delivery over $75'],
   ['returns', '30-day returns'],
 ];
 
