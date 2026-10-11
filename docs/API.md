@@ -146,7 +146,8 @@ Owned by A. Consumed by C (confirmation page) and E (payments, reports).
       "quantity": 2,
       "unitPriceAtOrder": "1299.00",
       "lineTotal": "2598.00",
-      "outOfStockFlag": false
+      "outOfStockFlag": false,
+      "imageUrl": "/product-images/aurora-14-laptop.jpg"
     }
   ],
   "delivery": {
@@ -167,6 +168,10 @@ Owned by A. Consumed by C (confirmation page) and E (payments, reports).
 ```
 
 - `unitPriceAtOrder` — **never** read `variant.price` for a historical order (REQ-5.7).
+- `imageUrl` — from `product.image_url`: a path under `/product-images/`, served by the
+  client so it works offline and on any host. Deliberately **not** snapshotted — unlike
+  price and address, an image is presentation rather than a term of the sale, so an old
+  order correctly shows today's picture. May be `null`.
 - `addressSnapshot` — likewise never join to `address` (see DECISIONS #15).
 - For `deliveryMode: "store_pickup"`, `addressSnapshot` is `null` but `cityName` is still set.
 - `canRetry` is E's: true when payment is `Failed` and within the 24h window (REQ-8.5).
@@ -188,6 +193,8 @@ Owned by A. Consumed by C (confirmation page) and E (payments, reports).
 | POST | `/me/addresses` | customer | 4.6 |
 | GET | `/cities` | — | 7.3 |
 | GET/POST/PATCH | `/admin/cities` | staff | 7.3 |
+| GET | `/admin/users` | admin | Staff user management |
+| PATCH | `/admin/users/:id` | admin | Role changes and account deactivation |
 
 **POST /auth/register**
 ```json
@@ -205,6 +212,42 @@ Owned by A. Consumed by C (confirmation page) and E (payments, reports).
 On failure: 401 with a deliberately vague message. Never reveal which credential was wrong
 (SRS §4.4.2).
 
+**PATCH /admin/users/:id** — Admin only. Updates a user's staff role and/or account activation status.
+
+Request body (at least one field required):
+
+```json
+{
+  "role": "minor_exec",
+  "isActive": false
+}
+```
+
+- `role` is optional and must be one of `admin`, `major_exec`, `minor_exec`, `labour`.
+- `role` can only be changed for staff users. A role update on a customer returns 400.
+- `isActive` is optional and must be a boolean (`true` or `false`).
+- At least one of `role` or `isActive` must be provided.
+- An admin cannot deactivate their own account.
+- A deactivated user cannot log in or use an existing JWT.
+- Non-admin users receive 403; unauthenticated requests receive 401.
+- Unknown user IDs return 404.
+
+Successful response (200):
+
+```json
+{
+  "userId": 5,
+  "firstName": "John",
+  "lastName": "Smith",
+  "email": "john.smith@brightbuy.com",
+  "userType": "customer",
+  "role": null,
+  "isActive": false
+}
+```
+
+The response never includes `passwordHash`.
+
 ## Catalogue — B
 
 | Method | Path | Auth | REQ |
@@ -221,7 +264,7 @@ On failure: 401 with a deliberately vague message. Never reveal which credential
 ```json
 { "data": [
     { "productId": 12, "productName": "Aurora 14 Laptop", "brand": "Aurora",
-      "imageUrl": "...", "priceFrom": "1299.00", "priceTo": "1899.00",
+      "imageUrl": "/product-images/aurora-14-laptop.jpg", "priceFrom": "1299.00", "priceTo": "1899.00",
       "categories": [ { "categoryId": 3, "categoryName": "Laptops" } ] }
   ], "page": 1, "pageSize": 20, "total": 137 }
 ```

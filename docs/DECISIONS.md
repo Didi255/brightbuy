@@ -468,6 +468,139 @@ opposite and has been corrected.
 
 ---
 
+### #27 — The interface is redesigned as "Circuit Noir"; the design skill is rewritten to match
+
+**Date:** 2026-10-10 · **Raised by:** M4 (team lead) · **Affects:** every screen
+
+The original visual direction — light surfaces, soft shadows, two competing
+accents (blue and orange), Inter for everything — produced a competent but
+forgettable build. Nine home-page sections shared one centred rhythm, cards had
+no character, and nothing read as *the* action colour.
+
+**Decision.** The interface moves to a dark, engineered direction called
+Circuit Noir, defined by six rules:
+
+1. **One accent.** Amber `#FF8C00` only. Blue survives *solely* inside
+   `StatusBadge`, where colour carries semantic meaning, never as decoration.
+2. **Borders, not shadows.** `1px solid rgba(255,255,255,0.08)` replaces every
+   `shadow`. Elevation comes from border brightness and background lift.
+3. **Mono for data.** Prices, SKUs, stock counts, order IDs, spec values and
+   section eyebrows are JetBrains Mono. Prose and UI chrome stay Inter.
+4. **Display type is a graphic.** Headings run 40–120px in Space Grotesk,
+   left-aligned. No heading above 40px is ever centred.
+5. **Asymmetry by default.** Adjacent sections never share a shape.
+6. **Motion is mechanical.** 150–250ms on `cubic-bezier(0.2, 0, 0, 1)`.
+   Nothing bounces, nothing floats.
+
+**Consequence for the design skill.** `.claude/skills/design-system/SKILL.md`
+previously mandated the opposite — *"restraint reads as professional"*, light
+surfaces, shadows over borders, no gradients. Leaving both in the repository
+would mean two committed design specifications contradicting each other, which
+is worse than either one alone. The skill has been rewritten to state Circuit
+Noir. Its rules on spacing scale, the four states, forms, tables, microcopy and
+accessibility are unchanged, because those were never the problem.
+
+**Contrast constraint, which is not negotiable.** Amber on `ink.9` passes AA
+for large text but **fails for body text at 14px**. Amber is therefore for
+headings, numerals, icons, borders and button fills only, and text on an amber
+fill is always **black** — white on amber is 2.3:1. Body copy is `ink.0` or
+`ink.2`. `ink.3` (`#7D8699`) exists specifically because `ink.4` fails contrast
+for the mono micro-labels the design uses throughout; `ink.4` is for dividers
+and disabled states only.
+
+**What was deliberately NOT built.** The direction document specified a
+testimonials section, star ratings on every product card, a wishlist, promo
+codes and struck-through RRPs. The schema has no `review`, `wishlist`, `promo`
+or `rrp` entity, so none of those were implemented with invented data. Rating
+markup exists in `ProductCard` but renders only when the API supplies the
+fields. This project is assessed on whether the interface reflects its
+database; hardcoded figures that contradict the data would be a defect, not
+polish.
+
+---
+
+### #28 — The storefront trades in Sri Lanka, not Texas
+
+**Date:** 2026-10-10 · **Raised by:** M4 (team lead) · **Affects:** seeds, `Money`, all copy
+
+The scaffold shipped with Texas demo data — Houston and Dallas as main cities,
+US names, `713-555-xxxx` phone numbers and USD prices. BrightBuy is a
+University of Moratuwa project; the demo data should read as a Sri Lankan
+shop.
+
+**Decision.** The seed data and all user-facing copy are localised:
+
+| | |
+|---|---|
+| Main cities (REQ-7.3, 5-day) | Colombo, Kandy, Galle, Jaffna, Negombo, Kurunegala |
+| Other cities (7-day) | 15 more, at least one per province |
+| `STORE_CITY_ID` | 1 = Colombo, still a main city as the server asserts |
+| Customers | 20 Sri Lankan names across Sinhala, Tamil, Muslim and Burgher communities |
+| Phone numbers | real `07x` mobile prefixes |
+| Addresses | real thoroughfares in the matching city, so the address snapshot reads plausibly |
+| Currency | LKR. `Money` renders `Rs. 231,990.00` |
+
+**Prices were rescaled, not just relabelled.** Catalogue prices were USD
+($14.90–$1,499). Simply changing the symbol would have printed "Rs. 749.99"
+for a laptop, which is absurd in context. All 74 variant prices were converted
+at ~310 LKR and rounded to figures a Sri Lankan shop would actually print
+(ending in 90), giving a Rs. 4,490 – Rs. 464,990 range. A Dell Inspiron 15 now
+reads Rs. 231,990 / 278,990 / 324,990.
+
+**This does not touch the schema.** `city.is_main_city`, the DECIMAL(10,2)
+money type and `fn_estimate_delivery_days` are unchanged — only the rows
+differ. The 5/7/+3 rule was re-verified after the change: Colombo 5, Matara 7,
+Kandy with a back-order 8, Badulla with a back-order 10.
+
+**Consequence for the team.** Every customer login email changed, because the
+names did. `admin@brightbuy.com` and the three staff logins are unchanged. The
+database must be rebuilt (`docker compose down -v`, `npm run migrate`,
+`npm run seed`) — the old Texas rows and USD prices cannot be migrated in
+place, and nothing depends on them.
+
+---
+
+### #29 — #28 is reversed: the storefront trades in Texas, and the catalogue is consumer electronics
+
+**Supersedes #28.** #28 relocated the storefront to Sri Lanka and rescaled every price to
+rupees. That was wrong: the project brief opens *"BrightBuy is a medium-scale consumer
+electronics retail chain based in Texas"* and scopes delivery to *"within Texas"*. The
+localisation was a misreading, caught before the final evaluation.
+
+**Reverted**
+
+- 21 Sri Lankan cities → the original 21 Texas cities, six of them main (Houston, San
+  Antonio, Dallas, Austin, Fort Worth, El Paso).
+- All 74 variant prices → their original USD values. Restored **pairwise from git**, not by
+  dividing by the ~310 rate that was applied, so no rounding error was introduced.
+- Currency symbol, every piece of UI copy, the page metadata and the share card.
+
+**Kept from #28**, because it was good and unrelated to the location:
+
+- The product descriptions, which that commit rewrote from one-line stubs into two or three
+  sentences saying who each product suits. A blanket `git revert` would have discarded them.
+- The payment block and `imageUrl` on the order shape.
+
+**Catalogue refocused at the same time.** The brief describes a *consumer electronics* chain
+with a limited catalogue — its own examples are "Mobiles, Audio Devices, Toys". The catalogue
+had drifted into footwear, clothing, sports equipment and cookware. Removed those 13 products;
+added 12 across three new categories (Gaming, Wearables, Toys). The Casio digital watch was
+kept and moved to Wearables, because a digital watch *is* consumer electronics.
+
+Kitchen and Cleaning are retained under Home Appliances: they are electrical goods, which a
+consumer electronics chain carries, and dropping them would put the category count below the
+brief's minimum of ten.
+
+**After the change:** 43 products, 13 categories, 69 variants, 21 cities — against the brief's
+floor of 40 products and 10 categories. Verified by running the full migration and seed chain
+against an empty database.
+
+**Why this is recorded rather than quietly rewritten.** An examiner reading the history will
+see the error and the correction. That is a better account of the work than a tidy history
+that hides it.
+
+---
+
 ## D. SRS inconsistencies and the reading implemented
 
 The SRS was submitted on 28/07/2026 and is not being revised. Where the document contradicts

@@ -1,0 +1,52 @@
+# BrightBuy API — Express + mysql2
+#
+# Build context is the REPO ROOT, not server/. That is deliberate: the
+# migration and seed runners resolve their SQL with
+#   path.join(__dirname, '..', '..', 'database', ...)
+# so the image has to mirror the repo's layout. Flatten server/ to /app and
+# that path escapes the image and resolves to /database, which does not
+# exist. Mirroring it means `npm run migrate` works inside the container
+# with no change to the scripts.
+#
+#   /app
+#   ├── server/        package.json, node_modules, src, scripts
+#   └── database/      migrations + seeds
+#
+# There is no compile stage: the API is plain CommonJS Node, not
+# TypeScript. The two stages exist only so the final image carries
+# production dependencies and nothing else.
+
+# ── stage 1: production dependencies only ───────────────────────────
+FROM node:20-alpine AS deps
+WORKDIR /app/server
+# package.json and the lockfile first, so `npm ci` is served from the
+# layer cache whenever only application code has changed.
+COPY server/package.json server/package-lock.json ./
+RUN npm ci --omit=dev
+
+# ── stage 2: the image that actually runs ───────────────────────────
+FROM node:20-alpine AS runner
+WORKDIR /app/server
+
+ENV NODE_ENV=production
+ENV PORT=4000
+
+COPY --from=deps /app/server/node_modules ./node_modules
+COPY server/package.json ./
+COPY server/src ./src
+COPY server/scripts ./scripts
+
+# the SQL the runners read; see the note above about why it sits here
+COPY database ./../database
+
+# wget is already in busybox on alpine and is what the healthcheck uses.
+# Run as the image's built-in unprivileged user: a container that does not
+# need root should never have it.
+USER node
+
+EXPOSE 4000
+
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=5 \
+  CMD wget -qO- http://127.0.0.1:4000/api/health || exit 1
+
+CMD ["node", "src/server.js"]

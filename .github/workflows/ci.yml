@@ -1,0 +1,114 @@
+name: CI
+
+# Runs on the branches people actually work on, on every PR into the two
+# protected branches, and — via workflow_call — as the first job of a
+# deploy, so nothing reaches production that has not passed this.
+on:
+  push:
+    branches: [dev, 'feat/**', 'fix/**', 'redesign/**']
+  pull_request:
+    branches: [main, dev]
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  client:
+    name: Client — build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - run: npm ci
+        working-directory: client
+
+      # There is no lint or test script in client/, so the build IS the
+      # check. It is not nothing: Vite fails on a bad import, a missing
+      # dependency or a syntax error, which is most of what breaks.
+      - run: npm run build
+        working-directory: client
+
+  server:
+    name: Server — syntax + the concurrency transaction
+    runs-on: ubuntu-latest
+
+    # A real MySQL for the job to talk to. The concurrency test is
+    # worthless against a mock: the whole point is that InnoDB's row locks
+    # behave the way the stored procedure assumes.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: brightbuy
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=15
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: brightbuy
+      DB_USER: root
+      DB_PASSWORD: root
+      JWT_SECRET: ci-only-not-a-real-secret
+      STORE_CITY_ID: 1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - run: npm ci
+        working-directory: server
+
+      # Cheap and catches a surprising amount. `node --check` parses a file
+      # without running it. It will NOT catch a typo'd identifier — that is
+      # how `NUMBER` vs `Number` reached a seed file once.
+      - name: Syntax-check every source file
+        working-directory: server
+        run: |
+          find src scripts tests -name '*.js' -print0 \
+            | xargs -0 -n1 node --check
+          echo "all files parse"
+
+      # A service container cannot be given a `command:`, so the flag the
+      # migrations need is set at runtime instead. Without it, MySQL
+      # refuses to create a stored function while binary logging is on and
+      # migration 007 fails.
+      - name: Allow stored-function creation
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot \
+            -e "SET GLOBAL log_bin_trust_function_creators = 1;"
+
+      - name: Apply migrations
+        working-directory: server
+        run: npm run migrate
+
+      - name: Load seed data
+        working-directory: server
+        run: npm run seed
+
+      # The artifact this project is actually graded on. Twenty concurrent
+      # orders against one unit of stock: exactly one may take it, stock
+      # must not go negative, and nothing may deadlock. It exits non-zero
+      # when that is not what happened.
+      - name: Concurrency — one unit, twenty buyers
+        working-directory: server
+        run: npm run test:concurrency
