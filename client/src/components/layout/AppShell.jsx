@@ -143,8 +143,8 @@ function Footer() {
               Bright<span style={{ color: 'var(--mantine-color-brand-5)' }}>Buy</span>
             </Text>
             <Text fz={14} c="ink.2" style={{ lineHeight: 1.65, maxWidth: '34ch' }}>
-              Order online, pay by card or on delivery. Colombo warehouse,
-              island-wide dispatch.
+              Order online, pay by card or on delivery. Houston warehouse,
+              statewide dispatch.
             </Text>
             <Group gap={8}>
               <Social icon={IconBrandX} label="BrightBuy on X" />
@@ -180,7 +180,7 @@ function Footer() {
           <Box>
             <ColumnHeading>Contact</ColumnHeading>
             <Stack gap={12}>
-              <ContactRow icon={IconMapPin}>Colombo 03, Sri Lanka</ContactRow>
+              <ContactRow icon={IconMapPin}>Houston, Texas</ContactRow>
               <ContactRow icon={IconPhone}>+94 11 234 5678</ContactRow>
               <ContactRow icon={IconMail}>support@brightbuy.com</ContactRow>
             </Stack>
@@ -193,7 +193,7 @@ function Footer() {
         <Container size="xl" px={{ base: 16, sm: 24 }} py={16}>
           <Group justify="space-between" wrap="wrap" gap={16}>
             <Text style={MONO} c="ink.4">
-              © {new Date().getFullYear()} BrightBuy · Colombo, Sri Lanka · Group 13, University of Moratuwa
+              © {new Date().getFullYear()} BrightBuy · Houston, Texas · Group 13, University of Moratuwa
             </Text>
             <Group gap={24}>
               {['Privacy', 'Terms', 'Shipping'].map((l) => (

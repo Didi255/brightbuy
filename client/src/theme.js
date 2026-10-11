@@ -5,7 +5,7 @@
  * Single source of truth for colour, typography and component defaults.
  * Nobody else edits this file.
  *
- * BrightBuy is a GENERAL MERCHANDISE retailer in Sri Lanka — laptops and
+ * BrightBuy is a CONSUMER ELECTRONICS retailer in Texas — laptops and
  * monitors, yes, but also kitchen, cleaning, footwear and sports.
  *
  * ── Premium dark e-commerce ──────────────────────────────────────────

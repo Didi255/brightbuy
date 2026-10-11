@@ -362,9 +362,13 @@ const CATEGORY_ART = {
   Audio: '/category-icons/audio.png',
   Kitchen: '/category-icons/kitchen.png',
   Cleaning: '/category-icons/cleaning.png',
-  Footwear: '/category-icons/footwear.png',
-  'Sports & Outdoors': '/category-icons/sports-outdoors.png',
 };
+
+/* Gaming, Wearables and Toys have no drawn icon yet — the supplied set
+   covered the old nine categories. Rather than ship an empty tile, those
+   fall back to a real product photo from the category, which is what this
+   grid did before the icons existed. Draw the three missing icons and
+   they take over automatically. */
 
 /* Spelled out to ten, digits past it. "Nine categories" reads as prose;
    "9 categories" reads as a database row. 43 products is fine as digits. */
@@ -382,6 +386,10 @@ export function CategoryShowcase({ categories = [], products = [], totalProducts
      the row count the API reports; products.length is only what this
      page happened to fetch, so prefer the former when we have it. */
   const nCats = categories.length;
+
+  /* first product we hold in that category, used when no icon exists */
+  const photoFor = (categoryName) =>
+    products.find((p) => p.categories?.some((c) => c.categoryName === categoryName))?.imageUrl;
   const nProducts = typeof totalProducts === 'number' ? totalProducts : products.length;
 
   return (
@@ -401,7 +409,7 @@ export function CategoryShowcase({ categories = [], products = [], totalProducts
           <Text c="ink.2" className="bb-cat-head__sub">
             {sentence(spell(nCats))} {nCats === 1 ? 'category' : 'categories'},{' '}
             {nProducts} {nProducts === 1 ? 'product' : 'products'}, all dispatched
-            from Colombo.
+            from Houston.
           </Text>
         </Box>
 
@@ -418,7 +426,7 @@ export function CategoryShowcase({ categories = [], products = [], totalProducts
             <CategoryTile
               key={c.categoryId}
               category={c}
-              art={CATEGORY_ART[c.categoryName]}
+              art={CATEGORY_ART[c.categoryName] || photoFor(c.categoryName)}
               index={i}
             />
           ))}
@@ -679,14 +687,14 @@ export function DeliveryBand({ cities = [] }) {
   const [showCities, setShowCities] = useState(false);
 
   /* 21 is a row count, not a constant. The only hardcoded figure in this
-     section is the warehouse, because one warehouse in Colombo is a fact
+     section is the warehouse, because one warehouse in Houston is a fact
      about the business rather than anything the database knows. */
   const cityCount = cities.length;
 
   const stats = [
-    { n: cityCount || '\u2014', label: 'cities\nisland-wide' },
+    { n: cityCount || '\u2014', label: 'cities\nacross Texas' },
     { n: MAIN_CITY_DAYS, label: 'days to a\nmain city' },
-    { n: 1, label: 'warehouse\nin Colombo' },
+    { n: 1, label: 'warehouse\nin Houston' },
   ];
 
   return (
@@ -711,7 +719,7 @@ export function DeliveryBand({ cities = [] }) {
             </Text>
 
             <Text fz={16} c="ink.2" mt={16} style={{ lineHeight: 1.6, maxWidth: '46ch' }}>
-              One warehouse in Colombo, {cityCount || 'all'} cities island-wide. The
+              One warehouse in Houston, {cityCount || 'all'} cities across Texas. The
               estimate you see at checkout is the one we work to.
             </Text>
 
@@ -873,7 +881,7 @@ export function FeaturedProduct({ product }) {
               </Button>
             </Group>
 
-            <Text fz={14} c="ink.3">Free delivery over Rs 25,000 · 30-day returns</Text>
+            <Text fz={14} c="ink.3">Free delivery over $75 · 30-day returns</Text>
           </Stack>
         </Box>
       </Box>
@@ -888,7 +896,7 @@ export function FeaturedProduct({ product }) {
    on desktops, on a page that also sells cleaning supplies. */
 const PROMISES = [
   { icon: IconCash,          t: 'Cash on delivery',  d: 'Pay when it arrives, anywhere we deliver.' },
-  { icon: IconTruckDelivery, t: 'Same-day dispatch', d: 'Order before 2 PM and it leaves Colombo today.' },
+  { icon: IconTruckDelivery, t: 'Same-day dispatch', d: 'Order before 2 PM and it leaves Houston today.' },
   { icon: IconRotateClockwise, t: '30-day returns',  d: 'Opened or unopened, thirty days either way.' },
   { icon: IconTag,           t: 'Price match',       d: 'Find it cheaper locally and we match it.' },
 ];

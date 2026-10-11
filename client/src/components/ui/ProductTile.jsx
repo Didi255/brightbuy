@@ -90,6 +90,10 @@ export default function ProductTile({
           src={src}
           alt={alt}
           loading="lazy"
+          /* A product whose photo has not been sourced yet must not show
+             the browser's broken-image glyph. Hiding the img leaves the
+             warm tile, which reads as "no photo" rather than "bug". */
+          onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
           style={{
             width: '100%',
             height: '100%',

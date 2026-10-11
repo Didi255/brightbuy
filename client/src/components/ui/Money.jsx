@@ -2,12 +2,12 @@
  * Money — formats a DECIMAL string consistently
  * OWNER: Slice C (Vidura)
  *
- * The API sends money as a string ("231990.00") — never a float.
+ * The API sends money as a string ("1299.00") — never a float.
  *
  * Usage:
- *   <Money value="231990.00" />           → Rs 231,990
- *   <Money value="4490.50" />             → Rs 4,490.50
- *   <Money value="231990.00" accent />    → orange
+ *   <Money value="1299.00" />             → $1,299
+ *   <Money value="749.99" />              → $749.99
+ *   <Money value="1299.00" accent />      → orange
  *
  * Three deliberate choices:
  *
@@ -19,20 +19,20 @@
  *   2. NO SUPERSCRIPT CENTS. One size, one weight. Raised cents are a
  *      supermarket-flyer device and read as decoration here.
  *
- *   3. `.00` IS DROPPED on whole-rupee amounts. Almost every price in this
- *      catalogue is whole rupees, so printing ".00" forty-four times adds
- *      noise and nothing else. A genuine 4,490.50 still shows its cents.
+ *   3. `.00` IS DROPPED on whole-dollar amounts. A price of $249 reads
+ *      better than $249.00, and the catalogue has plenty of both. A
+ *      genuine 749.99 still shows its cents.
  */
 import { Text } from '@mantine/core';
 
-const SYMBOL = 'Rs';
+const SYMBOL = '$';
 
 function formatMoney(value) {
   const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (num == null || isNaN(num)) return `${SYMBOL} 0`;
+  if (num == null || isNaN(num)) return `${SYMBOL}0`;
 
   const whole = Number.isInteger(num) || Math.abs(num % 1) < 0.005;
-  return `${SYMBOL} ` + num.toLocaleString('en-US', {
+  return `${SYMBOL}` + num.toLocaleString('en-US', {
     minimumFractionDigits: whole ? 0 : 2,
     maximumFractionDigits: 2,
   });

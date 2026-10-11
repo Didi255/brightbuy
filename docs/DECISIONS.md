@@ -560,6 +560,47 @@ place, and nothing depends on them.
 
 ---
 
+### #29 — #28 is reversed: the storefront trades in Texas, and the catalogue is consumer electronics
+
+**Supersedes #28.** #28 relocated the storefront to Sri Lanka and rescaled every price to
+rupees. That was wrong: the project brief opens *"BrightBuy is a medium-scale consumer
+electronics retail chain based in Texas"* and scopes delivery to *"within Texas"*. The
+localisation was a misreading, caught before the final evaluation.
+
+**Reverted**
+
+- 21 Sri Lankan cities → the original 21 Texas cities, six of them main (Houston, San
+  Antonio, Dallas, Austin, Fort Worth, El Paso).
+- All 74 variant prices → their original USD values. Restored **pairwise from git**, not by
+  dividing by the ~310 rate that was applied, so no rounding error was introduced.
+- Currency symbol, every piece of UI copy, the page metadata and the share card.
+
+**Kept from #28**, because it was good and unrelated to the location:
+
+- The product descriptions, which that commit rewrote from one-line stubs into two or three
+  sentences saying who each product suits. A blanket `git revert` would have discarded them.
+- The payment block and `imageUrl` on the order shape.
+
+**Catalogue refocused at the same time.** The brief describes a *consumer electronics* chain
+with a limited catalogue — its own examples are "Mobiles, Audio Devices, Toys". The catalogue
+had drifted into footwear, clothing, sports equipment and cookware. Removed those 13 products;
+added 12 across three new categories (Gaming, Wearables, Toys). The Casio digital watch was
+kept and moved to Wearables, because a digital watch *is* consumer electronics.
+
+Kitchen and Cleaning are retained under Home Appliances: they are electrical goods, which a
+consumer electronics chain carries, and dropping them would put the category count below the
+brief's minimum of ten.
+
+**After the change:** 43 products, 13 categories, 69 variants, 21 cities — against the brief's
+floor of 40 products and 10 categories. Verified by running the full migration and seed chain
+against an empty database.
+
+**Why this is recorded rather than quietly rewritten.** An examiner reading the history will
+see the error and the correction. That is a better account of the work than a tidy history
+that hides it.
+
+---
+
 ## D. SRS inconsistencies and the reading implemented
 
 The SRS was submitted on 28/07/2026 and is not being revised. Where the document contradicts
