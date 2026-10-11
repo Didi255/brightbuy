@@ -21,7 +21,7 @@
  * project is marked on whether the UI reflects its database.
  */
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Box, Text, Group, Stack, UnstyledButton } from '@mantine/core';
 import {
   IconStarFilled, IconHeart, IconHeartFilled, IconShoppingCart,
@@ -58,6 +58,7 @@ function Flag({ children, tone = 'sale' }) {
 }
 
 export default function ProductCard({ product, variant = 'grid', onAddToCart }) {
+  const navigate = useNavigate();
   const [hover, setHover] = useState(false);
 
   const {
@@ -203,7 +204,15 @@ export default function ProductCard({ product, variant = 'grid', onAddToCart }) 
             className="bb-price-pill"
             data-disabled={outOfStock || undefined}
             disabled={outOfStock}
-            onClick={() => onAddToCart?.(product)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (onAddToCart) {
+                onAddToCart(product);
+              } else {
+                navigate(href);
+              }
+            }}
             aria-label={outOfStock ? `${title} is out of stock` : `Add ${title} to cart`}
           >
             <IconShoppingCart size={15} stroke={1.9} />

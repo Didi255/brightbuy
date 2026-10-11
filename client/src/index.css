@@ -303,14 +303,16 @@ img {
 }
 
 /* ── cart badge pulse ─────────────────────────────────────────────── */
-.bb-cart-badge {
+.bb-cart-badge,
+.bb-action-icon.bb-cart-badge {
   position: relative;
+  overflow: visible !important;
 }
 
 .bb-cart-badge__count {
   position: absolute;
-  top: -6px;
-  right: -8px;
+  top: -5px;
+  right: -5px;
   min-width: 18px;
   height: 18px;
   display: flex;
@@ -318,12 +320,16 @@ img {
   justify-content: center;
   font-size: 11px;
   font-weight: 700;
-  color: #000;
+  color: #141414;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   background: var(--bb-action, #FF8C00);
-  border-radius: 4px;
-  padding: 0 5px;
+  border-radius: 999px;
+  padding: 0 4px;
+  line-height: 1;
+  box-shadow: 0 0 0 2px #0f0f0f;
   animation: fadeIn 0.3s ease;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .bb-cart-badge__count--bump {

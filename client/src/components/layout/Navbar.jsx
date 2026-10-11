@@ -188,6 +188,7 @@ export default function Navbar({ cartItemCount = 0 }) {
                 radius="sm"
                 size="lg"
                 className="bb-action-icon bb-cart-badge"
+                style={{ overflow: 'visible' }}
                 onClick={() => navigate('/cart')}
                 aria-label={`Cart with ${cartItemCount} items`}
               >
