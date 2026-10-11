@@ -201,7 +201,7 @@ exports.mergeGuestCart = async (customerId, sessionToken) => {
     // Move items to customer cart, summing quantities for duplicates
     await conn.query(
       `INSERT INTO cart_item (cart_id, variant_id, quantity)
-       SELECT ?, variant_id, quantity FROM cart_item WHERE cart_id = ?
+       SELECT ?, src.variant_id, src.quantity FROM cart_item src WHERE src.cart_id = ?
        ON DUPLICATE KEY UPDATE quantity = cart_item.quantity + VALUES(quantity)`,
       [customerCartId, guestCartId]
     );
