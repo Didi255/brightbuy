@@ -9,7 +9,7 @@
     "migrate": "node scripts/run-migrations.js",
     "seed": "node scripts/run-seeds.js",
     "test:concurrency": "node tests/concurrency.test.js",
-    "payments:expire": "node scripts/expire-failed-payments.js"
+    "payments:expire": "node scripts/expireFailedPayments.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

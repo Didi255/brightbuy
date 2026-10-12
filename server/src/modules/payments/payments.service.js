@@ -72,10 +72,17 @@ exports.retryPayment = async (userId, paymentId, mockOutcome) => {
     throw ApiError.conflict('NOT_RETRYABLE', 'Only failed payments can be retried');
   }
 
-  const hoursSinceFailure = Math.floor((Date.now() - new Date(payment.updated_at).getTime()) / (1000 * 60 * 60));
-  if (hoursSinceFailure > 24) {
-    throw ApiError.conflict('RETRY_WINDOW_EXPIRED', 'Retry window (24h) has expired');
-  }
+  const RETRY_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+// Inside retryPayment, after confirming payment_status is Failed:
+const elapsedMs = Date.now() - new Date(payment.updated_at).getTime();
+
+if (elapsedMs >= RETRY_WINDOW_MS) {
+  throw ApiError.conflict(
+    'RETRY_WINDOW_EXPIRED',
+    'Retry window (24h) has expired'
+  );
+}
 
   // Mock gateway
   const paid = mockOutcome === 'success';
