@@ -37,6 +37,8 @@ import OrderHistoryPage from '../features/orders/OrderHistoryPage';
 /* ── Slice E: staff console ───────────────────────────────────────── */
 import StaffDashboardPage from '../features/staff/StaffDashboardPage';
 import NotFoundPage from '../features/staff/NotFoundPage';
+import PaymentPage from '../features/payments/PaymentPage';
+import ReportsPage from '../features/staff/ReportsPage';
 
 /* ── Placeholder pages (replaced as each slice lands) ─────────────── */
 import PlaceholderPage from '../features/PlaceholderPage';
@@ -88,13 +90,14 @@ export default function AppRoutes() {
           path="/orders"
           element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
         />
-        <Route
-          path="/orders/:orderId"
-          element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
-        />
+        <Route path="/orders/:orderId/pay" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
+        
 
         {/* --- Slice E: payments & staff --- */}
-        <Route path="/orders/:orderId/pay" element={<PlaceholderPage title="Payment" slice="E" />} />
+        <Route
+          path="/orders/:orderId/pay"
+          element={<ProtectedRoute><PaymentPage /></ProtectedRoute>}
+        />        
         <Route
           path="/staff"
           element={
@@ -157,7 +160,7 @@ export default function AppRoutes() {
           path="/staff/reports"
           element={
             <ProtectedRoute requireStaff>
-              <PlaceholderPage title="Reports" slice="E" />
+              <ReportsPage/>
             </ProtectedRoute>
           }
         />

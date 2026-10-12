@@ -52,6 +52,7 @@ exports.removeItem = async ({ customerId, sessionToken, itemId }) => {
 
 // Checkout summary
 exports.getCheckoutSummary = async ({ customerId, deliveryMode, addressId }) => {
+  if (!customerId) throw ApiError.forbidden('Only customer accounts can checkout');
   const cart = await exports.getCart({ customerId });
   if (!cart || !cart.items.length) throw ApiError.badRequest('Cannot checkout an empty cart');
   if (!['standard', 'store_pickup'].includes(deliveryMode)) throw ApiError.badRequest('Invalid delivery mode');
