@@ -165,12 +165,9 @@ export default function CheckoutPage() {
       <Stepper
         active={step}
         onStepClick={setStep}
+        color="brand.5"
         size="sm"
         mb={32}
-        styles={{
-          stepIcon: { borderRadius: 999, borderWidth: 2 },
-          separator: { height: 2, marginLeft: 4, marginRight: 4, background: 'rgba(255,236,214,0.12)' },
-        }}
       >
         <Stepper.Step label="Delivery" icon={<IconTruck size={18} />}>
           <Card withBorder radius="md" p="xl" mt={16}>
