@@ -40,7 +40,6 @@ import OrderHistoryPage from '../features/orders/OrderHistoryPage';
 import PaymentPage from '../features/payments/PaymentPage';
 import ReportsPage from '../features/staff/ReportsPage';
 import StaffDashboardPage from '../features/staff/StaffDashboardPage';
-import StockAdjustmentsPage from '../features/staff/stockAdjustmentsPage';
 import StaffOrdersPage from '../features/staff/StaffOrdersPage';
 import StockAdjustmentsPage from '../features/staff/StockAdjustmentsPage';
 import NotFoundPage from '../features/staff/NotFoundPage';
