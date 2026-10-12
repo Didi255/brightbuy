@@ -7,8 +7,8 @@
  * Every filter, the sort and the page serialise into the URL, so a
  * filtered view is shareable and the back button behaves.
  *
- * GET /products takes q, categoryId, brand, minPrice, maxPrice, page,
- * pageSize and returns { data, page, pageSize, total }.
+ * GET /products takes q, categoryId, brand (comma list), minPrice,
+ * maxPrice, sort, page, pageSize and returns { data, page, pageSize, total }.
  *
  * TWO FETCHES, ON PURPOSE. The grid fetch is filtered and paged. A second
  * unfiltered fetch loads the whole catalogue once, and the facets — price
@@ -288,9 +288,11 @@ export default function ProductListPage() {
         if (categoryId) qs.set('categoryId', categoryId);
         if (minParam) qs.set('minPrice', minParam);
         if (maxParam) qs.set('maxPrice', maxParam);
-        /* The API takes a single brand. More than one is narrowed below
-           over the rows we have — stated, not hidden. */
-        if (activeBrands.length === 1) qs.set('brand', activeBrands[0]);
+        /* Brand and sort are applied by the API over the WHOLE catalogue
+           and only then cut into pages, so a filter is never limited to the
+           page you happen to be on. Several brands go as a comma list. */
+        if (activeBrands.length) qs.set('brand', activeBrands.join(','));
+        if (sort !== 'relevance') qs.set('sort', sort);
 
         const res = await api.get(`/products?${qs.toString()}`);
         if (cancelled) return;
@@ -306,20 +308,9 @@ export default function ProductListPage() {
     return () => { cancelled = true; };
   }, [params.toString()]);
 
-  /* The API has no sort parameter yet, so ordering happens client-side
-     over the current page. Move it server-side when Slice B adds `sort`. */
-  const sorted = useMemo(() => {
-    const copy = [...rows];
-    if (sort === 'price_asc') copy.sort((a, b) => Number(a.priceFrom) - Number(b.priceFrom));
-    if (sort === 'price_desc') copy.sort((a, b) => Number(b.priceFrom) - Number(a.priceFrom));
-    if (sort === 'name_asc') copy.sort((a, b) => a.productName.localeCompare(b.productName));
-    return copy;
-  }, [rows, sort]);
-
-  const visible = useMemo(() => {
-    if (activeBrands.length <= 1) return sorted;
-    return sorted.filter((r) => activeBrands.includes(r.brand));
-  }, [sorted, activeBrands]);
+  /* Sorting and brand filtering now happen in the API, over every product,
+     so the rows we get back are already the right ones in the right order. */
+  const visible = rows;
 
   /* GET /products carries no variantId, and the cart is keyed by variant.
      So: exactly one variant in stock means the pill can add it outright;
@@ -528,7 +519,7 @@ export default function ProductListPage() {
                 ))}
               </Box>
 
-              {rows.length < total && (
+              {page * PAGE_SIZE < total && (
                 <Stack align="center" gap={12} mt={32}>
                   <Text
                     fz={12}
