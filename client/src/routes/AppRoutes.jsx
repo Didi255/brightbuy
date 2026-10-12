@@ -41,8 +41,8 @@ import PaymentPage from '../features/payments/PaymentPage';
 import ReportsPage from '../features/staff/ReportsPage';
 import StaffDashboardPage from '../features/staff/StaffDashboardPage';
 import StaffOrdersPage from '../features/staff/StaffOrdersPage';
-import StockAdjustmentsPage from '../features/staff/StockAdjustmentsPage';
 import NotFoundPage from '../features/staff/NotFoundPage';
+import StockAdjustmentsPage from '../features/staff/StockAdjustmentPage';
 
 /* ── Shared routing ───────────────────────────────────────────────── */
 import PlaceholderPage from '../features/PlaceholderPage';
@@ -120,7 +120,7 @@ export default function AppRoutes() {
           path="/staff/stock"
           element={
             <ProtectedRoute requireStaff>
-              <StockAdjustmentsPage />
+              <StockAdjustmentPage />
             </ProtectedRoute>
           }
         />
