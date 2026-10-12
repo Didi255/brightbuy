@@ -94,14 +94,6 @@ function SpecRow({ label, value }) {
 export default function ProductDetailPage() {
   const { productId } = useParams();
   const { addItem } = useCart();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  /* Back to wherever the customer came from — the product list WITH its
-     filters, sort and page, because the list page keeps those in the URL.
-     If this page was opened directly (no history inside the app) there is
-     nothing to go back to, so fall back to the product list. */
-  const goBack = () => (location.key !== 'default' ? navigate(-1) : navigate('/products'));
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

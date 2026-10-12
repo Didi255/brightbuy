@@ -69,6 +69,48 @@ export default function CartPage() {
     }
   };
 
+  if (user?.userType === 'staff') {
+    return (
+      <div className="bb-page-enter">
+        <PageHeader
+          title="Shopping Cart"
+          breadcrumbs={[
+            { label: 'Home', to: '/' },
+            { label: 'Cart' },
+          ]}
+        />
+        <Paper
+          p="xl"
+          radius="md"
+          mt={24}
+          style={{
+            background: 'var(--mantine-color-ink-8, #18191c)',
+            border: '1px solid rgba(255, 236, 214, 0.12)',
+            textAlign: 'center',
+            maxWidth: 540,
+            margin: '32px auto',
+          }}
+        >
+          <IconAlertTriangle size={44} color="var(--mantine-color-brand-5, #FF8C00)" style={{ margin: '0 auto 16px' }} />
+          <Text size="lg" fw={700} c="ink.0" mb={8}>
+            Staff Mode Active
+          </Text>
+          <Text c="dimmed" size="sm" mb={24} style={{ lineHeight: 1.6 }}>
+            Shopping carts and customer checkout are reserved for customer accounts. Please use the Staff Dashboard to manage inventory, customer orders, and deliveries.
+          </Text>
+          <Button
+            color="brand.5"
+            c="black"
+            fw={600}
+            onClick={() => navigate('/staff')}
+          >
+            Go to Staff Dashboard
+          </Button>
+        </Paper>
+      </div>
+    );
+  }
+
   if (loading) return <LoadingSpinner fullPage label="Loading your cart..." />;
 
   return (

@@ -36,6 +36,8 @@ import OrderHistoryPage from '../features/orders/OrderHistoryPage';
 /* ── Slice E: staff console ───────────────────────────────────────── */
 import StaffDashboardPage from '../features/staff/StaffDashboardPage';
 import NotFoundPage from '../features/staff/NotFoundPage';
+import PaymentPage from '../features/payments/PaymentPage';
+import ReportsPage from '../features/staff/ReportsPage';
 
 /* ── Placeholder pages (replaced as each slice lands) ─────────────── */
 import PlaceholderPage from '../features/PlaceholderPage';
@@ -49,11 +51,11 @@ export default function AppRoutes() {
       {/* resets the scroll offset on every pathname change */}
       <ScrollToTop />
       <Routes>
-        <Route element={<AppShell cartItemCount={itemCount} />}>
-          {/* --- Slice B: catalogue --- */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/products" element={<ProductListPage />} />
-          <Route path="/products/:productId" element={<ProductDetailPage />} />
+      <Route element={<AppShell cartItemCount={itemCount} />}>
+        {/* --- Slice B: catalogue --- */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/products" element={<ProductListPage />} />
+        <Route path="/products/:productId" element={<ProductDetailPage />} />
 
           {/* --- Slice C: cart & checkout --- */}
           <Route path="/cart" element={<CartPage />} />
@@ -80,86 +82,87 @@ export default function AppRoutes() {
             }
           />
 
-          {/* --- Slice A: orders --- */}
-          {/* The list and the detail are one component: /orders/:orderId
-              renders the list with that order expanded. */}
-          <Route
-            path="/orders"
-            element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
-          />
-          <Route
-            path="/orders/:orderId"
-            element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
-          />
+        {/* --- Slice A: orders --- */}
+        {/* The list and the detail are one component: /orders/:orderId
+            renders the list with that order expanded. */}
+        <Route
+          path="/orders"
+          element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
+        />
+        <Route path="/orders/:orderId/pay" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
+        
 
-          {/* --- Slice E: payments & staff --- */}
-          <Route path="/orders/:orderId/pay" element={<PlaceholderPage title="Payment" slice="E" />} />
-          <Route
-            path="/staff"
-            element={
-              <ProtectedRoute requireStaff>
-                <StaffDashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/staff/catalogue"
-            element={
-              <ProtectedRoute requireStaff>
-                <PlaceholderPage title="Catalogue Management" slice="B" />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/staff/stock"
-            element={
-              <ProtectedRoute requireStaff>
-                <PlaceholderPage title="Stock Adjustments" slice="E" />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/staff/orders"
-            element={
-              <ProtectedRoute requireStaff>
-                <PlaceholderPage title="Order Console" slice="E" />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/staff/cities"
-            element={
-              <ProtectedRoute requireStaff>
-                <CityManagementPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/staff/users"
-            element={
-              <ProtectedRoute requireAdmin>
-                <UserManagementPage />
-              </ProtectedRoute>
-            }
-          />
-          
-          <Route
-            path="/staff/audit-log"
-            element={
-              <ProtectedRoute requireAdmin>
-                <AuditLogPage />
-              </ProtectedRoute>
-            }
-          />
+        {/* --- Slice E: payments & staff --- */}
+        <Route
+          path="/orders/:orderId/pay"
+          element={<ProtectedRoute><PaymentPage /></ProtectedRoute>}
+        />        
+        <Route
+          path="/staff"
+          element={
+            <ProtectedRoute requireStaff>
+              <StaffDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/catalogue"
+          element={
+            <ProtectedRoute requireStaff>
+              <PlaceholderPage title="Catalogue Management" slice="B" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/stock"
+          element={
+            <ProtectedRoute requireStaff>
+              <PlaceholderPage title="Stock Adjustments" slice="E" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/orders"
+          element={
+            <ProtectedRoute requireStaff>
+              <PlaceholderPage title="Order Console" slice="E" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/cities"
+          element={
+            <ProtectedRoute requireStaff>
+              <CityManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/staff/users"
+          element={
+            <ProtectedRoute requireAdmin>
+              <UserManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/staff/audit-log"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AuditLogPage />
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/staff/reports"
-            element={
-              <ProtectedRoute requireStaff>
-                <PlaceholderPage title="Reports" slice="E" />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path="/staff/reports"
+          element={
+            <ProtectedRoute requireStaff>
+              <ReportsPage/>
+            </ProtectedRoute>
+          }
+        />
 
           {/* 404 */}
           <Route path="*" element={<NotFoundPage />} />

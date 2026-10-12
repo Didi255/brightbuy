@@ -15,3 +15,6 @@
 -- Note: columns already covered by a PK, UNIQUE, or FK are indexed by InnoDB
 -- automatically. Don't duplicate those — know which ones they are.
 -- =========================================================================
+CREATE INDEX idx_orders_date ON orders(order_date);
+CREATE INDEX idx_orders_customer ON orders(customer_id);
+CREATE INDEX idx_delivery_est_date ON delivery(estimated_delivery_date);

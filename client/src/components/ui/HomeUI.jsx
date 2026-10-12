@@ -384,6 +384,7 @@ const CATEGORY_ART = {
   Cleaning: '/categories/cleaning.jpg',
   Gaming: '/categories/gaming.jpg',
   Wearables: '/categories/wearables.jpg',
+  Toys: '/categories/toys.jpg',
 };
 
 /* Spelled out to ten, digits past it. "Nine categories" reads as prose;

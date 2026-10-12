@@ -1,9 +1,16 @@
-/**
- * reports slice — OWNER: M5
- * Copy the shape of modules/auth/. Mount this router in src/app.js when ready.
- */
 const router = require('express').Router();
+const controller = require('./reports.controller');
+const { requireAuth, requireRole } = require('../../middleware/auth');
 
-// TODO(M5): define routes here
+const staffOnly = [
+  requireAuth,
+  requireRole('admin', 'major_exec', 'minor_exec', 'labour'),
+];
+
+router.get('/quarterly-sales', ...staffOnly, controller.quarterlySales);
+router.get('/top-products', ...staffOnly, controller.topProducts);
+router.get('/category-orders', ...staffOnly, controller.categoryOrders);
+router.get('/upcoming-deliveries', ...staffOnly, controller.upcomingDeliveries);
+router.get('/customer-summary', ...staffOnly, controller.customerSummary);
 
 module.exports = router;
