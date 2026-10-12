@@ -40,7 +40,39 @@ const CATEGORIES = [
 const PRODUCTS_DIR = path.join(__dirname, 'products');
 
 const slug = (s) => String(s || 'GEN').toUpperCase().replace(/[^A-Z0-9]+/g, '').slice(0, 8) || 'GEN';
-const placeholderImage = (name) => `https://placehold.co/600x400?text=${encodeURIComponent(name)}`;
+
+/* Real product photography, where we have it. Sourced per product, so the
+   file extension varies (.jpg/.jpeg/.webp/.avif/.png) and cannot be derived
+   from the name — hence an explicit map rather than a slug rule.
+
+   Products NOT listed here fall through to the generated line-art mockup,
+   which uses the slug rule below. Replace an entry here as real photography
+   arrives; nothing else needs to change. */
+const REAL_PHOTOS = {
+  "ASUS VivoBook 15 Laptop": "/product-images/asus-vivobook-15-laptop.avif",
+  "Acer Aspire 5 Laptop": "/product-images/acer-aspire-5-laptop.jpg",
+  "Apple MacBook Air 13 Laptop": "/product-images/apple-macbook-air-13-laptop.jpg",
+  "Apple iPhone 15 Phone": "/product-images/apple-iphone-15-phone.webp",
+  "Casio F-91W Digital Watch": "/product-images/casio-f-91w-digital-watch.jpeg",
+  "Dell 24 Full HD Monitor": "/product-images/dell-24-full-hd-monitor.jpeg",
+  "Dell Inspiron 15 Laptop": "/product-images/dell-inspiron-15-laptop.jpg",
+  "Google Pixel 8 Phone": "/product-images/google-pixel-8-phone.jpg",
+  "HP Pavilion 14 Laptop": "/product-images/hp-pavilion-14-laptop.png",
+  "JBL Flip 6 Bluetooth Speaker": "/product-images/jbl-flip-6-bluetooth-speaker.webp",
+  "Keychron K2 Wireless Keyboard": "/product-images/keychron-k2-wireless-keyboard.webp",
+  "Lenovo IdeaPad Slim 3 Laptop": "/product-images/lenovo-ideapad-slim-3-laptop.webp",
+  "NutriBullet Pro Blender": "/product-images/nutribullet-pro-blender.avif",
+  "Samsung Galaxy S24 Phone": "/product-images/samsung-galaxy-s24-phone.webp",
+  "Samsung Odyssey 32 Curved Monitor": "/product-images/samsung-odyssey-32-curved-monitor.jpg",
+  "Xiaomi Redmi Note 13 Phone": "/product-images/xiaomi-redmi-note-13-phone.webp",
+};
+
+/* Product art lives in client/public/product-images/ and is served by Vite
+   at /product-images/<slug>.jpg. Sourced from the local pack to ensure offline
+   availability during demonstrations and viva. */
+const placeholderImage = (name) =>
+  REAL_PHOTOS[name] ||
+  `/product-images/${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.jpg`;
 
 /** Reads every products/*.js file and checks each product, with a clear error message. */
 function loadProducts() {
