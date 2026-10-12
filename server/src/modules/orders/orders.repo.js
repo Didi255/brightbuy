@@ -164,3 +164,94 @@ exports.findPaymentsForOrders = async (orderIds) => {
 };
 
 
+exports.findAllOrders = async (filters = {}) => {
+  let query = `
+    SELECT o.order_id, o.customer_id, o.order_date, o.order_status, o.total_amount,
+           u.first_name, u.last_name, u.email,
+           p.payment_id, p.payment_status, p.payment_method,
+           d.delivery_mode, ci.city_name AS city
+    FROM orders o
+      JOIN customer cust ON cust.user_id = o.customer_id
+      JOIN user u ON u.user_id = cust.user_id
+      LEFT JOIN payment p ON p.order_id = o.order_id
+      JOIN delivery d ON d.order_id = o.order_id
+      JOIN city ci ON ci.city_id = d.city_id
+     WHERE 1=1
+  `;
+
+  const params = [];
+
+  if (filters.status && filters.status !== 'all') {
+    query += ` AND o.order_status = ?`;
+    params.push(filters.status);
+  }
+
+  if (filters.paymentStatus && filters.paymentStatus !== 'all') {
+    query += ` AND p.payment_status = ?`;
+    params.push(filters.paymentStatus);
+  }
+
+  if (filters.deliveryMode && filters.deliveryMode !== 'all') {
+    query += ` AND d.delivery_mode = ?`;
+    params.push(filters.deliveryMode);
+  }
+
+  if (filters.from) {
+    query += ` AND DATE(o.order_date) >= ?`;
+    params.push(filters.from);
+  }
+
+  if (filters.to) {
+    query += ` AND DATE(o.order_date) <= ?`;
+    params.push(filters.to);
+  }
+
+  query += ` ORDER BY o.order_date DESC`;
+
+  const [rows] = await pool.query(query, params);
+  return rows;
+};
+
+
+exports.findOrderStatusById = async (orderId) => {
+  const [rows] = await pool.query(
+    'SELECT order_id, order_status FROM orders WHERE order_id = ?',
+    [orderId]
+  );
+  return rows[0] || null;
+};
+
+exports.updateOrderStatus = async (orderId, newStatus) => {
+  await pool.query(
+    'UPDATE orders SET order_status = ? WHERE order_id = ?',
+    [newStatus, orderId]
+  );
+};
+
+
+// ---- Stock adjustment (slice E) ----
+exports.createStockAdjustment = async (variantId, staffId, changeQty, reason) => {
+  return withTransaction(async (conn) => {
+    const [rows] = await conn.query(
+      'SELECT stock_quantity FROM variant WHERE variant_id = ? FOR UPDATE',
+      [variantId]
+    );
+
+    if (rows.length === 0) return { notFound: true };
+    if (rows[0].stock_quantity + changeQty < 0) return { insufficient: true };
+
+    const [result] = await conn.query(
+      `INSERT INTO stock_adjustment (variant_id, staff_id, change_qty, reason)
+       VALUES (?, ?, ?, ?)`,
+      [variantId, staffId, changeQty, reason]
+    );
+
+    await conn.query(
+      'UPDATE variant SET stock_quantity = stock_quantity + ? WHERE variant_id = ?',
+      [changeQty, variantId]
+    );
+
+    return { adjustmentId: result.insertId };
+  });
+};
+ 

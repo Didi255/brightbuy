@@ -1180,3 +1180,67 @@ body.bb-hidden .bb-hero-product,
   .bb-hero-marquee__col,
   .bb-ticker-track { animation: none !important; }
 }
+
+/* ── Stepper (matches OrderProgress.jsx: circles joined by 2px line) ── */
+.mantine-Stepper-root {
+  width: 100%;
+}
+
+.mantine-Stepper-stepIcon {
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 236, 214, 0.18) !important;
+  background: transparent !important;
+  color: var(--mantine-color-ink-4, #737373) !important;
+  transition: all 180ms ease;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+}
+
+.mantine-Stepper-stepIcon[data-progress] {
+  border: 2px solid var(--mantine-color-brand-5, #FF8C00) !important;
+  color: var(--mantine-color-brand-5, #FF8C00) !important;
+  background: rgba(255, 140, 0, 0.10) !important;
+}
+
+.mantine-Stepper-stepIcon[data-completed] {
+  background: var(--mantine-color-brand-5, #FF8C00) !important;
+  border: 2px solid var(--mantine-color-brand-5, #FF8C00) !important;
+  color: #000 !important;
+}
+
+.mantine-Stepper-stepCompletedIcon {
+  color: #000 !important;
+}
+
+.mantine-Stepper-separator {
+  height: 2px !important;
+  min-height: 2px !important;
+  border: none !important;
+  background: rgba(255, 236, 214, 0.12) !important;
+  margin-left: 8px !important;
+  margin-right: 8px !important;
+  border-radius: 2px !important;
+  transition: background 200ms ease;
+}
+
+.mantine-Stepper-separator[data-active] {
+  background: var(--mantine-color-brand-5, #FF8C00) !important;
+}
+
+.mantine-Stepper-stepLabel {
+  font-size: 13px !important;
+  color: var(--mantine-color-ink-3) !important;
+  transition: color 180ms ease;
+}
+
+.mantine-Stepper-step[data-progress] .mantine-Stepper-stepLabel {
+  color: var(--mantine-color-brand-5, #FF8C00) !important;
+  font-weight: 600 !important;
+}
+
+.mantine-Stepper-step[data-completed] .mantine-Stepper-stepLabel {
+  color: var(--mantine-color-ink-0, #fff) !important;
+  font-weight: 500 !important;
+}
+

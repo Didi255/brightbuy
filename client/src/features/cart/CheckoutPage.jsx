@@ -36,10 +36,12 @@ import {
 import { PageHeader } from '../../components/layout';
 import { Money, LoadingSpinner, ErrorAlert } from '../../components/ui';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { cart, fetchCart } = useCart();
   const [step, setStep] = useState(0);
   const [deliveryMode, setDeliveryMode] = useState('standard');
@@ -102,6 +104,49 @@ export default function CheckoutPage() {
     return true;
   };
 
+  if (user?.userType === 'staff') {
+    return (
+      <div className="bb-page-enter">
+        <PageHeader
+          title="Checkout"
+          crumbs={[
+            { label: 'Home', to: '/' },
+            { label: 'Cart', to: '/cart' },
+            { label: 'Checkout' },
+          ]}
+        />
+        <Paper
+          p="xl"
+          radius="md"
+          mt={24}
+          style={{
+            background: 'var(--mantine-color-ink-8, #18191c)',
+            border: '1px solid rgba(255, 236, 214, 0.12)',
+            textAlign: 'center',
+            maxWidth: 540,
+            margin: '32px auto',
+          }}
+        >
+          <IconAlertTriangle size={44} color="var(--mantine-color-brand-5, #FF8C00)" style={{ margin: '0 auto 16px' }} />
+          <Text size="lg" fw={700} c="ink.0" mb={8}>
+            Staff Mode Active
+          </Text>
+          <Text c="dimmed" size="sm" mb={24} style={{ lineHeight: 1.6 }}>
+            Checkout is reserved for customer accounts. Please use the Staff Dashboard to manage orders and stock.
+          </Text>
+          <Button
+            color="brand.5"
+            c="black"
+            fw={600}
+            onClick={() => navigate('/staff')}
+          >
+            Go to Staff Dashboard
+          </Button>
+        </Paper>
+      </div>
+    );
+  }
+
   if (!cart) return <LoadingSpinner fullPage label="Loading checkout..." />;
 
   return (
@@ -120,12 +165,9 @@ export default function CheckoutPage() {
       <Stepper
         active={step}
         onStepClick={setStep}
+        color="brand.5"
         size="sm"
         mb={32}
-        styles={{
-          stepIcon: { borderRadius: 999, borderWidth: 2 },
-          separator: { height: 2, marginLeft: 4, marginRight: 4, background: 'rgba(255,236,214,0.12)' },
-        }}
       >
         <Stepper.Step label="Delivery" icon={<IconTruck size={18} />}>
           <Card withBorder radius="md" p="xl" mt={16}>
