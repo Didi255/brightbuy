@@ -1,4 +1,3 @@
-
 /**
  * AppRoutes — route map for BrightBuy
  * OWNER: shared (everyone adds inside their own block)
@@ -20,6 +19,7 @@ import CheckoutSuccessPage from '../features/cart/CheckoutSuccessPage';
 import HomePage from '../features/catalogue/HomePage';
 import ProductListPage from '../features/catalogue/ProductListPage';
 import ProductDetailPage from '../features/catalogue/ProductDetailPage';
+import CatalogueManagementPage from '../features/catalogue/CatalogueManagementPage';
 
 /* ── Slice D: auth & profile ──────────────────────────────────────── */
 import LoginPage from '../features/auth/LoginPage';
@@ -59,30 +59,30 @@ export default function AppRoutes() {
         <Route path="/products" element={<ProductListPage />} />
         <Route path="/products/:productId" element={<ProductDetailPage />} />
 
-        {/* --- Slice C: cart & checkout --- */}
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/checkout/success/:orderId" element={<CheckoutSuccessPage />} />
+          {/* --- Slice C: cart & checkout --- */}
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/checkout/success/:orderId" element={<CheckoutSuccessPage />} />
 
-        {/* --- Slice D: auth & profile --- */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route
-          path="/account"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/account/addresses"
-          element={
-            <ProtectedRoute>
-              <AddressBookPage />
-            </ProtectedRoute>
-          }
-        />
+          {/* --- Slice D: auth & profile --- */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account/addresses"
+            element={
+              <ProtectedRoute>
+                <AddressBookPage />
+              </ProtectedRoute>
+            }
+          />
 
         {/* --- Slice A: orders --- */}
         {/* The list and the detail are one component: /orders/:orderId
@@ -90,7 +90,11 @@ export default function AppRoutes() {
         <Route
           path="/orders"
           element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
+<<<<<<< HEAD
         />        
+=======
+        />
+>>>>>>> risandu-oct12
 
         {/* --- Slice E: payments & staff --- */}
         <Route
@@ -109,7 +113,7 @@ export default function AppRoutes() {
           path="/staff/catalogue"
           element={
             <ProtectedRoute requireStaff>
-              <PlaceholderPage title="Catalogue Management" slice="B" />
+              <CatalogueManagementPage />
             </ProtectedRoute>
           }
         />
@@ -164,9 +168,9 @@ export default function AppRoutes() {
           }
         />
 
-        {/* 404 */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
+          {/* 404 */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
       </Routes>
     </>
   );

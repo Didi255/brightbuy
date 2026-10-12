@@ -12,13 +12,13 @@
  * Covers: REQ-2.1, REQ-2.2, REQ-1.4
  */
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box, Group, Stack, Text, Button, Divider, Skeleton, UnstyledButton, NumberInput,
 } from '@mantine/core';
 import {
   IconHeart, IconTruck, IconRotateClockwise, IconShieldCheck, IconCertificate,
-  IconMinus, IconPlus,
+  IconMinus, IconPlus, IconArrowLeft,
 } from '@tabler/icons-react';
 import { PageHeader } from '../../components/layout';
 import { Money, ErrorAlert, EmptyState, ProductTile, ProductRail } from '../../components/ui';
@@ -93,6 +93,7 @@ function SpecRow({ label, value }) {
 
 export default function ProductDetailPage() {
   const { productId } = useParams();
+  const navigate = useNavigate();
   const { addItem } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -104,6 +105,14 @@ export default function ProductDetailPage() {
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
   const [addError, setAddError] = useState(null);
+
+  const goBack = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate('/products');
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -229,14 +238,28 @@ export default function ProductDetailPage() {
     ...BADGES_ALWAYS,
   ];
 
+  /* Stock 0 is NOT a dead end: the shop takes back-orders (REQ-6.6) and the
+     delivery estimate grows by 3 days (REQ-7.2). So the button stays live. */
   const stock = current?.stockQuantity ?? 0;
-  const stockTone = stock === 0 ? 'ink.4' : stock <= 5 ? 'brand.5' : 'green.5';
-  const stockText = stock === 0
-    ? 'Out of stock'
+  const backorder = stock === 0;
+  const stockTone = backorder ? 'brand.5' : stock <= 5 ? 'brand.5' : 'green.5';
+  const stockText = backorder
+    ? 'Back-order — delivery takes 3 extra days'
     : stock <= 5 ? `Only ${stock} left` : 'In stock — ships today';
 
   return (
     <>
+      <Button
+        variant="subtle"
+        color="gray"
+        size="xs"
+        leftSection={<IconArrowLeft size={14} />}
+        onClick={goBack}
+        mb={4}
+      >
+        Back to results
+      </Button>
+
       {/* crumbs only — the H1 lives in the buy box, and printing the
           product name twice was a real bug on this page */}
       <PageHeader
@@ -379,11 +402,15 @@ export default function ProductDetailPage() {
             <NumberInput
               value={qty}
               onChange={(v) => {
-                setQty(Math.max(1, Number(v) || 1));
+                /* REQ-2.6: 0, negatives, decimals and non-numbers all fall back to a whole number >= 1 */
+                const n = Math.floor(Number(v));
+                setQty(n >= 1 ? n : 1);
                 setAdded(false);
               }}
               min={1}
-              max={Math.max(1, stock)}
+              max={backorder ? 99 : stock}
+              allowDecimal={false}
+              allowNegative={false}
               w={110}
               styles={{ input: { height: 52 } }}
             />
@@ -391,12 +418,12 @@ export default function ProductDetailPage() {
               h={52}
               color="brand.5"
               c="black"
-              disabled={stock === 0 || !current}
+              disabled={!current}
               loading={adding}
               onClick={handleAddToCart}
               style={{ flex: 1 }}
             >
-              {stock === 0 ? 'Out of stock' : added ? 'Added to cart ✓' : 'Add to cart'}
+              {added ? 'Added to cart ✓' : backorder ? 'Add to cart (back-order)' : 'Add to cart'}
             </Button>
             <UnstyledButton
               aria-label="Save for later"
@@ -471,7 +498,7 @@ export default function ProductDetailPage() {
                 </Stack>
                 <Group gap={16} wrap="nowrap">
                   <Text fz={12} c={v.stockQuantity === 0 ? 'ink.4' : 'ink.2'}>
-                    {v.stockQuantity === 0 ? 'OUT OF STOCK' : `${v.stockQuantity} IN STOCK`}
+                    {v.stockQuantity === 0 ? 'BACK-ORDER' : `${v.stockQuantity} IN STOCK`}
                   </Text>
                   <Money value={v.price} fz={16} fw={500} />
                 </Group>
@@ -488,8 +515,8 @@ export default function ProductDetailPage() {
       <ProductRail title="Recently viewed" items={recent} />
 
       <Group mt={48}>
-        <Button component={Link} to="/products" variant="default">
-          Back to all products
+        <Button variant="default" leftSection={<IconArrowLeft size={16} />} onClick={goBack}>
+          Back to results
         </Button>
       </Group>
     </>
