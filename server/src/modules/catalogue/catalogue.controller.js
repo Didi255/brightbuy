@@ -14,14 +14,16 @@ exports.getProducts = async (req, res, next) => {
 // GET /api/products/:id
 exports.getProduct = async (req, res, next) => {
   try {
-    res.json(await service.getProduct(req.params.id));
+    const activeOnly = req.query.includeInactive === 'true' ? false : true;
+    res.json(await service.getProduct(req.params.id, { activeOnly }));
   } catch (err) { next(err); }
 };
 
 // GET /api/categories
 exports.getCategories = async (req, res, next) => {
   try {
-    res.json(await service.getCategoryTree());
+    const includeInactive = req.query.includeInactive === 'true';
+    res.json(await service.getCategoryTree({ includeInactive }));
   } catch (err) { next(err); }
 };
 

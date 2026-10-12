@@ -19,6 +19,7 @@ import CheckoutSuccessPage from '../features/cart/CheckoutSuccessPage';
 import HomePage from '../features/catalogue/HomePage';
 import ProductListPage from '../features/catalogue/ProductListPage';
 import ProductDetailPage from '../features/catalogue/ProductDetailPage';
+import CatalogueManagementPage from '../features/catalogue/CatalogueManagementPage';
 
 /* ── Slice D: auth & profile ──────────────────────────────────────── */
 import LoginPage from '../features/auth/LoginPage';
@@ -109,7 +110,7 @@ export default function AppRoutes() {
           path="/staff/catalogue"
           element={
             <ProtectedRoute requireStaff>
-              <PlaceholderPage title="Catalogue Management" slice="B" />
+              <CatalogueManagementPage />
             </ProtectedRoute>
           }
         />

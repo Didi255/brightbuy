@@ -27,8 +27,11 @@ function escapeLike(text) {
  * Parameter order must match the order the pieces appear in the final SQL:
  * cte -> where -> having.
  */
-function buildFilter({ q, brands, categoryId, minPrice, maxPrice }) {
-  const where = ['p.is_active = TRUE'];
+function buildFilter({ q, brands, categoryId, minPrice, maxPrice, includeInactive }) {
+  const where = [];
+  if (!includeInactive) {
+    where.push('p.is_active = TRUE');
+  }
   const having = [];
   const cteParams = [];
   const whereParams = [];
@@ -73,10 +76,16 @@ function buildFilter({ q, brands, categoryId, minPrice, maxPrice }) {
     havingParams.push(maxPrice);
   }
 
+  const joinVariant = includeInactive
+    ? 'LEFT JOIN variant v ON v.product_id = p.product_id'
+    : 'JOIN variant v ON v.product_id = p.product_id AND v.is_active = TRUE';
+
+  const whereClause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
   const core = `
       FROM product p
-      JOIN variant v ON v.product_id = p.product_id AND v.is_active = TRUE
-     WHERE ${where.join(' AND ')}
+      ${joinVariant}
+     ${whereClause}
      GROUP BY p.product_id
      ${having.length ? 'HAVING ' + having.join(' AND ') : ''}`;
 
@@ -100,8 +109,10 @@ exports.searchProducts = async (filters) => {
   const rowsSql = `${cte}
     SELECT p.product_id AS productId,
            p.product_name AS productName,
+           p.description AS description,
            p.brand AS brand,
            p.image_url AS imageUrl,
+           p.is_active AS isActive,
            CAST(MIN(v.price) AS CHAR) AS priceFrom,
            CAST(MAX(v.price) AS CHAR) AS priceTo
     ${core}
@@ -116,7 +127,12 @@ exports.searchProducts = async (filters) => {
     pool.query(countSql, params),
   ]);
 
-  return { rows, total: countRows[0].total };
+  const shapedRows = rows.map((r) => ({
+    ...r,
+    isActive: Boolean(r.isActive),
+  }));
+
+  return { rows: shapedRows, total: countRows[0].total };
 };
 
 /**
@@ -213,17 +229,21 @@ exports.findAttributesForVariants = async (variantIds) => {
 // Categories — reading
 // ===========================================================================
 
-exports.findActiveCategories = async () => {
+exports.findCategories = async ({ activeOnly = true } = {}) => {
+  const where = activeOnly ? 'WHERE is_active = TRUE' : '';
   const [rows] = await pool.query(
     `SELECT category_id AS categoryId,
             category_name AS categoryName,
-            parent_category_id AS parentCategoryId
+            parent_category_id AS parentCategoryId,
+            is_active AS isActive
        FROM category
-      WHERE is_active = TRUE
+       ${where}
       ORDER BY category_name, category_id`
   );
-  return rows;
+  return rows.map((r) => ({ ...r, isActive: Boolean(r.isActive) }));
 };
+
+exports.findActiveCategories = async () => exports.findCategories({ activeOnly: true });
 
 exports.findCategoryById = async (categoryId) => {
   const [rows] = await pool.query(

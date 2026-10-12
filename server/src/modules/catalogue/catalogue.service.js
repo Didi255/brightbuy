@@ -342,6 +342,7 @@ exports.searchProducts = async (query) => {
   const categoryId = readInt(query.categoryId, 'categoryId', errors, 1, MAX_INT);
   const minPrice   = readMoney(query.minPrice, 'minPrice', errors);
   const maxPrice   = readMoney(query.maxPrice, 'maxPrice', errors);
+  const includeInactive = readBoolean(query.includeInactive, 'includeInactive', errors);
   const page     = readInt(query.page, 'page', errors, 1, 1000000) ?? DEFAULT_PAGE;
   const pageSize = readInt(query.pageSize, 'pageSize', errors, 1, MAX_PAGE_SIZE) ?? DEFAULT_PAGE_SIZE;
 
@@ -352,6 +353,7 @@ exports.searchProducts = async (query) => {
 
   const { rows, total } = await repo.searchProducts({
     q, brands, categoryId, minPrice, maxPrice, sort,
+    includeInactive: Boolean(includeInactive),
     limit: pageSize,
     offset: (page - 1) * pageSize,
   });
@@ -368,9 +370,10 @@ exports.searchProducts = async (query) => {
 };
 
 /** GET /products/:id — REQ-2.1, 2.2 */
-exports.getProduct = async (rawId) => {
+exports.getProduct = async (rawId, options = {}) => {
   const productId = parseId(rawId);
-  return productResponse(productId, { activeOnly: true });
+  const activeOnly = options.activeOnly ?? true;
+  return productResponse(productId, { activeOnly });
 };
 
 /**
@@ -378,8 +381,9 @@ exports.getProduct = async (rawId) => {
  * Returned as a bare array (not wrapped in { data }): API.md says "a tree", and
  * ProductListPage.jsx walks the response directly.
  */
-exports.getCategoryTree = async () => {
-  const rows = await repo.findActiveCategories();
+exports.getCategoryTree = async (options = {}) => {
+  const includeInactive = options.includeInactive ?? false;
+  const rows = await repo.findCategories({ activeOnly: !includeInactive });
 
   const nodes = new Map(rows.map((r) => [r.categoryId, { ...r, children: [] }]));
   const roots = [];
