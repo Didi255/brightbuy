@@ -139,3 +139,25 @@ exports.markCodPaid = async (staffId, paymentId) => {
     staffId: staffId,
   };
 };
+
+exports.expireFailedCardPayments = async () => {
+  const expired = await repo.findExpiredFailedCardPayments();
+  const failures = [];
+  let cancelled = 0;
+
+  for (const payment of expired) {
+    try {
+      await repo.cancelExpiredPaymentOrder(payment.order_id);
+      cancelled += 1;
+      console.info(`Expired failed card payment cancelled for order ${payment.order_id}`);
+    } catch (error) {
+      failures.push(payment.order_id);
+      console.error(
+        `Could not cancel expired failed card payment for order ${payment.order_id}:`,
+        error.message
+      );
+    }
+  }
+
+  return { examined: expired.length, cancelled, failedOrderIds: failures };
+};
