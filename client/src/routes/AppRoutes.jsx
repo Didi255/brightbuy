@@ -39,6 +39,7 @@ import StaffDashboardPage from '../features/staff/StaffDashboardPage';
 import NotFoundPage from '../features/staff/NotFoundPage';
 import PaymentPage from '../features/payments/PaymentPage';
 import ReportsPage from '../features/staff/ReportsPage';
+import StockAdjustmentsPage from '../features/staff/stockAdjustmentsPage';
 import StaffOrdersPage from '../features/staff/StaffOrdersPage';
 
 /* ── Placeholder pages (replaced as each slice lands) ─────────────── */
@@ -90,11 +91,7 @@ export default function AppRoutes() {
         <Route
           path="/orders"
           element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
-<<<<<<< HEAD
-        />        
-=======
         />
->>>>>>> risandu-oct12
 
         {/* --- Slice E: payments & staff --- */}
         <Route
@@ -121,7 +118,7 @@ export default function AppRoutes() {
           path="/staff/stock"
           element={
             <ProtectedRoute requireStaff>
-              <stockAdjustmentsPage/>
+              <StockAdjustmentsPage />
             </ProtectedRoute>
           }
         />
@@ -129,7 +126,7 @@ export default function AppRoutes() {
           path="/staff/orders"
           element={
             <ProtectedRoute requireStaff>
-              <staffOrdersPage />
+              <StaffOrdersPage />
             </ProtectedRoute>
           }
         />
