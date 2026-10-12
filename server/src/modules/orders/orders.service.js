@@ -142,8 +142,6 @@ function toOrderShape(row, items, payment){
 
 
 
-module.exports = {confirmCheckout,getOrder,listOrders,cancelOrder};
-
 
 exports.listAllOrders = async (filters = {}) => {
   if (filters.from && isNaN(Date.parse(filters.from))) {
@@ -220,4 +218,14 @@ exports.adjustStock = async (staffId, variantId, changeQty, reason) => {
   }
 
   return { adjustmentId: result.adjustmentId, variantId, staffId, changeQty, reason: reason.trim() };
+};
+
+module.exports = {
+  confirmCheckout,
+  getOrder,
+  listOrders,
+  cancelOrder,
+  listAllOrders,
+  transitionOrderStatus,
+  adjustStock,
 };
