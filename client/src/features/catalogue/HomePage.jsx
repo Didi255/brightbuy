@@ -15,7 +15,6 @@
  * this via the `isFullWidth` layout check on the "/" route.
  */
 import { useEffect, useState } from 'react';
-
 import {
   HeroSection,
   CategoryShowcase,
