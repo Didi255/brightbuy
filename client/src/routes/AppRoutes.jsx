@@ -117,7 +117,7 @@ export default function AppRoutes() {
           path="/staff/stock"
           element={
             <ProtectedRoute requireStaff>
-              <PlaceholderPage title="Stock Adjustments" slice="E" />
+              <stockAdjustmentsPage/>
             </ProtectedRoute>
           }
         />
