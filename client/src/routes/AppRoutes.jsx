@@ -89,9 +89,7 @@ export default function AppRoutes() {
         <Route
           path="/orders"
           element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
-        />
-        <Route path="/orders/:orderId/pay" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
-        
+        />        
 
         {/* --- Slice E: payments & staff --- */}
         <Route
