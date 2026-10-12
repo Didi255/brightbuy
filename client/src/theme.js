@@ -169,5 +169,6 @@ export const theme = createTheme({
     PasswordInput: { defaultProps: { radius: 'md' } },
     Select:        { defaultProps: { radius: 'md' } },
     NumberInput:   { defaultProps: { radius: 'md' } },
+    Stepper:       { defaultProps: { color: 'brand.5', radius: 999, size: 'sm' } },
   },
 });
