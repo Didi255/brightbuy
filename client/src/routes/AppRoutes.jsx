@@ -1,4 +1,3 @@
-
 /**
  * AppRoutes — route map for BrightBuy
  * OWNER: shared (everyone adds inside their own block)
@@ -7,7 +6,7 @@
  * Group routes by slice with a comment header, in the order in the table.
  * Always git pull immediately before editing this file.
  */
-import { Routes, Route } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { AppShell } from '../components/layout';
 import { useCart } from '../context/CartContext';
 
@@ -26,22 +25,25 @@ import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import ProfilePage from '../features/auth/ProfilePage';
 import AddressBookPage from '../features/auth/AddressBookPage';
-import ProtectedRoute from './ProtectedRoute';
 import CityManagementPage from '../features/auth/CityManagementPage';
 import UserManagementPage from '../features/auth/UserManagementPage';
 import AuditLogPage from '../features/auth/AuditLogPage';
 
+/* ── Route protection ─────────────────────────────────────────────── */
+import ProtectedRoute from './ProtectedRoute';
+
 /* ── Slice A: orders ──────────────────────────────────────────────── */
 import OrderHistoryPage from '../features/orders/OrderHistoryPage';
 
-/* ── Slice E: staff console ───────────────────────────────────────── */
-import StaffDashboardPage from '../features/staff/StaffDashboardPage';
-import NotFoundPage from '../features/staff/NotFoundPage';
+/* ── Slice E: payments, reports & staff console ───────────────────── */
 import PaymentPage from '../features/payments/PaymentPage';
 import ReportsPage from '../features/staff/ReportsPage';
+import StaffDashboardPage from '../features/staff/StaffDashboardPage';
 import StaffOrdersPage from '../features/staff/StaffOrdersPage';
+import StockAdjustmentsPage from '../features/staff/stockAdjustmentsPage';
+import NotFoundPage from '../features/staff/NotFoundPage';
 
-/* ── Placeholder pages (replaced as each slice lands) ─────────────── */
+/* ── Shared routing ───────────────────────────────────────────────── */
 import PlaceholderPage from '../features/PlaceholderPage';
 import ScrollToTop from './ScrollToTop';
 
@@ -50,123 +52,138 @@ export default function AppRoutes() {
 
   return (
     <>
-      {/* resets the scroll offset on every pathname change */}
       <ScrollToTop />
+
       <Routes>
-      <Route element={<AppShell cartItemCount={itemCount} />}>
-        {/* --- Slice B: catalogue --- */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/products" element={<ProductListPage />} />
-        <Route path="/products/:productId" element={<ProductDetailPage />} />
+        <Route element={<AppShell cartItemCount={itemCount} />}>
+          {/* --- Slice B: catalogue --- */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/products" element={<ProductListPage />} />
+          <Route path="/products/:productId" element={<ProductDetailPage />} />
 
-        {/* --- Slice C: cart & checkout --- */}
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/checkout/success/:orderId" element={<CheckoutSuccessPage />} />
+          {/* --- Slice C: cart & checkout --- */}
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route
+            path="/checkout/success/:orderId"
+            element={<CheckoutSuccessPage />}
+          />
 
-        {/* --- Slice D: auth & profile --- */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route
-          path="/account"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/account/addresses"
-          element={
-            <ProtectedRoute>
-              <AddressBookPage />
-            </ProtectedRoute>
-          }
-        />
+          {/* --- Slice D: auth & profile --- */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account/addresses"
+            element={
+              <ProtectedRoute>
+                <AddressBookPage />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* --- Slice A: orders --- */}
-        {/* The list and the detail are one component: /orders/:orderId
-            renders the list with that order expanded. */}
-        <Route
-          path="/orders"
-          element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
-        />        
+          {/* --- Slice A: orders --- */}
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <OrderHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders/:orderId"
+            element={
+              <ProtectedRoute>
+                <OrderHistoryPage />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* --- Slice E: payments & staff --- */}
-        <Route
-          path="/orders/:orderId/pay"
-          element={<ProtectedRoute><PaymentPage /></ProtectedRoute>}
-        />        
-        <Route
-          path="/staff"
-          element={
-            <ProtectedRoute requireStaff>
-              <StaffDashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/catalogue"
-          element={
-            <ProtectedRoute requireStaff>
-              <PlaceholderPage title="Catalogue Management" slice="B" />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/stock"
-          element={
-            <ProtectedRoute requireStaff>
-              <stockAdjustmentsPage/>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/orders"
-          element={
-            <ProtectedRoute requireStaff>
-              <staffOrdersPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/cities"
-          element={
-            <ProtectedRoute requireStaff>
-              <CityManagementPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/staff/users"
-          element={
-            <ProtectedRoute requireAdmin>
-              <UserManagementPage />
-            </ProtectedRoute>
-          }
-        />
-        
-        <Route
-          path="/staff/audit-log"
-          element={
-            <ProtectedRoute requireAdmin>
-              <AuditLogPage />
-            </ProtectedRoute>
-          }
-        />
+          {/* --- Slice E: payment and staff --- */}
+          <Route
+            path="/orders/:orderId/pay"
+            element={
+              <ProtectedRoute>
+                <PaymentPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff"
+            element={
+              <ProtectedRoute requireStaff>
+                <StaffDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/catalogue"
+            element={
+              <ProtectedRoute requireStaff>
+                <PlaceholderPage title="Catalogue Management" slice="B" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/stock"
+            element={
+              <ProtectedRoute requireStaff>
+                <StockAdjustmentsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/orders"
+            element={
+              <ProtectedRoute requireStaff>
+                <StaffOrdersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/cities"
+            element={
+              <ProtectedRoute requireStaff>
+                <CityManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/users"
+            element={
+              <ProtectedRoute requireAdmin>
+                <UserManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/audit-log"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AuditLogPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/reports"
+            element={
+              <ProtectedRoute requireStaff>
+                <ReportsPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/staff/reports"
-          element={
-            <ProtectedRoute requireStaff>
-              <ReportsPage/>
-            </ProtectedRoute>
-          }
-        />
-
-        {/* 404 */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
+          {/* 404 */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
       </Routes>
     </>
   );
