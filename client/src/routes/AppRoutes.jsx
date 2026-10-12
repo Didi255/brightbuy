@@ -40,7 +40,7 @@ import PaymentPage from '../features/payments/PaymentPage';
 import ReportsPage from '../features/staff/ReportsPage';
 import StaffDashboardPage from '../features/staff/StaffDashboardPage';
 import StaffOrdersPage from '../features/staff/StaffOrdersPage';
-import StockAdjustmentsPage from '../features/staff/stockAdjustmentsPage';
+import StockAdjustmentsPage from '../features/staff/StockAdjustmentsPage';
 import NotFoundPage from '../features/staff/NotFoundPage';
 
 /* ── Shared routing ───────────────────────────────────────────────── */
