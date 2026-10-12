@@ -1,9 +1,15 @@
-/**
- * payments slice — OWNER: M5
- * Copy the shape of modules/auth/. Mount this router in src/app.js when ready.
- */
 const router = require('express').Router();
+const controller = require('./payments.controller');
+const { requireAuth, requireRole } = require('../../middleware/auth');
 
-// TODO(M5): define routes here
+router.post('/payments/card', requireAuth, controller.payCard);
+router.post('/payments/:id/retry', requireAuth, controller.retryPayment);
+
+router.patch(
+  '/admin/payments/:id',
+  requireAuth,
+  requireRole('admin', 'major_exec', 'minor_exec', 'labour'),
+  controller.markCodPaid
+);
 
 module.exports = router;

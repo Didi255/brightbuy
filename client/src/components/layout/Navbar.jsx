@@ -181,30 +181,40 @@ export default function Navbar({ cartItemCount = 0 }) {
               </ActionIcon>
             </Tooltip>
 
-            {/* cart */}
-            <Tooltip label="Shopping cart" withArrow>
-              <ActionIcon
-                variant="subtle"
-                radius="sm"
-                size="lg"
-                className="bb-action-icon bb-cart-badge"
-                onClick={() => navigate('/cart')}
-                aria-label={`Cart with ${cartItemCount} items`}
-              >
-                <IconShoppingCart size={25} stroke={1.8} />
-                {cartItemCount > 0 && (
-                  <span
-                    className={`bb-cart-badge__count ${cartBump ? 'bb-cart-badge__count--bump' : ''}`}
-                  >
-                    {cartItemCount > 99 ? '99+' : cartItemCount}
-                  </span>
-                )}
-              </ActionIcon>
-            </Tooltip>
+            {/* cart (customers & guests only) */}
+            {!isStaff && (
+              <Tooltip label="Shopping cart" withArrow>
+                <ActionIcon
+                  variant="subtle"
+                  radius="sm"
+                  size="lg"
+                  className="bb-action-icon bb-cart-badge"
+                  style={{ overflow: 'visible' }}
+                  onClick={() => navigate('/cart')}
+                  aria-label={`Cart with ${cartItemCount} items`}
+                >
+                  <IconShoppingCart size={25} stroke={1.8} />
+                  {cartItemCount > 0 && (
+                    <span
+                      className={`bb-cart-badge__count ${cartBump ? 'bb-cart-badge__count--bump' : ''}`}
+                    >
+                      {cartItemCount > 99 ? '99+' : cartItemCount}
+                    </span>
+                  )}
+                </ActionIcon>
+              </Tooltip>
+            )}
 
             {/* user menu / login */}
             {user ? (
-              <Menu shadow="none" width={220} position="bottom-end" withArrow arrowPosition="center">
+              <Menu
+                shadow="xl"
+                width={220}
+                position="bottom-end"
+                withArrow
+                arrowPosition="center"
+                offset={10}
+              >
                 <Menu.Target>
                   <ActionIcon
                     variant="subtle"
@@ -219,10 +229,10 @@ export default function Navbar({ cartItemCount = 0 }) {
 
                 <Menu.Dropdown>
                   <Menu.Label>
-                    <Text size="sm" fw={600}>{user.firstName} {user.lastName || ''}</Text>
-                    <Text size="xs" c="dimmed">{user.email}</Text>
+                    <Text size="sm" fw={600} c="ink.0">{user.firstName} {user.lastName || ''}</Text>
+                    <Text size="xs" c="ink.3">{user.email}</Text>
                   </Menu.Label>
-                  <Divider />
+                  <Divider my={4} color="rgba(255,236,214,0.08)" />
                   <Menu.Item
                     leftSection={<IconUser size={16} />}
                     onClick={() => navigate('/account')}
@@ -243,7 +253,7 @@ export default function Navbar({ cartItemCount = 0 }) {
                   </Menu.Item>
                   {isStaff && (
                     <>
-                      <Divider label="Staff" labelPosition="center" />
+                      <Divider label="Staff" labelPosition="center" my={4} color="rgba(255,236,214,0.08)" />
                       <Menu.Item
                         leftSection={<IconDashboard size={16} />}
                         onClick={() => navigate('/staff')}
@@ -252,9 +262,8 @@ export default function Navbar({ cartItemCount = 0 }) {
                       </Menu.Item>
                     </>
                   )}
-                  <Divider />
+                  <Divider my={4} color="rgba(255,236,214,0.08)" />
                   <Menu.Item
-                    color="red"
                     leftSection={<IconLogout size={16} />}
                     onClick={() => {
                       logout();
@@ -346,25 +355,27 @@ export default function Navbar({ cartItemCount = 0 }) {
                 </Link>
               ))}
 
-              <Link to="/cart" className="bb-mobile-link">
-                <IconShoppingCart size={20} stroke={1.6} />
-                Cart
-                {cartItemCount > 0 && (
-                  <span
-                    style={{
-                      marginLeft: 'auto',
-                      background: 'var(--mantine-color-brand-5)',
-                      color: '#fff',
-                      fontSize: 12,
-                      fontWeight: 700,
-                      borderRadius: 10,
-                      padding: '2px 8px',
-                    }}
-                  >
-                    {cartItemCount}
-                  </span>
-                )}
-              </Link>
+              {!isStaff && (
+                <Link to="/cart" className="bb-mobile-link">
+                  <IconShoppingCart size={20} stroke={1.6} />
+                  Cart
+                  {cartItemCount > 0 && (
+                    <span
+                      style={{
+                        marginLeft: 'auto',
+                        background: 'var(--mantine-color-brand-5)',
+                        color: '#fff',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        borderRadius: 10,
+                        padding: '2px 8px',
+                      }}
+                    >
+                      {cartItemCount}
+                    </span>
+                  )}
+                </Link>
+              )}
 
               <Divider
                 my="sm"
@@ -402,10 +413,10 @@ export default function Navbar({ cartItemCount = 0 }) {
                     className="bb-mobile-link"
                     style={{
                       width: '100%',
-                      background: 'rgba(255,80,80,0.15)',
+                      background: 'rgba(255,140,0,0.12)',
                       border: 'none',
                       cursor: 'pointer',
-                      color: 'var(--mantine-color-red-4)',
+                      color: 'var(--mantine-color-brand-5)',
                     }}
                     onClick={() => {
                       logout();

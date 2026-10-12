@@ -24,6 +24,7 @@ import { PageHeader } from '../../components/layout';
 import { Money, ErrorAlert, EmptyState, ProductTile, ProductRail } from '../../components/ui';
 import { pushRecent, readRecent } from '../../api/recentlyViewed';
 import { api } from '../../api/client';
+import { useCart } from '../../context/CartContext';
 
 const LINE = 'rgba(255,236,214,0.10)';
 const EASE = 'cubic-bezier(0.2, 0, 0, 1)';
@@ -92,6 +93,7 @@ function SpecRow({ label, value }) {
 
 export default function ProductDetailPage() {
   const { productId } = useParams();
+  const { addItem } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -99,6 +101,9 @@ export default function ProductDetailPage() {
   const [qty, setQty] = useState(1);
   const [related, setRelated] = useState([]);
   const [recent, setRecent] = useState([]);
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState(false);
+  const [addError, setAddError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -111,7 +116,7 @@ export default function ProductDetailPage() {
     api.get(`/products/${productId}`)
       .then((p) => {
         if (cancelled) return;
-        setProduct(p); setPicked({}); setQty(1);
+        setProduct(p); setPicked({}); setQty(1); setAdded(false); setAddError(null);
         pushRecent(p);
         const cat = p.categories?.[0]?.categoryId;
         if (cat) {
@@ -164,6 +169,21 @@ export default function ProductDetailPage() {
       others.every(([k, val]) =>
         (v.attributes || []).some((a) => a.name === k && a.value === val)));
   }
+
+  const handleAddToCart = async () => {
+    if (!current?.variantId) return;
+    try {
+      setAdding(true);
+      setAddError(null);
+      await addItem(current.variantId, qty);
+      setAdded(true);
+      setTimeout(() => setAdded(false), 2500);
+    } catch (err) {
+      setAddError(err);
+    } finally {
+      setAdding(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -314,11 +334,14 @@ export default function ProductDetailPage() {
                     <UnstyledButton
                       key={val}
                       disabled={!ok}
-                      onClick={() =>
+                      onClick={() => {
+                        setAdded(false);
+                        setAddError(null);
                         setPicked((prev) =>
                           prev[axis.name] === val
                             ? Object.fromEntries(Object.entries(prev).filter(([k]) => k !== axis.name))
-                            : { ...prev, [axis.name]: val })}
+                            : { ...prev, [axis.name]: val });
+                      }}
                       style={{
                         height: 38, padding: '0 16px', borderRadius: 4,
                         border: `1px solid ${on ? 'var(--mantine-color-brand-5)' : LINE}`,
@@ -350,10 +373,15 @@ export default function ProductDetailPage() {
             <Text fz={14} c={stockTone}>{stockText}</Text>
           </Group>
 
+          {addError && <ErrorAlert error={addError} mb={8} />}
+
           <Group gap={12} wrap="nowrap" align="flex-end">
             <NumberInput
               value={qty}
-              onChange={(v) => setQty(Math.max(1, Number(v) || 1))}
+              onChange={(v) => {
+                setQty(Math.max(1, Number(v) || 1));
+                setAdded(false);
+              }}
               min={1}
               max={Math.max(1, stock)}
               w={110}
@@ -363,10 +391,12 @@ export default function ProductDetailPage() {
               h={52}
               color="brand.5"
               c="black"
-              disabled={stock === 0}
+              disabled={stock === 0 || !current}
+              loading={adding}
+              onClick={handleAddToCart}
               style={{ flex: 1 }}
             >
-              {stock === 0 ? 'Out of stock' : 'Add to cart'}
+              {stock === 0 ? 'Out of stock' : added ? 'Added to cart ✓' : 'Add to cart'}
             </Button>
             <UnstyledButton
               aria-label="Save for later"
