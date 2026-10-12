@@ -295,10 +295,7 @@ export default function UserManagementPage() {
       label: 'Account Type',
       sortable: true,
       render: (user) => (
-        <Badge
-          color={user.userType === 'staff' ? 'gray' : 'blue'}
-          variant="light"
-        >
+        <Badge color= 'gray' variant="light">
           {user.userType}
         </Badge>
       ),

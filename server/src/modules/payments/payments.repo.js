@@ -79,3 +79,21 @@ exports.markCodPaid = async (paymentId, staffId) => {
     [staffId, paymentId]
   );
 };
+
+exports.findExpiredFailedCardPayments = async () => {
+  const [rows] = await pool.query(
+    `SELECT p.order_id
+       FROM payment p
+       JOIN orders o ON o.order_id = p.order_id
+      WHERE p.payment_method = 'card'
+        AND p.payment_status = 'Failed'
+        AND p.updated_at <= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 24 HOUR)
+        AND o.order_status IN ('Placed', 'Processing')
+      ORDER BY p.updated_at, p.payment_id`
+  );
+  return rows;
+};
+
+exports.cancelExpiredPaymentOrder = async (orderId) => {
+  await pool.query('CALL sp_cancel_order(?, ?)', [orderId, null]);
+};
