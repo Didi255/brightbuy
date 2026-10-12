@@ -233,11 +233,12 @@ exports.updateOrderStatus = async (orderId, newStatus) => {
 exports.createStockAdjustment = async (variantId, staffId, changeQty, reason) => {
   return withTransaction(async (conn) => {
     const [rows] = await conn.query(
-      'SELECT stock_qty FROM product_variant WHERE variant_id = ? FOR UPDATE',
+      'SELECT stock_quantity FROM variant WHERE variant_id = ? FOR UPDATE',
       [variantId]
     );
+
     if (rows.length === 0) return { notFound: true };
-    if (rows[0].stock_qty + changeQty < 0) return { insufficient: true };
+    if (rows[0].stock_quantity + changeQty < 0) return { insufficient: true };
 
     const [result] = await conn.query(
       `INSERT INTO stock_adjustment (variant_id, staff_id, change_qty, reason)
@@ -245,12 +246,12 @@ exports.createStockAdjustment = async (variantId, staffId, changeQty, reason) =>
       [variantId, staffId, changeQty, reason]
     );
 
-    // Remove this UPDATE if a trigger already applies the change.
     await conn.query(
-      'UPDATE product_variant SET stock_qty = stock_qty + ? WHERE variant_id = ?',
+      'UPDATE variant SET stock_quantity = stock_quantity + ? WHERE variant_id = ?',
       [changeQty, variantId]
     );
 
     return { adjustmentId: result.insertId };
   });
 };
+ 
