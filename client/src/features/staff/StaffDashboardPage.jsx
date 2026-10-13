@@ -1,4 +1,3 @@
-
 /**
  * StaffDashboardPage — the operations overview. OWNER: Slice E
  *
@@ -8,18 +7,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Box, Group, Stack, Text } from '@mantine/core';
-import {
-  IconArrowUpRight,
-  IconArrowDownRight,
-  IconAlertTriangle,
-} from '@tabler/icons-react';
 
 import { PageHeader } from '../../components/layout';
 import {
   Money,
   DataTable,
   StatusBadge,
-  EmptyState,
   ErrorAlert,
 } from '../../components/ui';
 import { api } from '../../api/client';
@@ -31,62 +24,6 @@ const MONO = {
   fontSize: 14,
   fontWeight: 400,
 };
-
-/** One KPI. delta is a signed percentage. */
-function Kpi({ label, value, delta, goodWhenUp = true }) {
-  const up = typeof delta === 'number' && delta >= 0;
-  const good = up === goodWhenUp;
-  const Icon = up ? IconArrowUpRight : IconArrowDownRight;
-
-  return (
-    <Box
-      p={16}
-      style={{
-        flex: '1 1 200px',
-        minWidth: 0,
-        outline: `1px solid ${LINE}`,
-      }}
-    >
-      <Text style={MONO} c="ink.4">
-        {label}
-      </Text>
-
-      <Text
-        fz={32}
-        fw={500}
-        c="ink.0"
-        mt={8}
-        style={{
-          fontVariantNumeric: 'tabular-nums',
-          lineHeight: 1,
-        }}
-      >
-        {value}
-      </Text>
-
-      {typeof delta === 'number' && (
-        <Group gap={4} mt={8} wrap="nowrap">
-          <Icon
-            size={13}
-            style={{
-              color: good
-                ? 'var(--mantine-color-green-5)'
-                : 'var(--mantine-color-red-5)',
-            }}
-          />
-
-          <Text fz={12} c={good ? 'green.5' : 'red.5'}>
-            {Math.abs(delta)}%
-          </Text>
-
-          <Text fz={12} c="ink.4">
-            vs last week
-          </Text>
-        </Group>
-      )}
-    </Box>
-  );
-}
 
 function Panel({ title, action, children }) {
   return (
@@ -129,10 +66,7 @@ export default function StaffDashboardPage() {
 
     try {
       const result = await api.get('/admin/orders');
-
-      setOrders(
-        Array.isArray(result) ? result.slice(0, 10) : []
-      );
+      setOrders(Array.isArray(result) ? result.slice(0, 10) : []);
     } catch (error) {
       setOrdersError(error);
     } finally {
@@ -148,23 +82,24 @@ export default function StaffDashboardPage() {
     {
       key: 'orderId',
       label: 'Order',
-      render: (r) => (
+      render: (order) => (
         <Text fz={13} c="ink.0">
-          #{r.orderId}
+          #{order.orderId}
         </Text>
       ),
     },
     {
       key: 'customerName',
       label: 'Customer',
+      render: (order) => `${order.firstName} ${order.lastName}`,
     },
     {
       key: 'orderStatus',
       label: 'Status',
-      render: (r) => (
+      render: (order) => (
         <StatusBadge
-          status={r.orderStatus}
-          deliveryMode={r.deliveryMode}
+          status={order.orderStatus}
+          deliveryMode={order.deliveryMode}
         />
       ),
     },
@@ -172,8 +107,8 @@ export default function StaffDashboardPage() {
       key: 'totalAmount',
       label: 'Total',
       align: 'right',
-      render: (r) => (
-        <Money value={r.totalAmount} fz={14} />
+      render: (order) => (
+        <Money value={order.totalAmount} fz={14} />
       ),
     },
   ];
@@ -186,44 +121,10 @@ export default function StaffDashboardPage() {
           { label: 'Staff', to: '/staff' },
           { label: 'Dashboard' },
         ]}
-        subtitle="Today's operations at a glance."
+        subtitle="Review recent orders and open staff reports."
       />
 
       <Stack gap={24}>
-        {/* KPI row */}
-        <Box
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            border: `1px solid ${LINE}`,
-            borderRadius: 8,
-            overflow: 'hidden',
-          }}
-        >
-          <Kpi
-            label="Orders today"
-            value="—"
-          />
-
-          <Kpi
-            label="Revenue today"
-            value="—"
-          />
-
-          <Kpi
-            label="Pending fulfilment"
-            value="—"
-            goodWhenUp={false}
-          />
-
-          <Kpi
-            label="Low-stock SKUs"
-            value="—"
-            goodWhenUp={false}
-          />
-        </Box>
-
-        {/* Recent orders and attention panel */}
         <Box
           style={{
             display: 'flex',
@@ -253,7 +154,10 @@ export default function StaffDashboardPage() {
             >
               {ordersError && (
                 <Box p={16}>
-                  <ErrorAlert error={ordersError} />
+                  <ErrorAlert
+                    error={ordersError}
+                    onRetry={loadOrders}
+                  />
                 </Box>
               )}
 
@@ -263,7 +167,7 @@ export default function StaffDashboardPage() {
                 loading={ordersLoading}
                 emptyMessage={
                   ordersError
-                    ? 'Unable to load orders. Please try again.'
+                    ? 'Unable to load orders. Try again.'
                     : 'No orders to show.'
                 }
               />
@@ -276,13 +180,22 @@ export default function StaffDashboardPage() {
               minWidth: 0,
             }}
           >
-            <Panel title="Needs attention">
+            <Panel title="Reports">
               <Box p={16}>
-                <EmptyState
-                  icon={IconAlertTriangle}
-                  title="Nothing flagged"
-                  message="Failed payments, out-of-stock orders and overdue dispatches will appear here once the reports API is connected."
-                />
+                <Stack gap={8}>
+                  <Text c="ink.2">
+                    Review sales, products, categories, deliveries, and customer
+                    activity in the reports dashboard.
+                  </Text>
+                  <Text
+                    component={Link}
+                    to="/staff/reports"
+                    style={MONO}
+                    c="brand.5"
+                  >
+                    Open reports →
+                  </Text>
+                </Stack>
               </Box>
             </Panel>
           </Box>
