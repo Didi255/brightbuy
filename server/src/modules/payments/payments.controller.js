@@ -21,7 +21,11 @@ exports.retryPayment = async (req, res, next) => {
 
 exports.markCodPaid = async (req, res, next) => {
   try {
-    const result = await service.markCodPaid(req.user.userId, Number(req.params.id));
+      const result = await service.markCodPaid(
+      req.user.userId,
+      Number(req.params.id),
+      req.body?.paymentStatus
+    );
     res.json(result);
   } catch (err) { next(err); }
 };

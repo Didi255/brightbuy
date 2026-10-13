@@ -127,7 +127,13 @@ exports.retryPayment = async (userId, paymentId, mockOutcome) => {
   };
 };
 
-exports.markCodPaid = async (staffId, paymentId) => {
+exports.markCodPaid = async (staffId, paymentId,requestedStatus) => {
+    if (requestedStatus !== undefined && requestedStatus !== 'Paid') {
+    throw ApiError.badRequest('Invalid paymentStatus', {
+      paymentStatus: "must be 'Paid'",
+    });
+  }
+
   const numericPaymentId = Number(paymentId);
 
   if (!Number.isInteger(numericPaymentId) || numericPaymentId <= 0) {
@@ -154,7 +160,7 @@ exports.markCodPaid = async (staffId, paymentId) => {
   if (changed === 0) {
     throw ApiError.conflict('NOT_PENDING', 'Payment is no longer pending');
   }
-  
+
   logEmail({
     to: payment.email,
     subject: 'Payment Received',
