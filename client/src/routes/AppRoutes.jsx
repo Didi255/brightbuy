@@ -94,6 +94,14 @@ export default function AppRoutes() {
           path="/orders"
           element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
         />
+        {/* Same component: it reads :orderId with useParams and opens that
+            order's detail over the list. Without this route, every "view
+            order" link — from the list, from checkout success, and from the
+            payment page — fell through to the 404. */}
+        <Route
+          path="/orders/:orderId"
+          element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
+        />
 
         {/* --- Slice E: payments & staff --- */}
         <Route
@@ -120,7 +128,7 @@ export default function AppRoutes() {
           path="/staff/stock"
           element={
             <ProtectedRoute requireStaff>
-              <StockAdjustmentPage />
+              <StockAdjustmentsPage />
             </ProtectedRoute>
           }
         />

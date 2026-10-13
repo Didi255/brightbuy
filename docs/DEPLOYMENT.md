@@ -162,7 +162,7 @@ brightbuy/
 │   └── scripts/                   run-migrations.js, run-seeds.js
 ├── client/                        React + Vite SPA  →  dist/
 ├── database/
-│   ├── migrations/                14 numbered .sql files, tracked in `schema_migrations`
+│   ├── migrations/                16 numbered .sql files, tracked in `schema_migrations`
 │   ├── seeds/                     01_cities_users · 02_catalogue · 03_demo_orders
 │   └── tools/                     asset scripts (icons, hero, product-image tinting)
 └── .dockerignore                  one file; both builds use the repo root as context  [REPO]

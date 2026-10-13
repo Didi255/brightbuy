@@ -343,15 +343,24 @@ role inheritance, and view-level encapsulation. Full SQL in `COURSE-COVERAGE.md`
 Before adding each index: run `EXPLAIN` on the query, add the index, run `EXPLAIN` again, keep
 both outputs. The before/after comparison goes in the final report.
 
-| Index | Table | Column(s) | Supports |
-|---|---|---|---|
-| `idx_product_name` | `product` | `product_name` | REQ-1.5 search |
-| `idx_prodcat_category` | `product_category` | `category_id` | Category listing |
-| `idx_orders_date` | `orders` | `order_date` | Reports 1, 2 — REQ-12.6 |
-| `idx_orders_customer` | `orders` | `customer_id` | Report 5, order history |
-| `idx_orderitem_variant` | `order_item` | `variant_id` | Report 2 |
-| `idx_delivery_est_date` | `delivery` | `estimated_delivery_date` | Report 4 |
-| `idx_audit_created` | `admin_audit_log` | `created_at` | Audit log viewer |
+**What exists in the database** (verified with `SHOW INDEX` on a database built from every migration):
+
+| Index | Table | Column(s) | Supports | Created in |
+|---|---|---|---|---|
+| `idx_orders_date` | `orders` | `order_date` | Reports 1, 2 — REQ-12.6 | 006 |
+| `idx_orders_customer` | `orders` | `customer_id` | Report 5, order history. InnoDB reuses it for the FK, so there is no second index. | 006 |
+| `idx_delivery_est_date` | `delivery` | `estimated_delivery_date` | Report 4 | 006 |
+| `idx_audit_actor` | `admin_audit_log` | `actor_user_id` | Audit log viewer | 010 |
+| `idx_audit_entity` | `admin_audit_log` | `(entity_type, entity_id)` | Audit log viewer | 010 |
+| `idx_audit_created` | `admin_audit_log` | `created_at` | Audit log viewer | 010 |
+
+**Planned and deliberately not created**, each verified rather than assumed:
+
+| Planned | Why not |
+|---|---|
+| `idx_prodcat_category` on `product_category(category_id)` | **Already exists.** `PRIMARY KEY (product_id, category_id)` cannot serve a lookup on `category_id` alone (leftmost-prefix rule), so InnoDB built an index for the foreign key automatically. |
+| `idx_orderitem_variant` on `order_item(variant_id)` | **Already exists** as `fk_order_item_variant`, built by InnoDB for the foreign key. |
+| `idx_product_name` on `product(product_name)` | **Cannot help.** Search uses `LIKE '%keyword%'`; a leading wildcard cannot seek into a B-tree, so MySQL scans regardless. |
 
 InnoDB indexes primary keys, unique keys, and foreign keys automatically. Don't duplicate those
 — and know which ones they are, because you'll be asked.
