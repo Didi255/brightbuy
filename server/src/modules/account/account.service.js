@@ -100,6 +100,39 @@ exports.createAddress = async (user, input) => {
   return { addressId };
 };
 
+exports.setDefaultAddress = async (user, addressId) => {
+  // Only customers can manage their default address.
+  if (user.userType !== 'customer') {
+    throw ApiError.forbidden();
+  }
+
+  const parsedAddressId = Number(addressId);
+
+  if (
+    !Number.isSafeInteger(parsedAddressId) ||
+    parsedAddressId <= 0
+  ) {
+    throw ApiError.badRequest('Validation failed', {
+      addressId: 'Invalid address ID',
+    });
+  }
+
+  const updated = await repo.setDefaultAddress(
+    user.userId,
+    parsedAddressId
+  );
+
+  if (!updated) {
+    throw ApiError.notFound('Address not found');
+  }
+
+  return {
+    addressId: parsedAddressId,
+    isDefault: true,
+  };
+};
+
+
 exports.getCities = async () => {
   return repo.findAllCities();
 };
