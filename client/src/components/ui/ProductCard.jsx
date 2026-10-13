@@ -24,9 +24,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Box, Text, Group, Stack, UnstyledButton } from '@mantine/core';
 import {
-  IconStarFilled, IconHeart, IconHeartFilled, IconShoppingCart,
+  IconStarFilled, IconShoppingCart,
 } from '@tabler/icons-react';
-import { isFavourite, toggleFavourite } from '../../api/favourites';
 import Money from './Money';
 import ProductTile from './ProductTile';
 
@@ -73,10 +72,6 @@ export default function ProductCard({ product, variant = 'grid', onAddToCart }) 
   const lowStock = typeof totalStock === 'number' && totalStock > 0 && totalStock <= 3;
   const outOfStock = totalStock === 0;
 
-  /* Hearts live in localStorage: SCHEMA.md has no `favourite` table and
-     inventing one here would break the contract the whole team builds
-     against. Per-browser, never synced. */
-  const [fav, setFav] = useState(() => isFavourite(productId));
 
   /* ── compact: cart rows, order lines ───────────────────────────── */
   if (variant === 'compact') {
@@ -126,21 +121,6 @@ export default function ProductCard({ product, variant = 'grid', onAddToCart }) 
           {outOfStock && <Flag tone="muted">Out of stock</Flag>}
         </Stack>
 
-        <UnstyledButton
-          className={`bb-heart${fav ? ' bb-heart--on' : ''}`}
-          aria-pressed={fav}
-          aria-label={fav ? `Remove ${title} from favourites` : `Save ${title}`}
-          onClick={(e) => {
-            /* the whole tile is a link to the product; hearting is not
-               navigating, so the click stops here */
-            e.preventDefault();
-            e.stopPropagation();
-            toggleFavourite(productId);
-            setFav((v) => !v);
-          }}
-        >
-          {fav ? <IconHeartFilled size={16} /> : <IconHeart size={16} stroke={1.9} />}
-        </UnstyledButton>
       </Box>
 
       <Stack gap={4} pt={12} px={4} style={{ flex: 1 }}>
