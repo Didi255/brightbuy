@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Box, Group, Stack, Text } from '@mantine/core';
+import { Box, Button, Group, Stack, Text } from '@mantine/core';
 import {
   IconArrowUpRight,
   IconArrowDownRight,
@@ -187,6 +187,42 @@ export default function StaffDashboardPage() {
           { label: 'Dashboard' },
         ]}
         subtitle="Today's operations at a glance."
+        right={
+          <Group gap={8} wrap="wrap">
+            <Button
+              component={Link}
+              to="/staff/catalogue"
+              variant="default"
+              size="sm"
+            >
+              Catalogue
+            </Button>
+            <Button
+              component={Link}
+              to="/staff/orders"
+              variant="default"
+              size="sm"
+            >
+              Orders
+            </Button>
+            <Button
+              component={Link}
+              to="/staff/stock"
+              variant="default"
+              size="sm"
+            >
+              Stock
+            </Button>
+            <Button
+              component={Link}
+              to="/staff/reports"
+              variant="default"
+              size="sm"
+            >
+              Reports
+            </Button>
+          </Group>
+        }
       />
 
       <Stack gap={24}>
