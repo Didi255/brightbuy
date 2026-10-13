@@ -143,7 +143,7 @@ function toOrderShape(row, items, payment){
 
 
 
-exports.listAllOrders = async (filters = {}) => {
+async function listAllOrders(filters = {}) {
   if (filters.from && isNaN(Date.parse(filters.from))) {
     throw ApiError.badRequest('Invalid from date');
   }
@@ -168,7 +168,7 @@ exports.listAllOrders = async (filters = {}) => {
     deliveryMode: order.delivery_mode,
     city: order.city,
   }));
-};
+}
 
 const STAFF_TRANSITIONS = {
   Placed: ['Processing', 'Cancelled'],
@@ -178,7 +178,7 @@ const STAFF_TRANSITIONS = {
   Cancelled: [],
 };
 
-exports.transitionOrderStatus = async (staffUserId, orderId, newStatus) => {
+async function transitionOrderStatus(staffUserId, orderId, newStatus) {
   const order = await repo.findOrderStatusById(orderId);
   if (!order) throw ApiError.notFound('Order not found');
 
@@ -197,10 +197,10 @@ exports.transitionOrderStatus = async (staffUserId, orderId, newStatus) => {
   }
 
   return { orderId, orderStatus: newStatus };
-};
+}
 
 
-exports.adjustStock = async (staffId, variantId, changeQty, reason) => {
+async function adjustStock(staffId, variantId, changeQty, reason) {
   if (!Number.isInteger(variantId) || variantId <= 0) {
     throw ApiError.badRequest('Invalid variantId', { variantId: 'must be a positive integer' });
   }
@@ -218,7 +218,7 @@ exports.adjustStock = async (staffId, variantId, changeQty, reason) => {
   }
 
   return { adjustmentId: result.adjustmentId, variantId, staffId, changeQty, reason: reason.trim() };
-};
+}
 
 module.exports = {
   confirmCheckout,

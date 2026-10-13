@@ -88,6 +88,14 @@ jobs:
             | xargs -0 -n1 node --check
           echo "all files parse"
 
+      # `node --check` above only PARSES. It cannot see a name that is
+      # exported but never defined — that is a ReferenceError thrown when
+      # the module is first required, and it took the production API down
+      # in a crash loop. Actually loading the app catches it in CI instead.
+      - name: The app must actually load
+        working-directory: server
+        run: node -e "require('./src/app'); console.log('app loads')"
+
       # A service container cannot be given a `command:`, so the flag the
       # migrations need is set at runtime instead. Without it, MySQL
       # refuses to create a stored function while binary logging is on and
