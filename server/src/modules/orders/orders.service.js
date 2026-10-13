@@ -220,12 +220,7 @@ exports.adjustStock = async (staffId, variantId, changeQty, reason) => {
   return { adjustmentId: result.adjustmentId, variantId, staffId, changeQty, reason: reason.trim() };
 };
 
-module.exports = {
-  confirmCheckout,
-  getOrder,
-  listOrders,
-  cancelOrder,
-  listAllOrders,
-  transitionOrderStatus,
-  adjustStock,
-};
+exports.confirmCheckout = confirmCheckout;
+exports.getOrder = getOrder;
+exports.listOrders = listOrders;
+exports.cancelOrder = cancelOrder;

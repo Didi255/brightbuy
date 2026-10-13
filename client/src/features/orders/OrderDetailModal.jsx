@@ -91,8 +91,10 @@ export default function OrderDetailModal({ order, onClose }) {
 
   const { delivery, payment, items = [] } = order;
   const pickup = delivery?.deliveryMode === 'store_pickup';
-  const canPay = payment?.paymentStatus === 'Pending' && order.orderStatus !== 'Cancelled';
-  /* An invoice is a document asserting that money changed hands.
+const canPay =
+  payment?.paymentMethod === 'card'
+  && payment.paymentStatus === 'Pending'
+  && order.orderStatus !== 'Cancelled';  /* An invoice is a document asserting that money changed hands.
      Offering one on a Pending order would be a lie on headed
      paper, so the action does not exist until it is true. */
   const paid = payment?.paymentStatus === 'Paid';
