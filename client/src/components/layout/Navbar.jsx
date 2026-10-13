@@ -104,9 +104,7 @@ export default function Navbar({ cartItemCount = 0 }) {
           }}
         >
           <IconBolt size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
-          Staff Mode — <Link to="/staff" style={{ textDecoration: 'underline' }}>Dashboard</Link>
-          <span style={{ margin: '0 8px', opacity: 0.7 }}>•</span>
-          <Link to="/staff/catalogue" style={{ textDecoration: 'underline' }}>Catalogue</Link>
+          Staff Mode — <Link to="/staff" style={{ textDecoration: 'underline' }}>Go to Dashboard</Link>
         </Box>
       )}
 
@@ -262,12 +260,6 @@ export default function Navbar({ cartItemCount = 0 }) {
                       >
                         Staff Dashboard
                       </Menu.Item>
-                      <Menu.Item
-                        leftSection={<IconCategory size={16} />}
-                        onClick={() => navigate('/staff/catalogue')}
-                      >
-                        Staff Catalogue
-                      </Menu.Item>
                     </>
                   )}
                   <Divider my={4} color="rgba(255,236,214,0.08)" />
@@ -408,16 +400,10 @@ export default function Navbar({ cartItemCount = 0 }) {
                     Addresses
                   </Link>
                   {isStaff && (
-                    <>
-                      <Link to="/staff" className="bb-mobile-link">
-                        <IconDashboard size={20} stroke={1.6} />
-                        Staff Dashboard
-                      </Link>
-                      <Link to="/staff/catalogue" className="bb-mobile-link">
-                        <IconCategory size={20} stroke={1.6} />
-                        Staff Catalogue
-                      </Link>
-                    </>
+                    <Link to="/staff" className="bb-mobile-link">
+                      <IconDashboard size={20} stroke={1.6} />
+                      Staff Dashboard
+                    </Link>
                   )}
                   <Divider
                     my="sm"

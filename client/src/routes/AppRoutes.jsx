@@ -6,7 +6,7 @@
  * Group routes by slice with a comment header, in the order in the table.
  * Always git pull immediately before editing this file.
  */
-import { Routes, Route } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { AppShell } from '../components/layout';
 import { useCart } from '../context/CartContext';
 
@@ -26,23 +26,25 @@ import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import ProfilePage from '../features/auth/ProfilePage';
 import AddressBookPage from '../features/auth/AddressBookPage';
-import ProtectedRoute from './ProtectedRoute';
 import CityManagementPage from '../features/auth/CityManagementPage';
 import UserManagementPage from '../features/auth/UserManagementPage';
 import AuditLogPage from '../features/auth/AuditLogPage';
 
+/* ── Route protection ─────────────────────────────────────────────── */
+import ProtectedRoute from './ProtectedRoute';
+
 /* ── Slice A: orders ──────────────────────────────────────────────── */
 import OrderHistoryPage from '../features/orders/OrderHistoryPage';
 
-/* ── Slice E: staff console ───────────────────────────────────────── */
-import StaffDashboardPage from '../features/staff/StaffDashboardPage';
-import NotFoundPage from '../features/staff/NotFoundPage';
+/* ── Slice E: payments, reports & staff console ───────────────────── */
 import PaymentPage from '../features/payments/PaymentPage';
 import ReportsPage from '../features/staff/ReportsPage';
-import StockAdjustmentsPage from '../features/staff/stockAdjustmentsPage';
+import StaffDashboardPage from '../features/staff/StaffDashboardPage';
 import StaffOrdersPage from '../features/staff/StaffOrdersPage';
+import NotFoundPage from '../features/staff/NotFoundPage';
+import StockAdjustmentsPage from '../features/staff/StockAdjustmentPage';
 
-/* ── Placeholder pages (replaced as each slice lands) ─────────────── */
+/* ── Shared routing ───────────────────────────────────────────────── */
 import PlaceholderPage from '../features/PlaceholderPage';
 import ScrollToTop from './ScrollToTop';
 
@@ -51,14 +53,14 @@ export default function AppRoutes() {
 
   return (
     <>
-      {/* resets the scroll offset on every pathname change */}
       <ScrollToTop />
+
       <Routes>
-      <Route element={<AppShell cartItemCount={itemCount} />}>
-        {/* --- Slice B: catalogue --- */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/products" element={<ProductListPage />} />
-        <Route path="/products/:productId" element={<ProductDetailPage />} />
+        <Route element={<AppShell cartItemCount={itemCount} />}>
+          {/* --- Slice B: catalogue --- */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/products" element={<ProductListPage />} />
+          <Route path="/products/:productId" element={<ProductDetailPage />} />
 
           {/* --- Slice C: cart & checkout --- */}
           <Route path="/cart" element={<CartPage />} />
@@ -90,6 +92,14 @@ export default function AppRoutes() {
             renders the list with that order expanded. */}
         <Route
           path="/orders"
+          element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
+        />
+        {/* Same component: it reads :orderId with useParams and opens that
+            order's detail over the list. Without this route, every "view
+            order" link — from the list, from checkout success, and from the
+            payment page — fell through to the 404. */}
+        <Route
+          path="/orders/:orderId"
           element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
         />
 

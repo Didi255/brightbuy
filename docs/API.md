@@ -344,8 +344,9 @@ Order shape. On insufficient stock, 409:
 accepts `"success"` or `"failure"` so both paths are demonstrable. A real gateway would replace
 this without changing the response shape.
 
-**PATCH /admin/payments/:id** — `{ "paymentStatus": "Paid" }`. Records `staff_id` and timestamp
-from the JWT (REQ-11.3).
+**PATCH /admin/payments/:id** — body optional. If `paymentStatus` is sent it must be `"Paid"`,
+otherwise 400 `VALIDATION_ERROR`. Only `'Pending'` COD payments can be marked paid (409
+`NOT_PENDING` / `NOT_COD_PAYMENT`). Records `staff_id` from the JWT (REQ-11.3).
 
 **Reports** all return `{ "data": [ ... ], "generatedAt": "..." }`. Row shapes:
 

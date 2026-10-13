@@ -140,6 +140,8 @@ exports.findPaymentForOrder = async (orderId) => {
         `SELECT p.order_id AS orderId,
         p.payment_method AS paymentMethod,
         p.payment_status AS paymentStatus,
+        p.payment_id AS paymentId,
+        (p.payment_status = 'Failed' AND p.updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)) AS canRetry,
         p.gateway_ref AS gatewayRef
         FROM payment p
         WHERE p.order_id = ?`,
@@ -155,6 +157,8 @@ exports.findPaymentsForOrders = async (orderIds) => {
     `SELECT p.order_id       AS orderId,
             p.payment_method AS paymentMethod,
             p.payment_status AS paymentStatus,
+            p.payment_id AS paymentId,
+            (p.payment_status = 'Failed' AND p.updated_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)) AS canRetry,
             p.gateway_ref    AS gatewayRef
        FROM payment p
       WHERE p.order_id IN (?)`,
