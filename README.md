@@ -231,8 +231,8 @@ Stated here rather than discovered later.
   zero stock becomes a back-order with three extra days.
 - **Card payments use a mock gateway.** The brief asks for card as a payment method, not for a
   live processor; the adapter's response shape is what a real one would return.
-- **Payment status changes are check-then-act.** The service verifies the payment is `Pending`
-  before updating, but the `UPDATE` itself is not conditional on that status, so two simultaneous
-  submissions could race. The order transaction, by contrast, is proven under contention.
+- **No payment gateway webhook.** The mock gateway answers synchronously, so there is no
+  asynchronous confirmation path or reconciliation job. Status changes are conditional
+  `UPDATE ... WHERE payment_status = ...` statements, so a double submit changes the row once.
 - **The client has no static check for undefined components or unrouted links.** CI proves the
   build and the API load; it does not lint the front end.
