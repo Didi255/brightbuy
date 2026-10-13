@@ -350,7 +350,12 @@ export default function OrderHistoryPage() {
       )}
 
       {selected && (
-        <OrderDetailModal order={selected} onClose={() => navigate('/orders')} />
+        <OrderDetailModal
+          order={selected}
+          onClose={() => navigate('/orders')}
+          onCancelled={(updated) =>
+            setOrders((list) => list.map((o) => (o.orderId === updated.orderId ? updated : o)))}
+        />
       )}
     </>
   );
