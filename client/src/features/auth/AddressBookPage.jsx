@@ -1,5 +1,7 @@
+
 import { useEffect, useState } from 'react';
 import {
+  Alert,
   Button,
   Card,
   Container,
@@ -14,7 +16,11 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
-import { IconMapPin, IconPlus } from '@tabler/icons-react';
+import {
+  IconCheck,
+  IconMapPin,
+  IconPlus,
+} from '@tabler/icons-react';
 
 import { api } from '../../api/client';
 import {
@@ -36,6 +42,12 @@ export default function AddressBookPage() {
   const [addresses, setAddresses] = useState([]);
   const [cities, setCities] = useState([]);
 
+  // Default address state
+  const [defaultAddressId, setDefaultAddressId] = useState(null);
+  const [savingDefaultId, setSavingDefaultId] = useState(null);
+  const [defaultError, setDefaultError] = useState(null);
+  const [defaultSaved, setDefaultSaved] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
@@ -50,13 +62,21 @@ export default function AddressBookPage() {
       setLoading(true);
       setLoadError(null);
 
-      const [addressData, cityData] = await Promise.all([
+      // Load addresses, cities, and the customer's default address.
+      const [addressData, cityData, profileData] = await Promise.all([
         api.get('/me/addresses'),
         api.get('/cities'),
+        api.get('/me'),
       ]);
 
       setAddresses(Array.isArray(addressData) ? addressData : []);
       setCities(Array.isArray(cityData) ? cityData : []);
+
+      setDefaultAddressId(
+        profileData.addressId == null
+          ? null
+          : Number(profileData.addressId)
+      );
     } catch (error) {
       setLoadError(error);
     } finally {
@@ -157,6 +177,29 @@ export default function AddressBookPage() {
     }
   }
 
+  // Set a customer-owned address as the default delivery address.
+  async function handleSetDefault(addressId) {
+    if (savingDefaultId !== null) return;
+
+    setDefaultError(null);
+    setDefaultSaved(false);
+
+    try {
+      setSavingDefaultId(addressId);
+
+      const result = await api.patch(
+        `/me/addresses/${addressId}/default`
+      );
+
+      setDefaultAddressId(Number(result.addressId));
+      setDefaultSaved(true);
+    } catch (error) {
+      setDefaultError(error);
+    } finally {
+      setSavingDefaultId(null);
+    }
+  }
+
   if (loading) {
     return (
       <LoadingSpinner
@@ -185,6 +228,25 @@ export default function AddressBookPage() {
           </Button>
         }
       />
+
+      {/* Feedback after changing the default address */}
+      {defaultSaved && (
+        <Alert
+          icon={<IconCheck size={18} />}
+          color="green"
+          title="Default address updated"
+          mb="md"
+        >
+          Your default delivery address has been saved.
+        </Alert>
+      )}
+
+      {defaultError && (
+        <ErrorAlert
+          error={defaultError}
+          title="Could not update default address"
+        />
+      )}
 
       {loadError ? (
         <ErrorAlert
@@ -239,6 +301,29 @@ export default function AddressBookPage() {
                 <Text size="sm" c="dimmed">
                   {address.cityName}
                 </Text>
+
+                {/* Default address indicator or action */}
+                {defaultAddressId === Number(address.addressId) ? (
+                  <Group gap="xs">
+                    <IconCheck size={18} />
+                    <Text size="sm" fw={600}>
+                      Default address
+                    </Text>
+                  </Group>
+                ) : (
+                  <Button
+                    variant="default"
+                    onClick={() =>
+                      handleSetDefault(Number(address.addressId))
+                    }
+                    loading={
+                      savingDefaultId === Number(address.addressId)
+                    }
+                    disabled={savingDefaultId !== null}
+                  >
+                    Set as Default
+                  </Button>
+                )}
               </Stack>
             </Card>
           ))}
