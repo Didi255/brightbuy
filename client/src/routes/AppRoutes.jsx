@@ -120,7 +120,7 @@ export default function AppRoutes() {
           path="/staff/stock"
           element={
             <ProtectedRoute requireStaff>
-              <StockAdjustmentPage />
+              <StockAdjustmentsPage />
             </ProtectedRoute>
           }
         />
