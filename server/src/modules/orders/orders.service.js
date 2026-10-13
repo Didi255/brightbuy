@@ -132,10 +132,11 @@ function toOrderShape(row, items, payment){
             deliveryStatus:        row.deliveryStatus,
         },
         payment: payment ? {
+            paymentId:     payment.paymentId,
             paymentMethod: payment.paymentMethod,
             paymentStatus: payment.paymentStatus,
             gatewayRef:    payment.gatewayRef,
-            canRetry:      false,   // REQ-8.5 — slice E owns the 24h window
+            canRetry:      Boolean(payment.canRetry),   // REQ-8.5 — 24h window computed in SQL
         } : null,
     };
 }
