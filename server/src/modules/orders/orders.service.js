@@ -226,3 +226,6 @@ exports.confirmCheckout = confirmCheckout;
 exports.getOrder = getOrder;
 exports.listOrders = listOrders;
 exports.cancelOrder = cancelOrder;
+exports.listAllOrders = listAllOrders;
+exports.transitionOrderStatus = transitionOrderStatus;
+exports.adjustStock = adjustStock;
