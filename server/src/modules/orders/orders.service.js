@@ -132,10 +132,11 @@ function toOrderShape(row, items, payment){
             deliveryStatus:        row.deliveryStatus,
         },
         payment: payment ? {
+            paymentId:     payment.paymentId,
             paymentMethod: payment.paymentMethod,
             paymentStatus: payment.paymentStatus,
             gatewayRef:    payment.gatewayRef,
-            canRetry:      false,   // REQ-8.5 — slice E owns the 24h window
+            canRetry:      Boolean(payment.canRetry),   // REQ-8.5 — 24h window computed in SQL
         } : null,
     };
 }
@@ -165,6 +166,7 @@ async function listAllOrders(filters = {}) {
     totalAmount: order.total_amount,
     paymentStatus: order.payment_status || null,
     paymentMethod: order.payment_method || null,
+        paymentId: order.payment_id || null,
     deliveryMode: order.delivery_mode,
     city: order.city,
   }));
@@ -220,12 +222,10 @@ async function adjustStock(staffId, variantId, changeQty, reason) {
   return { adjustmentId: result.adjustmentId, variantId, staffId, changeQty, reason: reason.trim() };
 }
 
-module.exports = {
-  confirmCheckout,
-  getOrder,
-  listOrders,
-  cancelOrder,
-  listAllOrders,
-  transitionOrderStatus,
-  adjustStock,
-};
+exports.confirmCheckout = confirmCheckout;
+exports.getOrder = getOrder;
+exports.listOrders = listOrders;
+exports.cancelOrder = cancelOrder;
+exports.listAllOrders = listAllOrders;
+exports.transitionOrderStatus = transitionOrderStatus;
+exports.adjustStock = adjustStock;

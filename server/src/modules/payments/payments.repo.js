@@ -13,16 +13,6 @@ exports.findByOrderId = async (orderId) => {
   return rows[0] || null;
 };
 
-exports.updateStatus = async (paymentId, status, gatewayRef) => {
-  await pool.query(
-    `UPDATE payment
-        SET updated_at = IF(payment_status <> ?, CURRENT_TIMESTAMP, updated_at),
-            payment_status = ?,
-            gateway_ref = ?
-      WHERE payment_id = ?`,
-    [status, status, gatewayRef, paymentId]
-  );
-};
 
 exports.findCodPendingPayments = async (filters = {}) => {
   let query = `
@@ -96,4 +86,43 @@ exports.findExpiredFailedCardPayments = async () => {
 
 exports.cancelExpiredPaymentOrder = async (orderId) => {
   await pool.query('CALL sp_cancel_order(?, ?)', [orderId, null]);
+};
+
+// Only succeeds if the row is still Pending. Returns affectedRows (0 or 1).
+exports.setCardResultIfPending = async (paymentId, status, gatewayRef) => {
+  const [result] = await pool.query(
+    `UPDATE payment
+        SET payment_status = ?, gateway_ref = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE payment_id = ?
+        AND payment_method = 'card'
+        AND payment_status = 'Pending'`,
+    [status, gatewayRef, paymentId]
+  );
+  return result.affectedRows;
+};
+
+// Only succeeds if the row is still Failed. Resets updated_at so the 24h window restarts.
+exports.setRetryResultIfFailed = async (paymentId, status, gatewayRef) => {
+  const [result] = await pool.query(
+    `UPDATE payment
+        SET payment_status = ?, gateway_ref = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE payment_id = ?
+        AND payment_method = 'card'
+        AND payment_status = 'Failed'`,
+    [status, gatewayRef, paymentId]
+  );
+  return result.affectedRows;
+};
+
+// Only succeeds if a COD payment is still Pending.
+exports.markCodPaidIfPending = async (paymentId, staffId) => {
+  const [result] = await pool.query(
+    `UPDATE payment
+        SET payment_status = 'Paid', staff_id = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE payment_id = ?
+        AND payment_method = 'cod'
+        AND payment_status = 'Pending'`,
+    [staffId, paymentId]
+  );
+  return result.affectedRows;
 };
