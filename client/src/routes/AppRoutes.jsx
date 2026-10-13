@@ -73,7 +73,7 @@ export default function AppRoutes() {
           <Route
             path="/account"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requireCustomer>
                 <ProfilePage />
               </ProtectedRoute>
             }
@@ -81,7 +81,7 @@ export default function AppRoutes() {
           <Route
             path="/account/addresses"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requireCustomer>
                 <AddressBookPage />
               </ProtectedRoute>
             }
@@ -92,7 +92,7 @@ export default function AppRoutes() {
             renders the list with that order expanded. */}
         <Route
           path="/orders"
-          element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
+          element={<ProtectedRoute requireCustomer><OrderHistoryPage /></ProtectedRoute>}
         />
         {/* Same component: it reads :orderId with useParams and opens that
             order's detail over the list. Without this route, every "view
@@ -100,13 +100,13 @@ export default function AppRoutes() {
             payment page — fell through to the 404. */}
         <Route
           path="/orders/:orderId"
-          element={<ProtectedRoute><OrderHistoryPage /></ProtectedRoute>}
+          element={<ProtectedRoute requireCustomer><OrderHistoryPage /></ProtectedRoute>}
         />
 
         {/* --- Slice E: payments & staff --- */}
         <Route
           path="/orders/:orderId/pay"
-          element={<ProtectedRoute><PaymentPage /></ProtectedRoute>}
+          element={<ProtectedRoute requireCustomer><PaymentPage /></ProtectedRoute>}
         />        
         <Route
           path="/staff"

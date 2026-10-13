@@ -9,6 +9,13 @@ router.put('/me', requireAuth, controller.updateMe);
 router.get('/me/addresses', requireAuth, controller.getAddresses);
 router.post('/me/addresses', requireAuth, controller.createAddress);
 
+router.patch(
+  '/me/addresses/:addressId/default',
+  requireAuth,
+  controller.setDefaultAddress
+);
+
+
 router.get('/cities', controller.getCities);
 
 router.get(

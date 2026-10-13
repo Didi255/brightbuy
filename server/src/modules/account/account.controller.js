@@ -36,6 +36,20 @@ exports.createAddress = async (req, res, next) => {
   }
 };
 
+exports.setDefaultAddress = async (req, res, next) => {
+  try {
+    const result = await service.setDefaultAddress(
+      req.user,
+      req.params.addressId
+    );
+
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 exports.getCities = async (req, res, next) => {
   try {
     const result = await service.getCities();

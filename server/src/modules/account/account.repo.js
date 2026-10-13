@@ -84,6 +84,39 @@ exports.createAddress = async (userId, {
   return result.insertId;
 };
 
+/**
+ * Set an address as the customer's default address.
+ * The selected address must belong to that customer.
+ */
+exports.setDefaultAddress = async (userId, addressId) => {
+  return withTransaction(async (connection) => {
+    // Verify ownership and lock the address during the update.
+    const [addresses] = await connection.query(
+      `SELECT address_id
+       FROM address
+       WHERE address_id = ?
+         AND customer_id = ?
+       FOR UPDATE`,
+      [addressId, userId]
+    );
+
+    if (addresses.length === 0) {
+      return false;
+    }
+
+    // Save the default address in the customer table.
+    await connection.query(
+      `UPDATE customer
+       SET address_id = ?
+       WHERE user_id = ?`,
+      [addressId, userId]
+    );
+
+    return true;
+  });
+};
+
+
 exports.findCityById = async (cityId) => {
   const [rows] = await pool.query(
     `SELECT

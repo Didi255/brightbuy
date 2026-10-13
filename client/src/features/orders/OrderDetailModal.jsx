@@ -8,13 +8,18 @@
  *
  * Covers: REQ-5.5, REQ-5.6, REQ-5.7
  */
-import { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Box, Group, Stack, Text, Button, Divider, ScrollArea, UnstyledButton,
 } from '@mantine/core';
-import { IconX, IconDownload, IconRefresh, IconCreditCard } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
+import {
+  IconX, IconDownload, IconRefresh, IconCreditCard, IconBan,
+} from '@tabler/icons-react';
 import { StatusBadge, Money, ProductTile } from '../../components/ui';
+import { api } from '../../api/client';
+import { useCart } from '../../context/CartContext';
 import OrderProgress from './OrderProgress';
 
 const LINE = 'rgba(255,236,214,0.10)';
@@ -63,8 +68,71 @@ function MoneyRow({ label, value, strong }) {
   );
 }
 
-export default function OrderDetailModal({ order, onClose }) {
+export default function OrderDetailModal({ order, onClose, onCancelled }) {
   const panel = useRef(null);
+  const navigate = useNavigate();
+  const { addItem, fetchCart } = useCart();
+  const [busy, setBusy] = useState(null); // null | 'cancel' | 'reorder'
+
+  /* The server decides; this only decides whether to offer the button.
+     POST /orders/:id/cancel answers 409 INVALID_TRANSITION otherwise. */
+  async function handleCancel() {
+    if (!window.confirm(`Cancel order #${order.orderId}? Stock is released and any payment is refunded or cancelled.`)) return;
+    setBusy('cancel');
+    try {
+      const updated = await api.post(`/orders/${order.orderId}/cancel`);
+      onCancelled?.(updated);
+      notifications.show({
+        color: 'green',
+        title: 'Order cancelled',
+        message: `Order #${order.orderId} has been cancelled.`,
+      });
+    } catch (err) {
+      notifications.show({
+        color: 'red',
+        title: 'Could not cancel',
+        message: err.message || 'Something went wrong. Please try again.',
+      });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  /* Reorder puts the same variants and quantities in the cart at TODAY's
+     price and stock — never the old unit_price_at_order. One failed line
+     (a variant since retired) must not abandon the rest. */
+  async function handleReorder() {
+    setBusy('reorder');
+    let added = 0;
+    const skipped = [];
+    for (const it of order.items || []) {
+      try {
+        await addItem(it.variantId, it.quantity);
+        added += 1;
+      } catch {
+        skipped.push(it.productName);
+      }
+    }
+    await fetchCart();
+    setBusy(null);
+
+    if (added === 0) {
+      notifications.show({
+        color: 'red',
+        title: 'Nothing to reorder',
+        message: 'None of these items are available any more.',
+      });
+      return;
+    }
+    notifications.show({
+      color: skipped.length ? 'yellow' : 'green',
+      title: 'Added to your cart',
+      message: skipped.length
+        ? `${added} added. No longer available: ${skipped.join(', ')}.`
+        : `${added} item${added === 1 ? '' : 's'} from order #${order.orderId}.`,
+    });
+    navigate('/cart');
+  }
 
   /* Escape and outside-click both close. Focus moves into the panel so the
      keyboard does not stay behind the overlay. */
@@ -98,6 +166,7 @@ const canPay =
      Offering one on a Pending order would be a lie on headed
      paper, so the action does not exist until it is true. */
   const paid = payment?.paymentStatus === 'Paid';
+  const canCancel = order.orderStatus === 'Placed';
 
   return (
     <Box
@@ -288,7 +357,27 @@ const canPay =
           )}
 
           <Group gap={8} wrap="wrap">
-            <Button variant="default" size="sm" leftSection={<IconRefresh size={15} />}>
+            {canCancel && (
+              <Button
+                variant="default"
+                size="sm"
+                color="red"
+                leftSection={<IconBan size={15} />}
+                loading={busy === 'cancel'}
+                disabled={busy !== null}
+                onClick={handleCancel}
+              >
+                Cancel order
+              </Button>
+            )}
+            <Button
+              variant="default"
+              size="sm"
+              leftSection={<IconRefresh size={15} />}
+              loading={busy === 'reorder'}
+              disabled={busy !== null}
+              onClick={handleReorder}
+            >
               Reorder
             </Button>
             {canPay && (

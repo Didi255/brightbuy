@@ -16,6 +16,7 @@ import {
   ErrorAlert,
 } from '../../components/ui';
 import { api } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 
 const LINE = 'rgba(255,236,214,0.10)';
 
@@ -56,6 +57,21 @@ function Panel({ title, action, children }) {
 }
 
 export default function StaffDashboardPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+
+  /* Every staff page was reachable only by typing its URL. Admin-only
+     pages are listed for admins alone, matching requireAdmin in the routes. */
+  const manageLinks = [
+    { to: '/staff/catalogue', label: 'Products & categories', hint: 'Add products, variants and categories' },
+    { to: '/staff/stock', label: 'Stock adjustments', hint: 'Correct stock with a recorded reason' },
+    { to: '/staff/cities', label: 'Cities', hint: 'Delivery cities and main-city flag' },
+    ...(isAdmin ? [
+      { to: '/staff/users', label: 'Staff & users', hint: 'Roles and account status' },
+      { to: '/staff/audit-log', label: 'Audit log', hint: 'Who changed what, and when' },
+    ] : []),
+  ];
+
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersError, setOrdersError] = useState(null);
@@ -180,6 +196,22 @@ export default function StaffDashboardPage() {
               minWidth: 0,
             }}
           >
+            <Panel title="Manage">
+              <Box p={16}>
+                <Stack gap={12}>
+                  {manageLinks.map((l) => (
+                    <Box key={l.to}>
+                      <Text component={Link} to={l.to} style={MONO} c="brand.5">
+                        {l.label} →
+                      </Text>
+                      <Text fz={13} c="ink.3">{l.hint}</Text>
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+            </Panel>
+
+            <Box mt={24}>
             <Panel title="Reports">
               <Box p={16}>
                 <Stack gap={8}>
@@ -198,6 +230,7 @@ export default function StaffDashboardPage() {
                 </Stack>
               </Box>
             </Panel>
+            </Box>
           </Box>
         </Box>
       </Stack>

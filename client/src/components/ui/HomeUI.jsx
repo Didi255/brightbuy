@@ -27,7 +27,6 @@ import { Box,
   Stack,
   Text,
   Button,
-  TextInput,
   UnstyledButton } from '@mantine/core';
 import {
   IconArrowRight,
@@ -972,55 +971,7 @@ export function WhyChooseUs() {
 /* ══ 7. Newsletter ════════════════════════════════════════════════ */
 
 export function NewsletterCTA() {
-  const [focus, setFocus] = useState(false);
-  return (
-    <Box component="section" py={64} style={{ background: 'var(--mantine-color-ink-8)' }}>
-      <Container size="xl" px={{ base: 16, sm: 24 }}>
-        <Box style={{ display: 'flex', flexWrap: 'wrap', gap: 48, alignItems: 'center' }}>
-          <Stack gap={12} style={{ flex: '1 1 320px', minWidth: 0 }}>
-            <Text component="h2" c="ink.0" style={H2}>
-              Stay in the loop
-            </Text>
-            <Text fz={16} c="ink.2" style={{ maxWidth: '44ch', lineHeight: 1.6 }}>
-              New arrivals, price drops and the occasional genuinely good deal.
-              No more than twice a month.
-            </Text>
-          </Stack>
-
-          <Box style={{ flex: '1 1 360px', minWidth: 0 }}>
-            <Text style={{ ...MONO, fontSize: 11 }} c="ink.4" mb={8} component="label" htmlFor="bb-news">
-              Email address
-            </Text>
-            {/* input and button are ONE bordered unit — no gap, no inner card */}
-            <Group
-              gap={0}
-              wrap="nowrap"
-              style={{
-                border: `1px solid ${focus ? 'var(--mantine-color-brand-5)' : LINE}`,
-                borderRadius: 4,
-                overflow: 'hidden',
-                transition: `border-color 150ms ${EASE}`,
-              }}
-            >
-              <TextInput
-                id="bb-news"
-                type="email"
-                placeholder="you@example.com"
-                variant="unstyled"
-                onFocus={() => setFocus(true)}
-                onBlur={() => setFocus(false)}
-                style={{ flex: 1 }}
-                styles={{ input: { height: 48, padding: '0 16px', color: 'var(--mantine-color-ink-0)' } }}
-              />
-              <Button h={48} radius={0} color="brand.5" c="black" px={24}>
-                Subscribe
-              </Button>
-            </Group>
-          </Box>
-        </Box>
-      </Container>
-    </Box>
-  );
+  return null;
 }
 
 /* Kept so older imports do not break; the trust claims now live in the

@@ -123,11 +123,11 @@ function readMoney(value, field, errors, { positive = false } = {}) {
 
 function readBoolean(value, field, errors) {
   if (value === undefined) return undefined;
-  if (typeof value !== 'boolean') {
-    errors[field] = 'must be true or false';
-    return undefined;
-  }
-  return value;
+  if (typeof value === 'boolean') return value;
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  errors[field] = 'must be true or false';
+  return undefined;
 }
 
 /** An id that may be null (e.g. a top-level category has no parent). */
