@@ -1,3 +1,4 @@
+
 /**
  * Navbar — BrightBuy main navigation
  * OWNER: Slice C (Vidura)
@@ -40,6 +41,8 @@ import {
   IconUserPlus,
   IconDashboard,
   IconBolt,
+  IconUsers,
+  IconHistory,
 } from '@tabler/icons-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -241,39 +244,74 @@ export default function Navbar({ cartItemCount = 0 }) {
                     <Text size="xs" c="ink.3">{user.email}</Text>
                   </Menu.Label>
                   <Divider my={4} color="rgba(255,236,214,0.08)" />
+
                   {!isStaff && (
                     <>
-                  <Menu.Item
-                    leftSection={<IconUser size={16} />}
-                    onClick={() => navigate('/account')}
-                  >
-                    My Profile
-                  </Menu.Item>
-                  <Menu.Item
-                    leftSection={<IconPackage size={16} />}
-                    onClick={() => navigate('/orders')}
-                  >
-                    My Orders
-                  </Menu.Item>
-                  <Menu.Item
-                    leftSection={<IconMapPin size={16} />}
-                    onClick={() => navigate('/account/addresses')}
-                  >
-                    Addresses
-                  </Menu.Item>
+                      <Menu.Item
+                        leftSection={<IconUser size={16} />}
+                        onClick={() => navigate('/account')}
+                      >
+                        My Profile
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={<IconPackage size={16} />}
+                        onClick={() => navigate('/orders')}
+                      >
+                        My Orders
+                      </Menu.Item>
+                      <Menu.Item
+                        leftSection={<IconMapPin size={16} />}
+                        onClick={() => navigate('/account/addresses')}
+                      >
+                        Addresses
+                      </Menu.Item>
                     </>
                   )}
+
+                  {/* Staff navigation */}
                   {isStaff && (
                     <>
-                      <Divider label="Staff" labelPosition="center" my={4} color="rgba(255,236,214,0.08)" />
+                      <Divider
+                        label="Staff"
+                        labelPosition="center"
+                        my={4}
+                        color="rgba(255,236,214,0.08)"
+                      />
+
                       <Menu.Item
                         leftSection={<IconDashboard size={16} />}
                         onClick={() => navigate('/staff')}
                       >
                         Staff Dashboard
                       </Menu.Item>
+
+                      <Menu.Item
+                        leftSection={<IconMapPin size={16} />}
+                        onClick={() => navigate('/staff/cities')}
+                      >
+                        City Management
+                      </Menu.Item>
+
+                      {user?.role === 'admin' && (
+                        <>
+                          <Menu.Item
+                            leftSection={<IconUsers size={16} />}
+                            onClick={() => navigate('/staff/users')}
+                          >
+                            User Management
+                          </Menu.Item>
+
+                          <Menu.Item
+                            leftSection={<IconHistory size={16} />}
+                            onClick={() => navigate('/staff/audit-log')}
+                          >
+                            Audit Log
+                          </Menu.Item>
+                        </>
+                      )}
                     </>
                   )}
+
                   <Divider my={4} color="rgba(255,236,214,0.08)" />
                   <Menu.Item
                     leftSection={<IconLogout size={16} />}
@@ -399,32 +437,62 @@ export default function Navbar({ cartItemCount = 0 }) {
                   <Text
                     size="xs"
                     fw={600}
-                    style={{ color: 'rgba(255,255,255,0.5)', padding: '0 16px', marginBottom: 4 }}
+                    style={{
+                      color: 'rgba(255,255,255,0.5)',
+                      padding: '0 16px',
+                      marginBottom: 4,
+                    }}
                   >
                     Account
                   </Text>
+
                   {!isStaff && (
                     <>
-                  <Link to="/account" className="bb-mobile-link">
-                    <IconUser size={20} stroke={1.6} />
-                    My Profile
-                  </Link>
-                  <Link to="/account/addresses" className="bb-mobile-link">
-                    <IconMapPin size={20} stroke={1.6} />
-                    Addresses
-                  </Link>
+                      <Link to="/account" className="bb-mobile-link">
+                        <IconUser size={20} stroke={1.6} />
+                        My Profile
+                      </Link>
+                      <Link to="/account/addresses" className="bb-mobile-link">
+                        <IconMapPin size={20} stroke={1.6} />
+                        Addresses
+                      </Link>
                     </>
                   )}
+
+                  {/* Mobile staff navigation */}
                   {isStaff && (
-                    <Link to="/staff" className="bb-mobile-link">
-                      <IconDashboard size={20} stroke={1.6} />
-                      Staff Dashboard
-                    </Link>
+                    <>
+                      <Link to="/staff" className="bb-mobile-link">
+                        <IconDashboard size={20} stroke={1.6} />
+                        Staff Dashboard
+                      </Link>
+
+                      <Link to="/staff/cities" className="bb-mobile-link">
+                        <IconMapPin size={20} stroke={1.6} />
+                        City Management
+                      </Link>
+
+                      {user?.role === 'admin' && (
+                        <>
+                          <Link to="/staff/users" className="bb-mobile-link">
+                            <IconUsers size={20} stroke={1.6} />
+                            User Management
+                          </Link>
+
+                          <Link to="/staff/audit-log" className="bb-mobile-link">
+                            <IconHistory size={20} stroke={1.6} />
+                            Audit Log
+                          </Link>
+                        </>
+                      )}
+                    </>
                   )}
+
                   <Divider
                     my="sm"
                     style={{ borderColor: 'rgba(255,255,255,0.15)' }}
                   />
+
                   <button
                     className="bb-mobile-link"
                     style={{
@@ -453,7 +521,10 @@ export default function Navbar({ cartItemCount = 0 }) {
                   <Link
                     to="/register"
                     className="bb-mobile-link"
-                    style={{ background: 'rgba(255,140,0,0.12)', color: 'var(--mantine-color-brand-5)' }}
+                    style={{
+                      background: 'rgba(255,140,0,0.12)',
+                      color: 'var(--mantine-color-brand-5)',
+                    }}
                   >
                     <IconUserPlus size={20} stroke={1.6} />
                     Create Account
