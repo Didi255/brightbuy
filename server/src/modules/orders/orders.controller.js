@@ -69,6 +69,15 @@ exports.createAdjustment = async (req, res, next) => {
       Number(req.body.changeQty),
       req.body.reason
     );
+    res.locals.auditData = {
+      entityId: result.adjustmentId,
+      beforeValue: null,
+      afterValue: {
+        variantId: result.variantId,
+        changeQty: result.changeQty,
+        reason: result.reason,
+      },
+    };
     res.status(201).json(result);
   } catch (err) { next(err); }
 };

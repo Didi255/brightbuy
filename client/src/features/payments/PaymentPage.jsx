@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Group, Paper, Stack, Text } from '@mantine/core';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../../api/client';
@@ -10,6 +10,20 @@ export default function PaymentPage() {
   const [payment, setPayment] = useState(null);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+      useEffect(() => {
+      let cancelled = false;
+
+      api.get(`/orders/${orderId}`)
+        .then((order) => {
+          if (!cancelled && order.payment) setPayment(order.payment);
+        })
+        .catch((requestError) => {
+          if (!cancelled) setError(requestError);
+        });
+
+      return () => { cancelled = true; };
+    }, [orderId]);
 
   async function submitPayment(outcome) {
     const numericOrderId = Number(orderId);

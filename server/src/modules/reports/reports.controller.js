@@ -38,17 +38,17 @@ exports.customerSummary = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-exports.listAllOrders = async (req, res, next) => {
-  try {
-    const filters = {
-      status: req.query.status,
-      paymentStatus: req.query.paymentStatus,
-      deliveryMode: req.query.deliveryMode,
-      from: req.query.from,
-      to: req.query.to,
-    };
-    const result = await service.listAllOrders(filters);
-    res.json(result);
-  } catch (err) { next(err); }
-};
+// exports.listAllOrders = async (req, res, next) => {
+//   try {
+//     const filters = {
+//       status: req.query.status,
+//       paymentStatus: req.query.paymentStatus,
+//       deliveryMode: req.query.deliveryMode,
+//       from: req.query.from,
+//       to: req.query.to,
+//     };
+//     const result = await service.listAllOrders(filters);
+//     res.json(result);
+//   } catch (err) { next(err); }
+// };
 

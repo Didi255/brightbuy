@@ -118,26 +118,48 @@ export default function StaffOrdersPage() {
     {
       key: 'deliveryMode',
       label: 'Delivery',
-      render: (order) =>
-        order.deliveryMode === 'store_pickup' ? 'Store pickup' : 'Standard delivery',
-    },
-    {
-      key: 'actions',
-      label: 'Update status',
-      render: (order) => (
-        <Select
-          aria-label={`Update status for order ${order.orderId}`}
-          placeholder="Choose status"
-          data={statusOptions.filter((option) =>
-            (transitions[order.orderStatus] || []).includes(option.value)
+     render: (order) => (
+        <Group gap={8} wrap="nowrap">
+          {order.paymentMethod === 'cod' && order.paymentStatus === 'Pending' && (
+            <Button
+              size="xs"
+              variant="default"
+              disabled={updatingOrderId !== null}
+              onClick={() => markCodPaid(order)}
+            >
+              Mark COD paid
+            </Button>
           )}
-          value={null}
-          disabled={updatingOrderId !== null}
-          onChange={(value) => changeStatus(order, value)}
-        />
+          <Select
+            aria-label={`Update status for order ${order.orderId}`}
+            placeholder="Choose status"
+            data={statusOptions.filter((option) =>
+              (transitions[order.orderStatus] || []).includes(option.value)
+            )}
+            value={null}
+            disabled={updatingOrderId !== null}
+            onChange={(value) => changeStatus(order, value)}
+          />
+        </Group>
       ),
     },
   ];
+
+  async function markCodPaid(order) {
+  if (!window.confirm(`Mark order ${order.orderId} as paid (cash received)?`)) return;
+
+  setUpdatingOrderId(order.orderId);
+  setError(null);
+
+  try {
+    await api.patch(`/admin/payments/${order.paymentId}`, { paymentStatus: 'Paid' });
+    await loadOrders();
+  } catch (requestError) {
+    setError(requestError);
+  } finally {
+    setUpdatingOrderId(null);
+  }
+}
 
   return (
     <Stack gap={24}>

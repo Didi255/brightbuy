@@ -5,6 +5,7 @@
 const router = require('express').Router();
 const { requireAuth, requireRole } = require('../../middleware/auth');
 const controller = require('./orders.controller');
+const { auditMutation } = require('../../middleware/audit');
 
 // POST /api/checkout/confirm
 router.post('/checkout/confirm', requireAuth, controller.confirmCheckout);
@@ -27,11 +28,13 @@ router.patch(
   controller.updateStatus
 );
 
-module.exports = router;
 
 router.post(
   '/admin/stock-adjustments',
   requireAuth,
   requireRole('admin', 'major_exec', 'minor_exec', 'labour'),
+  auditMutation({ action: 'create', entityType: 'stock_adjustment' }),
   controller.createAdjustment
 );
+
+module.exports = router;
