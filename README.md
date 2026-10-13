@@ -141,7 +141,6 @@ npm run dev                       # UI on http://localhost:5173
 |---|---|---|
 | `admin@brightbuy.com` | `Admin@123` | staff — admin |
 | `majorexec@brightbuy.com` | `Major@123` | staff — major exec |
-| `john.smith@brightbuy.com` | `Customer@123` | customer (Houston, a main city — 5-day estimate) |
 | `sarah.brown@brightbuy.com` | `Customer@123` | customer (Lubbock — 7-day estimate) |
 
 Seed credentials for a coursework project. They are not used anywhere else.
