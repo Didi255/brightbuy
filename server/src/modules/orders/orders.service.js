@@ -165,6 +165,7 @@ async function listAllOrders(filters = {}) {
     totalAmount: order.total_amount,
     paymentStatus: order.payment_status || null,
     paymentMethod: order.payment_method || null,
+        paymentId: order.payment_id || null,
     deliveryMode: order.delivery_mode,
     city: order.city,
   }));
