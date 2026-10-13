@@ -46,8 +46,10 @@ exports.payCard = async (userId, orderId, mockOutcome) => {
   const status = paid ? 'Paid' : 'Failed';
   const gatewayRef = paid ? `MOCK-${Date.now()}` : null;
 
-  await repo.updateStatus(payment.payment_id, status, gatewayRef);
-
+    const changed = await repo.setCardResultIfPending(payment.payment_id, status, gatewayRef);
+  if (changed === 0) {
+    throw ApiError.conflict('PAYMENT_NOT_PENDING', 'This payment was already processed');
+  }
   return {
     paymentId: payment.payment_id,
     orderId: payment.order_id,
@@ -102,7 +104,11 @@ exports.retryPayment = async (userId, paymentId, mockOutcome) => {
   const status = paid ? 'Paid' : 'Failed';
   const gatewayRef = paid ? `MOCK-${Date.now()}` : null;
 
-  await repo.updateStatus(payment.payment_id, status, gatewayRef);
+    const changed = await repo.setRetryResultIfFailed(payment.payment_id, status, gatewayRef);
+  if (changed === 0) {
+    throw ApiError.conflict('NOT_RETRYABLE', 'This payment was already retried');
+  }
+
 
   logEmail({
     to: payment.email,
@@ -144,8 +150,11 @@ exports.markCodPaid = async (staffId, paymentId) => {
     throw ApiError.conflict('NOT_PENDING', `Payment is already ${payment.payment_status}`);
   }
 
-  await repo.markCodPaid(numericPaymentId, staffId);
-
+    const changed = await repo.markCodPaidIfPending(numericPaymentId, staffId);
+  if (changed === 0) {
+    throw ApiError.conflict('NOT_PENDING', 'Payment is no longer pending');
+  }
+  
   logEmail({
     to: payment.email,
     subject: 'Payment Received',
