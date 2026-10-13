@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import { Container, Box, Text, Group, Stack } from '@mantine/core';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { api } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 import {
   IconBrandFacebook,
   IconBrandX,
@@ -114,6 +115,7 @@ function ContactRow({ icon: Icon, children }) {
 }
 
 function Footer() {
+  const { isStaff } = useAuth();
   return (
     <Box
       component="footer"
@@ -160,8 +162,14 @@ function Footer() {
             <Stack gap={8} align="flex-start">
               <FooterLink to="/">Home</FooterLink>
               <FooterLink to="/products">Products</FooterLink>
-              <FooterLink to="/cart">Cart</FooterLink>
-              <FooterLink to="/orders">Orders</FooterLink>
+              {isStaff ? (
+                <FooterLink to="/staff/orders">Orders</FooterLink>
+              ) : (
+                <>
+                  <FooterLink to="/cart">Cart</FooterLink>
+                  <FooterLink to="/orders">Orders</FooterLink>
+                </>
+              )}
             </Stack>
           </Box>
 
@@ -171,8 +179,12 @@ function Footer() {
             <Stack gap={8} align="flex-start">
               <FooterLink to="/login">Sign in</FooterLink>
               <FooterLink to="/register">Register</FooterLink>
-              <FooterLink to="/account">My profile</FooterLink>
-              <FooterLink to="/account/addresses">Addresses</FooterLink>
+              {!isStaff && (
+                <>
+                  <FooterLink to="/account">My profile</FooterLink>
+                  <FooterLink to="/account/addresses">Addresses</FooterLink>
+                </>
+              )}
             </Stack>
           </Box>
 

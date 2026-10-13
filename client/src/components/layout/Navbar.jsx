@@ -50,9 +50,17 @@ const customerLinks = [
   { to: '/orders', label: 'Orders', icon: IconPackage },
 ];
 
+/* Staff have no customer orders: their Orders link is the staff queue. */
+const staffLinks = [
+  { to: '/', label: 'Home', icon: IconHome },
+  { to: '/products', label: 'Products', icon: IconCategory },
+  { to: '/staff/orders', label: 'Orders', icon: IconPackage },
+];
+
 /* ─── component ──────────────────────────────────────────────────── */
 export default function Navbar({ cartItemCount = 0 }) {
   const { user, logout, isStaff } = useAuth();
+  const navLinks = isStaff ? staffLinks : customerLinks;
   const location = useLocation();
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -153,7 +161,7 @@ export default function Navbar({ cartItemCount = 0 }) {
 
           {/* ── desktop nav links ────────────────────────────── */}
           <Group gap={4} visibleFrom="md">
-            {customerLinks.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
@@ -233,6 +241,8 @@ export default function Navbar({ cartItemCount = 0 }) {
                     <Text size="xs" c="ink.3">{user.email}</Text>
                   </Menu.Label>
                   <Divider my={4} color="rgba(255,236,214,0.08)" />
+                  {!isStaff && (
+                    <>
                   <Menu.Item
                     leftSection={<IconUser size={16} />}
                     onClick={() => navigate('/account')}
@@ -251,6 +261,8 @@ export default function Navbar({ cartItemCount = 0 }) {
                   >
                     Addresses
                   </Menu.Item>
+                    </>
+                  )}
                   {isStaff && (
                     <>
                       <Divider label="Staff" labelPosition="center" my={4} color="rgba(255,236,214,0.08)" />
@@ -344,7 +356,7 @@ export default function Navbar({ cartItemCount = 0 }) {
 
             {/* mobile nav links */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {customerLinks.map((link) => (
+              {navLinks.map((link) => (
                 <Link
                   key={link.to}
                   to={link.to}
@@ -391,6 +403,8 @@ export default function Navbar({ cartItemCount = 0 }) {
                   >
                     Account
                   </Text>
+                  {!isStaff && (
+                    <>
                   <Link to="/account" className="bb-mobile-link">
                     <IconUser size={20} stroke={1.6} />
                     My Profile
@@ -399,6 +413,8 @@ export default function Navbar({ cartItemCount = 0 }) {
                     <IconMapPin size={20} stroke={1.6} />
                     Addresses
                   </Link>
+                    </>
+                  )}
                   {isStaff && (
                     <Link to="/staff" className="bb-mobile-link">
                       <IconDashboard size={20} stroke={1.6} />
